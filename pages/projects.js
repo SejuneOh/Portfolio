@@ -5,7 +5,7 @@ import { TOKEN, DATABASE_ID } from "../config/index"
 export default function Projects({ projects }) {
 
   return <Layout >
-    <div className="flex flex-col justify-center items-center min-h-screen px-5 py-23 mb-10">
+    <div className="flex flex-col justify-center items-center min-h-screen px-5 py-23">
       {
         projects.results ? (<>
           <h1 className="text-4xl font-bold sm:text-6xl mt-4">

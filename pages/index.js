@@ -2,8 +2,8 @@ import Head from 'next/head'
 import { Inter } from '@next/font/google'
 import Layout from '../components/layout'
 import Description from '../components/home/description'
+import UserAvator from "../components/home/userAvator"
 import Animation from '../components/animation'
-import favicon from "../public/favicon.svg"
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -17,9 +17,10 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <section className="flex-min-h-screen flex-col items-center justify-center text-gray-600 body-font">
-        <div className="container mx-auto flex px-5 py-24 md:flex-row flex-col items-center">
-          <Description />
-          <div className="lg:max-w-lg lg:w-full md:w-1/2 w-5/6">
+        <div className="container mx-auto flex px-5 py-24 md:flex-row flex-col items-center justify-center">
+          <UserAvator />
+          {/* <Description /> */}
+          <div className="lg:max-w-lg lg:w-full md:w-1/2 w-5/6 flex-auto">
             <Animation />
           </div>
         </div>

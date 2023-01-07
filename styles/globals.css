@@ -20,6 +20,11 @@
             hover:text-blue-600
 }
 
+.badge-card {
+    @apply w-20 rounded-sm text-center text-gray-200 text-white
+    dark:text-black
+}
+
 
 h1, h2, h3, h4, h5, h6 {
     @apply text-slate-900 dark:text-white

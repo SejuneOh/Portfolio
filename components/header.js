@@ -1,5 +1,4 @@
 import Link from "next/link"
-import favicon from "../public/favicon.svg"
 import DarkModeToggleBtn from "./darkModeToggleBtn"
 
 export default function Header() {

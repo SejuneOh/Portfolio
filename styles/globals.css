@@ -21,7 +21,7 @@
 }
 
 .badge-card {
-    @apply w-20 rounded-sm text-center text-gray-200 text-white
+    @apply  px-0.5 py-1 w-20 rounded-sm text-center text-white
     dark:text-black
 }
 

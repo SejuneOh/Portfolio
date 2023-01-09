@@ -5,7 +5,7 @@ export default function DarkModeToggleBtn() {
   const { theme, setTheme } = useTheme();
 
   return <>
-    <button className="inline-flex items-center bg-gray-100 border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 hover:text-orange-500 dark:hover:text-yellow-500 rounded text-base mt-4 md:mt-0"
+    <button className="inline-flex items-center bg-white border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 hover:text-orange-500 dark:hover:text-yellow-500 rounded text-base mt-4 md:mt-0"
       type="button"
       onClick={(e) => setTheme(theme === 'light' ? 'dark' : 'light')}>
 

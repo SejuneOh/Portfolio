@@ -5,8 +5,8 @@ export default function UserAvator() {
 
 
   return (<>
-    <div className="max-w-lg flex flex-auto pt-6 py-18 items-center justify-center flex-col rounded-md shadow-lg dark:bg-slate-700">
-      <div className="max-w-sm h-51 object-cover rouned-lg overflow-hidden my-4">
+    <div className="max-w-md flex flex-auto pt-6 py-18 items-center justify-center flex-col rounded-md shadow-lg bg-gray-100  dark:bg-slate-700">
+      <div className="max-w-sm h-51 object-cover rouned-lg overflow-hidden my-4 border-solid border-2 border-white rounded-full">
         <Image
           src={"https://avatars.githubusercontent.com/u/103201530?s=400&u=bd447ab2dbe5bfd3ae1c96e2036df9f114865d10&v=4"}
           className="rounded-full"
@@ -31,7 +31,7 @@ export default function UserAvator() {
       </div>
       <div className="px-2 py-2 container  mt-3 ">
         <h3 className="pl-2 font-semibold">Stack</h3>
-        <div className="container flex gap-2 py-2 px-2 flex-wrap ">
+        <div className="container flex gap-2 py-2 px-2 flex-wrap justify-center items-center ">
           <p className="badge-card bg-blue-400">React</p>
           <p className="badge-card bg-orange-300">HTML</p>
           <p className="badge-card bg-yellow-300">CSS</p>

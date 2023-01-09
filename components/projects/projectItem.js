@@ -1,4 +1,6 @@
 import Image from "next/image";
+import { useEffect } from "react";
+import Badge from "../ badge";
 
 
 export default function ProjectItem({ data }) {
@@ -17,22 +19,23 @@ export default function ProjectItem({ data }) {
     return result;
   }
 
+
+
   return (
     <div className="project-card ">
       {data.cover && <Image
-        className="rounded-t"
+        className="rounded-t max-h-full"
         src={data.cover}
         alt="cover Image"
         width="100"
         height="100"
         layout="responsive"
-        objectFit="cover"
         quality={100}
       />
       }
 
       <div className="p-4 flex flex-col">
-        <h1 className="text-2xl font-bold">{data.title}</h1>
+        <h1 className="text-2xl font-bold">{data.projectName}</h1>
         <h3 className="mt-4 text-xl">
           {data.description}
         </h3>
@@ -40,11 +43,17 @@ export default function ProjectItem({ data }) {
           <p className="my-1">
             작업시간 : {data.startDate} ~ {data.endDate} ({calcDate(data.startDate, data.endDate)}일)
           </p>
-        </>) : (<></>)}
+        </>) : (<>
+          <p className="my-1">
+            작업시간: {data.startDate} ~ 진행 중
+          </p>
+        </>)}
 
-        <a href={data.url}>github 바로가기</a>
-        <div className="flex items-start mt-2">
-          {data.tags.map((tag) => (<h1 className="px-2 py-1 mr-2 rounded-md bg-sky-200 dark:bg-sky-700 w-30" key={tag.id}>{tag.name}</h1>))}
+        {data.url &&
+          <a href={data.url}>github 바로가기</a>
+        }
+        <div className="flex flex-wrap items-start mt-2 mb-2">
+          {data.tags.map((tag) => (<Badge key={tag.id} text={tag.name} />))}
         </div>
       </div>
     </div>)

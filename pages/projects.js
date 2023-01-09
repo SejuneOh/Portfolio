@@ -20,7 +20,7 @@ export default function Projects({ ProjectArr }) {
             <h1 className="text-4xl font-bold sm:text-6xl mt-4 ">
               총 프로젝트 : <span className="pl-4 text-blue-500">{`${ProjectArr.length}개`}</span>
             </h1>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 m-6 py-10">
+            <div className="grid lg:grid-cols-2 md:grid-cols-1 gap-8 m-6 py-10">
               {
                 ProjectArr.map((item) => <ProjectItem key={item.id} data={item} />)
               }
@@ -73,7 +73,6 @@ export async function getStaticProps(context) {
     return project
   })
 
-  getRandomCover();
 
   return {
     props: { ProjectArr }, // will be passed to the page component as props

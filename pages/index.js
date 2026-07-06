@@ -31,14 +31,12 @@ const skills = [
 
 function Section({ n, title, children }) {
   return (
-    <section className="border-t border-line py-12">
-      <div className="grid gap-x-10 gap-y-4 md:grid-cols-[150px_1fr]">
-        <h2 className="text-xl font-semibold text-fg">
-          <span className="mr-2 font-mono text-xs tracking-widest text-accent">{n}</span>
-          {title}
-        </h2>
-        <div>{children}</div>
-      </div>
+    <section className="border-t border-line py-10">
+      <h2 className="mb-5 text-xs font-bold uppercase tracking-[0.2em] text-muted">
+        <span className="mr-2 text-accent">{n}</span>
+        {title}
+      </h2>
+      {children}
     </section>
   )
 }
@@ -46,83 +44,75 @@ function Section({ n, title, children }) {
 export default function Home() {
   return (
     <Layout title="Sejune Oh — 백엔드 개발자">
-      <div className="mx-auto max-w-content px-5">
-        {/* Hero */}
-        <section className="animate-rise py-20">
-          <p className="font-mono text-xs uppercase tracking-[0.28em] text-accent">
-            Backend Engineer · Fullstack
-          </p>
-          <h1 className="mt-4 text-5xl font-bold tracking-tight text-fg sm:text-6xl">오세준</h1>
-          <p className="mt-2 text-lg text-muted">Sejune Oh · 백엔드 개발자 · 풀스택</p>
-          <p className="mt-6 max-w-2xl text-xl leading-relaxed text-fg sm:text-2xl">
-            헬스케어 SaaS의 채팅/메시징 백엔드를 설계·운영하는 C#/.NET 백엔드 개발자입니다.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="/projects" className="btn-accent">프로젝트 보기</Link>
-            <Link
-              href="/blog"
-              className="inline-flex items-center rounded-lg border border-line px-4 py-2 text-sm font-medium text-fg transition-colors hover:bg-surface"
-            >
-              블로그
-            </Link>
-            <a
-              href="mailto:etry0715@gmail.com"
-              className="inline-flex items-center rounded-lg border border-line px-4 py-2 text-sm font-medium text-fg transition-colors hover:bg-surface"
-            >
-              Contact
-            </a>
-          </div>
-        </section>
-
-        <Section n="01" title="About">
-          <div className="space-y-4 text-[15px] leading-relaxed text-muted">
-            {intro.map((p, i) => (
-              <p key={i}>{p}</p>
-            ))}
-          </div>
-        </Section>
-
-        <Section n="02" title="What I do">
-          <div className="grid gap-4 sm:grid-cols-1">
-            {whatIDo.map((w) => (
-              <div key={w.title} className="card p-5">
-                <h3 className="text-[15px] font-semibold text-fg">{w.title}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-muted">{w.body}</p>
-              </div>
-            ))}
-          </div>
-        </Section>
-
-        <Section n="03" title="Stack">
-          <dl className="divide-y divide-line">
-            {skills.map((s) => (
-              <div key={s.group} className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[120px_1fr]">
-                <dt className="font-mono text-xs text-accent">{s.group}</dt>
-                <dd className="text-sm text-muted">{s.items}</dd>
-              </div>
-            ))}
-          </dl>
-        </Section>
-
-        <Section n="04" title="Featured">
-          <Link href="/projects" className="card block p-6 hover:bg-surface-hover">
-            <div className="flex items-baseline justify-between gap-4">
-              <h3 className="text-xl font-semibold text-fg">멀티플랫폼 채팅/메시징 백엔드</h3>
-              <span className="whitespace-nowrap font-mono text-xs text-muted">2024.09 – 현재</span>
-            </div>
-            <p className="mt-3 text-sm leading-relaxed text-muted">
-              실시간 상담 채팅을 SignalR 이벤트 엔진에서 시작해 WhatsApp·LINE·WeChat 통합을 거쳐
-              독립 플랫폼(Omni)으로 재구축한 2.5년 백엔드 오너십.
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {[".NET 10", "SignalR", "MassTransit", "Cosmos DB", "Redis"].map((t) => (
-                <span key={t} className="chip">{t}</span>
-              ))}
-            </div>
-            <span className="mt-5 inline-block text-sm text-accent">프로젝트 전체 보기 →</span>
+      {/* Hero */}
+      <section className="pb-6">
+        <p className="font-mono text-xs uppercase tracking-[0.28em] text-accent">
+          Backend Engineer · Fullstack
+        </p>
+        <h1 className="mt-4 max-w-2xl text-3xl font-bold leading-[1.25] tracking-tight text-fg sm:text-[40px] sm:leading-[1.2]">
+          헬스케어 SaaS의 채팅/메시징 백엔드를 설계·운영하는 C#/.NET 백엔드 개발자.
+        </h1>
+        <div className="mt-7 flex flex-wrap gap-3">
+          <Link href="/projects" className="btn-accent">프로젝트 보기</Link>
+          <Link
+            href="/blog"
+            className="inline-flex items-center rounded-lg border border-line px-4 py-2 text-sm font-medium text-fg transition-colors hover:bg-surface"
+          >
+            블로그
           </Link>
-        </Section>
-      </div>
+        </div>
+      </section>
+
+      <Section n="01" title="About">
+        <div className="space-y-4 text-[15px] leading-relaxed text-muted">
+          {intro.map((p, i) => (
+            <p key={i}>{p}</p>
+          ))}
+        </div>
+      </Section>
+
+      <Section n="02" title="What I do">
+        <div className="grid gap-4 sm:grid-cols-2">
+          {whatIDo.map((w) => (
+            <div key={w.title} className="border-l-2 border-accent/40 pl-4">
+              <h3 className="text-[15px] font-semibold text-fg">{w.title}</h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-muted">{w.body}</p>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      <Section n="03" title="Stack">
+        <dl className="divide-y divide-line">
+          {skills.map((s) => (
+            <div key={s.group} className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[110px_1fr]">
+              <dt className="font-mono text-xs text-accent">{s.group}</dt>
+              <dd className="text-sm text-muted">{s.items}</dd>
+            </div>
+          ))}
+        </dl>
+      </Section>
+
+      <Section n="04" title="Featured">
+        <Link href="/projects" className="group block">
+          <div className="flex items-baseline justify-between gap-4">
+            <h3 className="text-xl font-bold text-fg group-hover:text-accent">
+              멀티플랫폼 채팅/메시징 백엔드
+            </h3>
+            <span className="whitespace-nowrap font-mono text-xs text-muted">2024.09 – 현재</span>
+          </div>
+          <p className="mt-3 text-sm leading-relaxed text-muted">
+            실시간 상담 채팅을 SignalR 이벤트 엔진에서 시작해 WhatsApp·LINE·WeChat 통합을 거쳐
+            독립 플랫폼(Omni)으로 재구축한 2.5년 백엔드 오너십.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {[".NET 10", "SignalR", "MassTransit", "Cosmos DB", "Redis"].map((t) => (
+              <span key={t} className="chip">{t}</span>
+            ))}
+          </div>
+          <span className="mt-5 inline-block text-sm text-accent">프로젝트 전체 보기 →</span>
+        </Link>
+      </Section>
     </Layout>
   )
 }

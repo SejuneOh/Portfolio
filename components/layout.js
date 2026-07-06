@@ -1,6 +1,6 @@
-import Footer from "./footer"
-import Header from "./header"
 import Head from "next/head"
+import Sidebar from "./sidebar"
+import Footer from "./footer"
 
 export default function Layout({ children, title = "Sejune Oh — 백엔드 개발자" }) {
   return (
@@ -14,9 +14,12 @@ export default function Layout({ children, title = "Sejune Oh — 백엔드 개�
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <div className="flex min-h-screen flex-col">
-        <Header />
-        <main className="flex-1">{children}</main>
+
+      <div className="mx-auto max-w-[1240px] px-6">
+        <div className="md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-14">
+          <Sidebar />
+          <main className="min-w-0 py-10 md:py-14">{children}</main>
+        </div>
         <Footer />
       </div>
     </>

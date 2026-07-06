@@ -1,10 +1,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import Layout from "../../components/layout"
-import { posts, categories } from "../../lib/posts"
-
-// 메이슨리에서 높이 변화를 주기 위한 커버 비율 (매거진 콜라주 느낌)
-const ratios = ["aspect-[4/5]", "aspect-[5/4]", "aspect-square", "aspect-[3/4]", "aspect-[4/3]"]
+import { posts, categories, readingMinutes } from "../../lib/posts"
 
 export default function Blog() {
   const [active, setActive] = useState("All")
@@ -23,7 +20,7 @@ export default function Blog() {
       </header>
 
       {/* Category tabs */}
-      <div className="mb-8 flex flex-wrap gap-2 border-b border-line pb-4">
+      <div className="mb-2 flex flex-wrap gap-2 border-b border-line pb-4">
         {categories.map((c) => (
           <button
             key={c}
@@ -39,33 +36,24 @@ export default function Blog() {
         ))}
       </div>
 
-      {/* Masonry gallery */}
-      <div className="gap-8 sm:columns-2 xl:columns-3">
-        {filtered.map((post, i) => (
-          <Link
-            key={post.slug}
-            href={`/blog/${post.slug}`}
-            className="group mb-8 block break-inside-avoid"
-          >
-            <div
-              className={`flex items-end overflow-hidden bg-gradient-to-br ${post.gradient} ${ratios[i % ratios.length]} p-4`}
-            >
-              <span className="rounded-md bg-black/25 px-2 py-0.5 font-mono text-xs text-white backdrop-blur-sm">
-                {post.category}
-              </span>
-            </div>
-            <div className="pt-3">
-              <h2 className="text-base font-bold leading-snug text-fg transition-colors group-hover:text-accent">
+      {/* Text-first list */}
+      <div className="divide-y divide-line">
+        {filtered.map((post) => (
+          <Link key={post.slug} href={`/blog/${post.slug}`} className="group block py-6">
+            <div className="flex items-baseline justify-between gap-4">
+              <h2 className="text-lg font-bold leading-snug text-fg transition-colors group-hover:text-accent">
                 {post.title}
               </h2>
-              <p className="mt-1.5 text-sm leading-relaxed text-muted">{post.summary}</p>
-              <div className="mt-3 flex items-center gap-3">
-                <time className="font-mono text-xs text-muted">{post.date}</time>
-                <div className="flex gap-1.5">
-                  {post.tags.slice(0, 2).map((t) => (
-                    <span key={t} className="chip">{t}</span>
-                  ))}
-                </div>
+              <time className="shrink-0 font-mono text-xs text-muted">{post.date}</time>
+            </div>
+            <p className="mt-1.5 text-sm leading-relaxed text-muted">{post.summary}</p>
+            <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted">
+              <span className="font-mono">{readingMinutes(post)}분 읽기</span>
+              <span className="text-line">·</span>
+              <div className="flex flex-wrap gap-1.5">
+                {post.tags.map((t) => (
+                  <span key={t} className="chip">{t}</span>
+                ))}
               </div>
             </div>
           </Link>

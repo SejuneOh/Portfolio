@@ -2,47 +2,65 @@
 @tailwind components;
 @tailwind utilities;
 
-.bg-primary {
-    @apply bg-white dark:bg-slate-800
+:root {
+  --bg: #ffffff;
+  --surface: #f7f6f3;
+  --surface-hover: #efeee9;
+  --text: #37352f;
+  --text-muted: #787774;
+  --border: #e9e9e7;
+  --accent: #2383e2;
+  --accent-hover: #0b6bcb;
 }
 
-.btn-project {
-    @apply inline-flex text-white dark:text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded text-lg
+.dark {
+  --bg: #191919;
+  --surface: #252525;
+  --surface-hover: #2f2f2f;
+  --text: rgba(255, 255, 255, 0.9);
+  --text-muted: #9b9b98;
+  --border: #2f2f2f;
+  --accent: #529cca;
+  --accent-hover: #6ab3df;
 }
 
-.project-card {
-    @apply flex flex-col m-3 rounded-xl w-full 
-            transition duration-300 transform border border-gray-300
-            hover:scale-105
-            hover:shadow-lg
-            dark:border-gray-200/50
-            dark:hover:shadow-gray-400/40
-            hover:text-blue-600
+html {
+  background: var(--bg);
+  scroll-behavior: smooth;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+::selection {
+  background: var(--accent);
+  color: #fff;
 }
 
-.badge-card {
-    @apply  px-0.5 py-1 w-20 rounded-sm text-center text-white
-    dark:text-black
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--text);
+  }
 }
 
-
-h1, h2, h3, h4, h5, h6 {
-    @apply text-slate-900 dark:text-white
+@layer components {
+  .card {
+    @apply rounded-xl border border-line bg-surface transition-all duration-200;
+  }
+  .chip {
+    @apply inline-flex items-center rounded-full border border-line bg-surface px-2.5 py-0.5 text-xs font-medium text-muted;
+  }
+  .btn-accent {
+    @apply inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover;
+  }
+  .link-underline {
+    @apply border-b border-line pb-0.5 text-muted transition-colors hover:border-accent hover:text-accent;
+  }
 }
 
-footer {
-    @apply text-gray-600 dark:text-white
-    bg-gray-100 dark:bg-slate-700/20
-}
-
-header {
-    @apply text-gray-600  bg-gray-100 dark:bg-slate-600/20
-}
-
-a {
-    @apply text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-50
-}
-
-p {
-    @apply text-slate-500 dark:text-slate-400
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .animate-rise { animation: none !important; }
 }

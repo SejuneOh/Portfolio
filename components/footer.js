@@ -23,7 +23,7 @@ export default function Footer() {
       {/* divider with // mark */}
       <div className="flex items-center py-10">
         <div className="h-px flex-1 bg-line" />
-        <span className="px-4 font-mono text-sm text-muted">//</span>
+        <span className="px-4 font-mono text-sm text-muted">{"//"}</span>
         <div className="h-px flex-1 bg-line" />
       </div>
 

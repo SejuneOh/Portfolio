@@ -1,3 +1,4 @@
+import type React from "react"
 import Link from "next/link"
 import Layout from "../components/layout"
 
@@ -29,7 +30,7 @@ const skills = [
   { group: "Frontend", items: "React, TypeScript, Next.js, SWR" },
 ]
 
-function Section({ n, title, children }) {
+function Section({ n, title, children }: { n: string; title: string; children: React.ReactNode }) {
   return (
     <section className="border-t border-line py-10">
       <h2 className="mb-5 text-xs font-bold uppercase tracking-[0.2em] text-muted">

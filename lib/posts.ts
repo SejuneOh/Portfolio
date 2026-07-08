@@ -1,9 +1,26 @@
 // 블로그 콘텐츠 (추후 Notion DB 연동 가능 — projects.js 패턴 참고)
 // body 블록: { p } 문단, { h } 소제목, { code } 코드, { ul } 목록
 
-export const categories = ["All", "Performance", "Backend", "Architecture"]
+export type Block =
+  | { p: string; h?: never; code?: never; ul?: never }
+  | { h: string; p?: never; code?: never; ul?: never }
+  | { code: string; p?: never; h?: never; ul?: never }
+  | { ul: string[]; p?: never; h?: never; code?: never }
 
-export const posts = [
+export interface Post {
+  slug: string
+  title: string
+  date: string
+  category: string
+  tags: string[]
+  gradient: string
+  summary: string
+  body: Block[]
+}
+
+export const categories: string[] = ["All", "Performance", "Backend", "Architecture"]
+
+export const posts: Post[] = [
   {
     slug: "ef-core-cartesian-explosion",
     title: "EF Core 카테시안 폭발로 91초 걸리던 API를 0.04초로",
@@ -92,10 +109,11 @@ export const posts = [
   },
 ]
 
-export const getPost = (slug) => posts.find((p) => p.slug === slug)
+export const getPost = (slug: string): Post | undefined =>
+  posts.find((p) => p.slug === slug)
 
 // 본문 글자 수 기반 읽기시간(분). 한국어 ~500자/분 기준.
-export function readingMinutes(post) {
+export function readingMinutes(post: Post): number {
   const text = (post.body || [])
     .map((b) => b.p || b.h || b.code || (b.ul ? b.ul.join(" ") : ""))
     .join(" ")
@@ -103,7 +121,7 @@ export function readingMinutes(post) {
 }
 
 // 목록 순서 기준 이전/다음 글 (배열 앞쪽이 최신)
-export function getAdjacent(slug) {
+export function getAdjacent(slug: string): { prev: Post | null; next: Post | null } {
   const i = posts.findIndex((p) => p.slug === slug)
   return {
     prev: i >= 0 && i < posts.length - 1 ? posts[i + 1] : null, // 더 오래된 글

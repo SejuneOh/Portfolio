@@ -1,6 +1,23 @@
-import Badge from "../ badge";
+import Badge from "../badge";
 
-export default function ProjectItem({ data }) {
+export interface ProjectTag {
+  id: string;
+  name: string;
+}
+
+export interface Project {
+  id: string;
+  projectName: string;
+  description: string;
+  cover: string;
+  tags: ProjectTag[];
+  url: string;
+  startDate: string;
+  endDate: string;
+  status: boolean;
+}
+
+export default function ProjectItem({ data }: { data: Project }) {
   const period = data.status
     ? `${data.startDate} ~ ${data.endDate}`
     : `${data.startDate} ~ 진행 중`;

@@ -1,8 +1,36 @@
+import type { GetStaticProps, InferGetStaticPropsType } from "next"
 import Layout from "../components/layout"
-import ProjectItem from "../components/projects/projectItem";
+import ProjectItem, { type Project } from "../components/projects/projectItem";
 import { TOKEN, DATABASE_ID } from "../config/index"
 
-export default function Projects({ ProjectArr }) {
+// Notion query 응답 중 실제로 사용하는 필드만 최소한으로 정의
+interface NotionText {
+  plain_text?: string
+}
+interface NotionSelectOption {
+  id: string
+  name: string
+}
+interface NotionProperties {
+  projectName?: { title?: NotionText[] }
+  description?: { rich_text?: NotionText[] }
+  tag?: { multi_select?: NotionSelectOption[] }
+  github?: { url?: string }
+  workPeriod?: { date?: { start?: string; end?: string } }
+  status?: { status?: { name?: string } }
+}
+interface NotionPage {
+  id: string
+  properties?: NotionProperties
+  cover?: { external?: { url?: string }; file?: { url?: string } }
+}
+interface NotionQueryResponse {
+  results?: NotionPage[]
+}
+
+export default function Projects({
+  ProjectArr,
+}: InferGetStaticPropsType<typeof getStaticProps>) {
   return (
     <Layout title="Projects — Sejune Oh">
       <header className="mb-8">
@@ -30,7 +58,7 @@ export default function Projects({ ProjectArr }) {
   );
 }
 
-export async function getStaticProps() {
+export const getStaticProps: GetStaticProps<{ ProjectArr: Project[] }> = async () => {
   // 토큰/DB가 없거나 요청이 실패해도 빌드가 깨지지 않도록 방어적으로 처리
   if (!TOKEN || !DATABASE_ID) {
     return { props: { ProjectArr: [] } };
@@ -56,9 +84,9 @@ export async function getStaticProps() {
       options
     );
     if (!res.ok) throw new Error(`Notion API ${res.status}`);
-    const projects = await res.json();
+    const projects = (await res.json()) as NotionQueryResponse;
 
-    const ProjectArr = (projects.results || []).map((data) => {
+    const ProjectArr: Project[] = (projects.results || []).map((data) => {
       const p = data.properties || {};
       return {
         id: data.id,
@@ -75,7 +103,7 @@ export async function getStaticProps() {
 
     return { props: { ProjectArr }, revalidate: 3600 };
   } catch (e) {
-    console.error("[projects] Notion fetch failed:", e.message);
+    console.error("[projects] Notion fetch failed:", (e as Error).message);
     return { props: { ProjectArr: [] }, revalidate: 300 };
   }
 }

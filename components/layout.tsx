@@ -1,8 +1,14 @@
+import type React from "react"
 import Head from "next/head"
 import Sidebar from "./sidebar"
 import Footer from "./footer"
 
-export default function Layout({ children, title = "Sejune Oh — 백엔드 개발자" }) {
+type LayoutProps = {
+  title?: string
+  children: React.ReactNode
+}
+
+export default function Layout({ children, title = "Sejune Oh — 백엔드 개발자" }: LayoutProps) {
   return (
     <>
       <Head>

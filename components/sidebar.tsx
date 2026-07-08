@@ -19,7 +19,7 @@ function GitHubIcon() {
 
 export default function Sidebar() {
   const { pathname } = useRouter()
-  const isActive = (href) =>
+  const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href)
 
   return (

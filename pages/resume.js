@@ -279,15 +279,15 @@ export default function Resume() {
 
       <style jsx global>{`
         .resume-page {
-          --paper: #f7f4ec;
-          --paper-2: #efeadd;
-          --ink: #1c1b18;
-          --ink-soft: #4a4740;
-          --ink-faint: #8a857a;
-          --rule: #d8d2c4;
-          --accent: #0d6e63;
-          --accent-deep: #0a544c;
-          --accent-wash: #e3ede9;
+          /* 사이트(Notion) 팔레트에 매핑 — --accent 는 사이트 :root/.dark 값을 그대로 상속(라이트/다크 자동) */
+          --paper: var(--bg);
+          --paper-2: var(--surface);
+          --ink: var(--text);
+          --ink-soft: var(--text-muted);
+          --ink-faint: var(--text-muted);
+          --rule: var(--border);
+          --accent-deep: var(--accent-hover);
+          --accent-wash: var(--surface);
           --maxw: 940px;
           position: relative;
           min-height: 100vh;
@@ -299,16 +299,7 @@ export default function Resume() {
           letter-spacing: 0.005em;
           padding: 0 24px;
         }
-        .resume-page::before {
-          content: "";
-          position: fixed;
-          inset: 0;
-          z-index: 0;
-          pointer-events: none;
-          background:
-            radial-gradient(circle at 15% 10%, rgba(13, 110, 99, 0.04), transparent 40%),
-            radial-gradient(circle at 90% 90%, rgba(13, 110, 99, 0.03), transparent 45%);
-        }
+        .resume-page::before { display: none; }
         .resume-page *,
         .resume-page *::before,
         .resume-page *::after { box-sizing: border-box; }
@@ -578,6 +569,19 @@ export default function Resume() {
         @media print {
           @page { size: A4; margin: 14mm 13mm; }
           html, body { background: #fff; }
+          /* 다크 모드에서 인쇄해도 항상 라이트(흰 종이 + 먹색) 고정 */
+          .resume-page,
+          .dark .resume-page {
+            --paper: #ffffff;
+            --paper-2: #f7f6f3;
+            --ink: #1c1b18;
+            --ink-soft: #4a4740;
+            --ink-faint: #8a857a;
+            --rule: #e2e0db;
+            --accent: #2383e2;
+            --accent-deep: #0b6bcb;
+            --accent-wash: #eef3fb;
+          }
           .resume-page {
             padding: 0;
             font-size: 10.2px;

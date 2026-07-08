@@ -1,14 +1,15 @@
+"use client"
+
 import { useState } from "react"
 import Link from "next/link"
-import Layout from "../../components/layout"
-import { posts, categories, readingMinutes } from "../../lib/posts"
+import { posts, categories, readingMinutes } from "../lib/posts"
 
-export default function Blog() {
+export default function BlogIndex() {
   const [active, setActive] = useState("All")
   const filtered = active === "All" ? posts : posts.filter((p) => p.category === active)
 
   return (
-    <Layout title="Blog — Sejune Oh">
+    <>
       <header className="mb-6">
         <p className="font-mono text-xs uppercase tracking-[0.28em] text-accent">OK. Blog</p>
         <h1 className="mt-3 text-3xl font-bold tracking-tight text-fg sm:text-4xl">
@@ -59,6 +60,6 @@ export default function Blog() {
           </Link>
         ))}
       </div>
-    </Layout>
+    </>
   )
 }

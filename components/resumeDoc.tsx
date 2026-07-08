@@ -1,4 +1,5 @@
-import Head from "next/head"
+"use client"
+
 import Link from "next/link"
 
 /**
@@ -8,19 +9,15 @@ import Link from "next/link"
  * - 사이트 테마(다크)와 무관하게 항상 페이퍼 톤 유지 (인쇄물 성격)
  * - PDF 다운로드 = 브라우저 인쇄(A4 최적화 print CSS)
  */
-export default function Resume() {
+export default function ResumeDoc() {
   return (
     <>
-      <Head>
-        <title>오세준 — 이력서 · 백엔드 개발자</title>
-        <meta name="description" content="오세준(Sejune Oh) — C#/.NET 백엔드 개발자 정식 이력서" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap"
-          rel="stylesheet"
-        />
-      </Head>
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet"
+      />
 
       <div className="resume-page">
         <div className="sheet">

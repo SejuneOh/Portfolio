@@ -55,6 +55,12 @@ export default function Home() {
         <div className="mt-7 flex flex-wrap gap-3">
           <Link href="/projects" className="btn-accent">프로젝트 보기</Link>
           <Link
+            href="/resume"
+            className="inline-flex items-center rounded-lg border border-line px-4 py-2 text-sm font-medium text-fg transition-colors hover:bg-surface"
+          >
+            정식 이력서 →
+          </Link>
+          <Link
             href="/blog"
             className="inline-flex items-center rounded-lg border border-line px-4 py-2 text-sm font-medium text-fg transition-colors hover:bg-surface"
           >

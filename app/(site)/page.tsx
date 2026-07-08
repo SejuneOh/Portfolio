@@ -19,10 +19,7 @@ export default async function Home() {
         <p className="font-mono text-xs uppercase tracking-[0.28em] text-accent">
           Backend Engineer · Fullstack
         </p>
-        <h1 className="mt-4 max-w-2xl text-3xl font-bold leading-[1.2] tracking-tight text-fg sm:text-[40px]">
-          헬스케어 SaaS의 채팅/메시징 백엔드를 설계·운영하는 C#/.NET 백엔드 개발자.
-        </h1>
-        <p className="mt-5 font-mono text-xs tracking-widest text-muted">
+        <p className="mt-3 font-mono text-xs tracking-widest text-muted">
           {`${projects.length}개 프로젝트 · 2019—NOW`}
         </p>
       </section>

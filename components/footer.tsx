@@ -1,4 +1,7 @@
+"use client"
+
 import { useState } from "react"
+import type React from "react"
 import Link from "next/link"
 
 const nav = [
@@ -10,7 +13,7 @@ const nav = [
 export default function Footer() {
   const [email, setEmail] = useState("")
 
-  const handleSubscribe = (e) => {
+  const handleSubscribe = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!email) return
     const subject = encodeURIComponent("포트폴리오 소식 받기")
@@ -46,7 +49,7 @@ export default function Footer() {
               type="email"
               required
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
               placeholder="E-mail"
               className="min-w-0 flex-1 rounded-md border border-line bg-surface px-3 py-2 text-sm text-fg placeholder:text-muted focus:border-accent focus:outline-none"
             />

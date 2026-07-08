@@ -1,0 +1,61 @@
+name: Promote
+
+# dev에 커밋이 올라올 때마다 dev → main(프로덕션) 승격 PR을 자동 생성/갱신한다.
+# 병합은 사람이 직접 한다(자동 병합하지 않음).
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: promote-dev-main
+  cancel-in-progress: true
+
+jobs:
+  promote:
+    name: Open/refresh dev → main PR
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create or refresh dev → main PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          # dev가 main보다 앞선 커밋이 없으면 승격할 것이 없음
+          ahead=$(git rev-list --count origin/main..origin/dev)
+          if [ "$ahead" -eq 0 ]; then
+            echo "dev is not ahead of main; nothing to promote."
+            exit 0
+          fi
+
+          # 승격 범위 커밋 목록으로 PR 본문 구성
+          body_file="$(mktemp)"
+          {
+            echo "\`dev\` → \`main\`(프로덕션) 승격 PR입니다. 이 PR을 병합하면 Vercel 프로덕션 배포가 진행됩니다."
+            echo ""
+            echo "**포함 커밋 (${ahead}):**"
+            git log --pretty=format:'- %s (%h)' origin/main..origin/dev
+            echo ""
+            echo ""
+            echo "> dev에 push될 때마다 이 PR이 자동 생성/갱신됩니다. 병합은 직접 진행하세요."
+          } > "$body_file"
+
+          existing="$(gh pr list --base main --head dev --state open --json number --jq '.[0].number // empty')"
+          if [ -n "$existing" ]; then
+            gh pr edit "$existing" --title "[Deploy] dev → main" --body-file "$body_file"
+            echo "Refreshed existing PR #${existing}"
+          else
+            gh pr create --base main --head dev --title "[Deploy] dev → main" --body-file "$body_file"
+            echo "Created dev → main promotion PR"
+          fi

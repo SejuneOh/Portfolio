@@ -1,5 +1,7 @@
+"use client"
+
 import Link from "next/link"
-import { useRouter } from "next/router"
+import { usePathname } from "next/navigation"
 import DarkModeToggleBtn from "./darkModeToggleBtn"
 
 const nav = [
@@ -18,8 +20,8 @@ function GitHubIcon() {
 }
 
 export default function Sidebar() {
-  const { pathname } = useRouter()
-  const isActive = (href) =>
+  const pathname = usePathname()
+  const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href)
 
   return (

@@ -37,7 +37,6 @@ export default function Resume() {
               기능을 <b>설계부터 배포·운영까지 끝까지 책임집니다.</b>
             </p>
             <div className="contacts">
-              <a href="tel:+821027911866">+82 10-2791-1866</a>
               <a href="mailto:etry0715@gmail.com">etry0715@gmail.com</a>
               <a href="https://github.com/SejuneOh" target="_blank" rel="noopener noreferrer">
                 github.com/SejuneOh
@@ -70,14 +69,6 @@ export default function Resume() {
               </div>
               <div className="lbl">
                 데이터 마이그레이션<br />무결성 검증 통과
-              </div>
-            </div>
-            <div className="metric">
-              <div className="big">
-                8<span className="from" style={{ fontSize: ".5em" }}> tenants</span>
-              </div>
-              <div className="lbl">
-                프로덕션 병원<br />서비스 운영
               </div>
             </div>
           </div>
@@ -376,7 +367,7 @@ export default function Resume() {
 
         .resume-page .metrics {
           display: grid;
-          grid-template-columns: repeat(4, 1fr);
+          grid-template-columns: repeat(3, 1fr);
           gap: 1px;
           background: var(--rule);
           border: 1px solid var(--rule);

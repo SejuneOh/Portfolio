@@ -1,0 +1,43 @@
+name: CI
+
+# 품질 게이트: PR과 dev/main push마다 lint + build 검증.
+# 배포(CD)는 Vercel이 담당하므로 여기서는 하지 않는다.
+on:
+  push:
+    branches: [dev, main]
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
+  pull_request:
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
+
+# 같은 ref에서 새 커밋이 오면 진행 중인 CI는 취소 (배포가 아니므로 안전)
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Lint & Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build

@@ -1,6 +1,5 @@
 import type React from "react"
 import Link from "next/link"
-import Layout from "../components/layout"
 
 const intro = [
   "Java/Spring으로 개발을 시작해 금융권 이미지 솔루션 SI에서 C#/.NET으로 3년 이상 개발했습니다. 이후 병원 도메인 SaaS에 프론트엔드로 합류했다가 백엔드로 전환했습니다.",
@@ -44,7 +43,7 @@ function Section({ n, title, children }: { n: string; title: string; children: R
 
 export default function Home() {
   return (
-    <Layout title="Sejune Oh — 백엔드 개발자">
+    <>
       {/* Hero */}
       <section className="pb-6">
         <p className="font-mono text-xs uppercase tracking-[0.28em] text-accent">
@@ -120,6 +119,6 @@ export default function Home() {
           <span className="mt-5 inline-block text-sm text-accent">프로젝트 전체 보기 →</span>
         </Link>
       </Section>
-    </Layout>
+    </>
   )
 }

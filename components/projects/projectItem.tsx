@@ -1,4 +1,4 @@
-import Badge from "../badge";
+import Link from "next/link"
 
 export interface ProjectTag {
   id: string;
@@ -17,58 +17,109 @@ export interface Project {
   status: boolean;
 }
 
-export default function ProjectItem({ data }: { data: Project }) {
-  const period = data.status
-    ? `${data.startDate} ~ ${data.endDate}`
-    : `${data.startDate} ~ 진행 중`;
+const cardClass =
+  "card group flex h-full flex-col overflow-hidden break-inside-avoid mb-8 " +
+  "hover:border-accent/60 hover:bg-surface-hover motion-safe:hover:-translate-y-0.5 " +
+  "focus-visible:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30";
 
-  return (
-    <div className="mb-8 break-inside-avoid">
-      <article className="group">
-        {data.cover && (
-          <div className="overflow-hidden">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={data.cover}
-              alt={data.projectName}
-              loading="lazy"
-              className="h-auto w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-            />
+export default function ProjectItem({ data }: { data: Project }) {
+  const glyph = Array.from(data.projectName)[0] ?? "·";
+  const firstTag = data.tags?.[0]?.name;
+  // status: true = Done, false = 진행 중
+  const inProgress = !data.status;
+  // 프로젝트명 기반 결정적 각도(해치 텍스처가 카드마다 조금씩 달라지도록)
+  const hatchAngle =
+    (Array.from(data.projectName).reduce((sum, ch) => sum + ch.charCodeAt(0), 0) % 4) * 45;
+
+  const hasPeriod = Boolean(data.startDate);
+  const period = `${data.startDate} — ${data.endDate || "현재"}`;
+
+  const body = (
+    <>
+      {/* Cover strip */}
+      <div className="aspect-[16/9] w-full overflow-hidden">
+        {data.cover ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={data.cover}
+            alt=""
+            loading="lazy"
+            className="h-full w-full object-cover grayscale-[15%] opacity-95 transition group-hover:grayscale-0 group-hover:opacity-100 motion-safe:group-hover:scale-[1.03]"
+          />
+        ) : (
+          <div
+            className="relative flex h-full w-full items-center justify-center bg-page"
+            style={{
+              backgroundImage: `repeating-linear-gradient(${hatchAngle}deg, var(--border) 0 1px, transparent 1px 8px)`,
+            }}
+          >
+            <span className="font-mono text-4xl font-extrabold text-muted/40">{glyph}</span>
+            {firstTag && (
+              <span className="absolute right-3 top-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+                {firstTag}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Body */}
+      <div className="flex flex-1 flex-col p-5">
+        <h3 className="flex items-center gap-1.5 text-[15px] font-bold text-fg group-hover:text-accent">
+          <span
+            aria-hidden
+            className={`text-xs ${inProgress ? "text-accent" : "text-muted"}`}
+          >
+            {inProgress ? "●" : "○"}
+          </span>
+          <span className="line-clamp-1">{data.projectName}</span>
+        </h3>
+
+        {data.description && (
+          <p className="mt-1.5 text-sm leading-relaxed text-muted line-clamp-2">
+            {data.description}
+          </p>
+        )}
+
+        {data.tags?.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {data.tags.slice(0, 3).map((tag) => (
+              <span key={tag.id} className="chip">
+                {tag.name}
+              </span>
+            ))}
+            {data.tags.length > 3 && (
+              <span className="chip">+{data.tags.length - 3}</span>
+            )}
           </div>
         )}
 
-        <div className="pt-3">
-          <h3 className="flex items-center gap-2 text-base font-bold text-fg transition-colors group-hover:text-accent">
-            {data.projectName}
-            {data.status && <span className="chip">Done</span>}
-          </h3>
-
-          {data.description && (
-            <p className="mt-1.5 text-sm leading-relaxed text-muted">{data.description}</p>
-          )}
-
-          <p className="mt-2 font-mono text-xs text-muted">{period}</p>
-
-          {data.tags?.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {data.tags.map((tag) => (
-                <Badge key={tag.id} text={tag.name} />
-              ))}
-            </div>
-          )}
-
+        <div className="mt-auto flex items-center justify-between border-t border-line pt-4">
+          <span className="font-mono text-xs text-muted">{hasPeriod ? period : ""}</span>
           {data.url && (
-            <a
-              href={data.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-3 inline-block text-sm text-accent transition-colors hover:text-accent-hover"
-            >
+            <span className="text-sm text-accent group-hover:text-accent-hover">
               GitHub →
-            </a>
+            </span>
           )}
         </div>
-      </article>
-    </div>
+      </div>
+    </>
+  );
+
+  // 카드 전체를 하나의 링크로: url 있으면 외부 GitHub, 없으면 /projects 로.
+  // 앵커 중첩을 피하기 위해 내부에는 별도의 <a>/<Link> 를 두지 않는다.
+  return data.url ? (
+    <a
+      href={data.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={cardClass}
+    >
+      {body}
+    </a>
+  ) : (
+    <Link href="/projects" className={cardClass}>
+      {body}
+    </Link>
   );
 }

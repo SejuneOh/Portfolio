@@ -1,17 +1,43 @@
 import { useState, useEffect } from "react"
+import type {
+  GetStaticPaths,
+  GetStaticPropsContext,
+  GetStaticPropsResult,
+} from "next"
 import Link from "next/link"
 import Layout from "../../components/layout"
+import type { Block as BlockType, Post } from "../../lib/posts"
 import { posts, getPost, getAdjacent, readingMinutes } from "../../lib/posts"
 
+type Params = { slug: string }
+
+interface TocItem {
+  id: string
+  text: string
+}
+
+interface PostLink {
+  slug: string
+  title: string
+}
+
+interface PostProps {
+  post: Post
+  toc: TocItem[]
+  minutes: number
+  prev: PostLink | null
+  next: PostLink | null
+}
+
 /* 코드 블록 + 복사 버튼 */
-function CodeBlock({ code }) {
+function CodeBlock({ code }: { code: string }) {
   const [copied, setCopied] = useState(false)
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(code)
       setCopied(true)
       setTimeout(() => setCopied(false), 1500)
-    } catch (e) {}
+    } catch {}
   }
   return (
     <div className="group relative mt-5">
@@ -28,7 +54,7 @@ function CodeBlock({ code }) {
   )
 }
 
-function Block({ block, index }) {
+function Block({ block, index }: { block: BlockType; index: number }) {
   if (block.h)
     return (
       <h2 id={`h-${index}`} className="mt-10 mb-3 scroll-mt-24 text-2xl font-bold text-fg">
@@ -54,13 +80,13 @@ function Block({ block, index }) {
 }
 
 /* 오른쪽 sticky 목차 + 스크롤 스파이 */
-function Toc({ items }) {
+function Toc({ items }: { items: TocItem[] }) {
   const [active, setActive] = useState(items[0]?.id)
 
   useEffect(() => {
     const els = items
       .map((it) => document.getElementById(it.id))
-      .filter(Boolean)
+      .filter(Boolean) as HTMLElement[]
     if (!els.length) return
     const ob = new IntersectionObserver(
       (entries) => {
@@ -99,7 +125,7 @@ function Toc({ items }) {
   )
 }
 
-export default function Post({ post, prev, next, toc, minutes }) {
+export default function Post({ post, prev, next, toc, minutes }: PostProps) {
   return (
     <Layout title={`${post.title} — Sejune Oh`}>
       <Link href="/blog" className="font-mono text-xs text-muted hover:text-accent">
@@ -153,17 +179,19 @@ export default function Post({ post, prev, next, toc, minutes }) {
   )
 }
 
-export function getStaticPaths() {
+export const getStaticPaths: GetStaticPaths<Params> = () => {
   return { paths: posts.map((p) => ({ params: { slug: p.slug } })), fallback: false }
 }
 
-export function getStaticProps({ params }) {
-  const post = getPost(params.slug)
+export function getStaticProps(
+  { params }: GetStaticPropsContext<Params>
+): GetStaticPropsResult<PostProps> {
+  const post = getPost(params!.slug)
   if (!post) return { notFound: true }
-  const { prev, next } = getAdjacent(params.slug)
+  const { prev, next } = getAdjacent(params!.slug)
   const toc = post.body
     .map((b, i) => (b.h ? { id: `h-${i}`, text: b.h } : null))
-    .filter(Boolean)
+    .filter(Boolean) as TocItem[]
   return {
     props: {
       post,

@@ -8,6 +8,7 @@ const nav = [
   { href: "/", label: "HOME" },
   { href: "/projects", label: "PROJECTS" },
   { href: "/blog", label: "BLOG" },
+  { href: "/contact", label: "CONTACT" },
 ]
 
 export default function Footer() {

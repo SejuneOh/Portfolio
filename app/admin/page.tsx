@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { auth, signOut } from "@/auth"
 import AdminForms from "../../components/admin/adminForms"
+import { getInquiries } from "../../lib/inquiries"
 
 // 검색엔진 비노출(민감 관리 페이지). 미들웨어가 접근 자체를 인증으로 막지만,
 // 색인/링크 노출도 이중으로 차단한다.
@@ -15,6 +16,7 @@ export const dynamic = "force-dynamic"
 export default async function AdminPage() {
   const session = await auth()
   const name = session?.user?.name ?? "관리자"
+  const inquiries = await getInquiries()
 
   return (
     <main className="mx-auto max-w-[720px] px-6 py-16">
@@ -25,6 +27,38 @@ export default async function AdminPage() {
       </p>
 
       <AdminForms />
+
+      {/* 접수된 문의 목록 */}
+      <section className="mt-14">
+        <h2 className="text-lg font-semibold text-fg">
+          문의 <span className="font-mono text-sm text-muted">({inquiries.length})</span>
+        </h2>
+        {inquiries.length === 0 ? (
+          <p className="mt-3 text-sm text-muted">
+            아직 접수된 문의가 없습니다. (NOTION_INQUIRIES_DB 미설정 시에도 비어 있음)
+          </p>
+        ) : (
+          <ul className="mt-4 divide-y divide-line">
+            {inquiries.map((q) => (
+              <li key={q.id} className="py-4">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-sm font-semibold text-fg">{q.name || "이름 없음"}</span>
+                    {q.type && <span className="chip">{q.type}</span>}
+                  </div>
+                  <time className="font-mono text-xs text-muted">{q.createdTime.slice(0, 10)}</time>
+                </div>
+                {q.email && (
+                  <a href={`mailto:${q.email}`} className="mt-1 block font-mono text-xs text-accent hover:underline">
+                    {q.email}
+                  </a>
+                )}
+                {q.message && <p className="mt-2 whitespace-pre-wrap text-sm text-muted">{q.message}</p>}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       <form
         action={async () => {

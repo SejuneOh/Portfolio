@@ -2,7 +2,8 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import type { Block as BlockType } from "../../../../lib/posts"
-import { posts, getPost, getAdjacent, readingMinutes } from "../../../../lib/posts"
+import { readingMinutes } from "../../../../lib/posts"
+import { getPosts, getPost, getAdjacent } from "../../../../lib/postsData"
 import CodeBlock from "../../../../components/blog/codeBlock"
 import Toc from "../../../../components/blog/toc"
 
@@ -36,7 +37,8 @@ function Block({ block, index }: { block: BlockType; index: number }) {
   return null
 }
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  const posts = await getPosts()
   return posts.map((p) => ({ slug: p.slug }))
 }
 
@@ -46,7 +48,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>
 }): Promise<Metadata> {
   const { slug } = await params
-  const post = getPost(slug)
+  const post = await getPost(slug)
   if (!post) return {}
   return { title: post.title }
 }
@@ -57,10 +59,10 @@ export default async function Post({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const post = getPost(slug)
+  const post = await getPost(slug)
   if (!post) notFound()
 
-  const { prev, next } = getAdjacent(slug)
+  const { prev, next } = await getAdjacent(slug)
   const toc = post.body
     .map((b, i) => (b.h ? { id: `h-${i}`, text: b.h } : null))
     .filter(Boolean) as TocItem[]

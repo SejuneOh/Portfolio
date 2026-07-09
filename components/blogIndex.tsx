@@ -2,9 +2,15 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { posts, categories, readingMinutes } from "../lib/posts"
+import { readingMinutes, type Post } from "../lib/posts"
 
-export default function BlogIndex() {
+export default function BlogIndex({
+  posts,
+  categories,
+}: {
+  posts: Post[]
+  categories: string[]
+}) {
   const [active, setActive] = useState("All")
   const filtered = active === "All" ? posts : posts.filter((p) => p.category === active)
 

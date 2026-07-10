@@ -146,8 +146,16 @@ async function replaceBody(pageId: string, bodyText: string) {
   if (!listRes.ok) throw new Error(`기존 블록 조회 실패 (${listRes.status})`)
   const list = (await listRes.json()) as { results?: { id: string }[] }
 
-  for (const b of list.results || []) {
-    await fetch(`${NOTION_API}/blocks/${b.id}`, { method: "DELETE", headers: headers() })
+  // 순차 삭제는 블록 수만큼 왕복이 쌓여 서버리스 10초 한계를 넘긴다(504).
+  // 동시성을 제한한 배치 병렬로 삭제해 왕복 지연을 상수 수준으로 낮춘다.
+  const ids = (list.results || []).map((b) => b.id)
+  const CONCURRENCY = 8
+  for (let i = 0; i < ids.length; i += CONCURRENCY) {
+    await Promise.all(
+      ids.slice(i, i + CONCURRENCY).map((id) =>
+        fetch(`${NOTION_API}/blocks/${id}`, { method: "DELETE", headers: headers() })
+      )
+    )
   }
 
   const children = textToBlocks(bodyText)
@@ -200,10 +208,16 @@ export async function createBlogPage(input: BlogInput): Promise<{ id: string }> 
   })
 }
 
-export async function updateBlogPage(id: string, input: BlogInput): Promise<{ id: string }> {
+// replaceBodyContent=false 면 속성만 갱신하고 본문 블록 교체를 건너뛴다.
+// 본문이 안 바뀐 수정(메타만 변경/재저장)에서 다건 블록 삭제·재생성을 피해 빠르게 저장.
+export async function updateBlogPage(
+  id: string,
+  input: BlogInput,
+  replaceBodyContent = true
+): Promise<{ id: string }> {
   if (!TOKEN || !BLOG_DATABASE_ID) throw new Error("NOTION_TOKEN / NOTION_BLOG_DB 미설정")
   await patchPage(id, { properties: blogProperties(input) })
-  await replaceBody(id, input.body)
+  if (replaceBodyContent) await replaceBody(id, input.body)
   return { id }
 }
 

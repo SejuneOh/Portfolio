@@ -10,6 +10,8 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 export const dynamic = "force-dynamic"
+// 본문 블록 교체(다건 Notion 호출)가 기본 10초를 넘을 수 있어 상향(플랜 허용 범위 내).
+export const maxDuration = 60
 
 export default async function EditBlogPost({
   params,

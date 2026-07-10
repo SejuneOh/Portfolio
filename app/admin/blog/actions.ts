@@ -1,7 +1,6 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { redirect } from "next/navigation"
 import {
   createBlogPage,
   updateBlogPage,
@@ -16,11 +15,9 @@ function revalidateBlog() {
   revalidatePath("/")
 }
 
-// 생성/수정 겸용. hidden id 가 있으면 수정, 없으면 생성. 성공 시 목록으로 이동.
-export async function saveBlogPost(
-  _prev: ActionState,
-  formData: FormData
-): Promise<ActionState> {
+// 생성/수정 겸용. hidden id 가 있으면 수정, 없으면 생성.
+// 이동은 클라이언트가 담당(성공/실패 UX·토스트 제어 위해 redirect 안 함).
+export async function saveBlogPost(formData: FormData): Promise<ActionState> {
   const authError = await requireOwner()
   if (authError) return { ok: false, message: authError }
 
@@ -40,15 +37,20 @@ export async function saveBlogPost(
   }
 
   try {
-    if (id) await updateBlogPage(id, input)
-    else await createBlogPage(input)
+    if (id) {
+      // 본문이 실제로 바뀐 경우에만 블록을 교체(다건 삭제·재생성). 아니면 속성만 갱신.
+      const originalBody = String(formData.get("originalBody") || "")
+      const bodyChanged = input.body !== originalBody
+      await updateBlogPage(id, input, bodyChanged)
+    } else {
+      await createBlogPage(input)
+    }
   } catch (e) {
     return { ok: false, message: (e as Error).message }
   }
 
-  // 성공: 캐시 무효화 후 목록으로 리다이렉트 (redirect 는 try 밖에서 — throw 로 동작).
   revalidateBlog()
-  redirect("/admin/blog")
+  return { ok: true, message: id ? "변경이 저장되었습니다." : "글이 등록되었습니다." }
 }
 
 export async function deleteBlogPost(id: string): Promise<void> {

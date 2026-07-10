@@ -1,5 +1,6 @@
-// Notion 쓰기(페이지 생성) 헬퍼. 서버(Server Action)에서만 호출한다.
+// Notion 쓰기(생성·수정·아카이브) 헬퍼. 서버(Server Action)에서만 호출한다.
 // 읽기(lib/postsData.ts, lib/notion.ts)와 동일한 REST API·속성명을 재사용한다.
+import type { Block } from "./posts"
 import { TOKEN, DATABASE_ID, BLOG_DATABASE_ID } from "../config"
 import { BLOG_PROPS } from "./postsData"
 
@@ -97,6 +98,19 @@ export function textToBlocks(src: string): Record<string, unknown>[] {
   return blocks
 }
 
+// Notion 블록 배열 → 마크다운 유사 본문 텍스트 (textToBlocks 의 역변환).
+// 수정 폼 프리필에 사용. 헤딩은 ## 로 통일(왕복 시 heading_2).
+export function blocksToText(blocks: Block[]): string {
+  const parts: string[] = []
+  for (const b of blocks) {
+    if (b.h) parts.push(`## ${b.h}`)
+    else if (b.code) parts.push("```\n" + b.code + "\n```")
+    else if (b.ul) parts.push(b.ul.map((li) => `- ${li}`).join("\n"))
+    else if (b.p) parts.push(b.p)
+  }
+  return parts.join("\n\n")
+}
+
 async function createPage(body: Record<string, unknown>) {
   const res = await fetch(`${NOTION_API}/pages`, {
     method: "POST",
@@ -110,6 +124,46 @@ async function createPage(body: Record<string, unknown>) {
   return (await res.json()) as { id: string }
 }
 
+async function patchPage(id: string, body: Record<string, unknown>) {
+  const res = await fetch(`${NOTION_API}/pages/${id}`, {
+    method: "PATCH",
+    headers: headers(),
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "")
+    throw new Error(`Notion 페이지 수정 실패 (${res.status}): ${detail.slice(0, 300)}`)
+  }
+  return (await res.json()) as { id: string }
+}
+
+// 본문 교체: Notion 엔 children 전체 교체 API 가 없어 기존 블록 삭제 후 새로 append.
+async function replaceBody(pageId: string, bodyText: string) {
+  const listRes = await fetch(`${NOTION_API}/blocks/${pageId}/children?page_size=100`, {
+    headers: headers(),
+    cache: "no-store",
+  })
+  if (!listRes.ok) throw new Error(`기존 블록 조회 실패 (${listRes.status})`)
+  const list = (await listRes.json()) as { results?: { id: string }[] }
+
+  for (const b of list.results || []) {
+    await fetch(`${NOTION_API}/blocks/${b.id}`, { method: "DELETE", headers: headers() })
+  }
+
+  const children = textToBlocks(bodyText)
+  if (children.length) {
+    const appendRes = await fetch(`${NOTION_API}/blocks/${pageId}/children`, {
+      method: "PATCH",
+      headers: headers(),
+      body: JSON.stringify({ children }),
+    })
+    if (!appendRes.ok) {
+      const detail = await appendRes.text().catch(() => "")
+      throw new Error(`본문 저장 실패 (${appendRes.status}): ${detail.slice(0, 200)}`)
+    }
+  }
+}
+
 export interface BlogInput {
   title: string
   slug: string
@@ -121,9 +175,7 @@ export interface BlogInput {
   published: boolean
 }
 
-export async function createBlogPage(input: BlogInput): Promise<{ id: string }> {
-  if (!TOKEN || !BLOG_DATABASE_ID) throw new Error("NOTION_TOKEN / NOTION_BLOG_DB 미설정")
-
+function blogProperties(input: BlogInput): Record<string, unknown> {
   const properties: Record<string, unknown> = {
     [BLOG_PROPS.title]: { title: rich(input.title) },
     [BLOG_PROPS.slug]: { rich_text: rich(input.slug) },
@@ -131,14 +183,39 @@ export async function createBlogPage(input: BlogInput): Promise<{ id: string }> 
     [BLOG_PROPS.tags]: { multi_select: input.tags.map((name) => ({ name })) },
     [BLOG_PROPS.published]: { checkbox: input.published },
   }
-  if (input.date) properties[BLOG_PROPS.date] = { date: { start: input.date } }
-  if (input.category) properties[BLOG_PROPS.category] = { select: { name: input.category } }
+  // 날짜/카테고리는 비면 아예 넣지 않는다(생성) / 비우면 null 로 클리어(수정).
+  properties[BLOG_PROPS.date] = input.date ? { date: { start: input.date } } : { date: null }
+  properties[BLOG_PROPS.category] = input.category
+    ? { select: { name: input.category } }
+    : { select: null }
+  return properties
+}
 
+export async function createBlogPage(input: BlogInput): Promise<{ id: string }> {
+  if (!TOKEN || !BLOG_DATABASE_ID) throw new Error("NOTION_TOKEN / NOTION_BLOG_DB 미설정")
   return createPage({
     parent: { database_id: BLOG_DATABASE_ID },
-    properties,
+    properties: blogProperties(input),
     children: textToBlocks(input.body),
   })
+}
+
+export async function updateBlogPage(id: string, input: BlogInput): Promise<{ id: string }> {
+  if (!TOKEN || !BLOG_DATABASE_ID) throw new Error("NOTION_TOKEN / NOTION_BLOG_DB 미설정")
+  await patchPage(id, { properties: blogProperties(input) })
+  await replaceBody(id, input.body)
+  return { id }
+}
+
+// 삭제 = 아카이브(Notion 엔 하드 삭제 API 없음). Notion 휴지통에서 복구 가능.
+export async function archiveBlogPage(id: string): Promise<void> {
+  if (!TOKEN) throw new Error("NOTION_TOKEN 미설정")
+  await patchPage(id, { archived: true })
+}
+
+export async function setBlogPublished(id: string, published: boolean): Promise<void> {
+  if (!TOKEN) throw new Error("NOTION_TOKEN 미설정")
+  await patchPage(id, { properties: { [BLOG_PROPS.published]: { checkbox: published } } })
 }
 
 export interface ProjectInput {

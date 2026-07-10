@@ -44,6 +44,9 @@ export default function BlogIndex({
       </div>
 
       {/* Text-first list */}
+      {filtered.length === 0 ? (
+        <p className="py-16 text-center text-sm text-muted">아직 작성된 글이 없습니다.</p>
+      ) : (
       <div className="divide-y divide-line">
         {filtered.map((post) => (
           <Link key={post.slug} href={`/blog/${post.slug}`} className="group block py-6">
@@ -66,6 +69,7 @@ export default function BlogIndex({
           </Link>
         ))}
       </div>
+      )}
     </>
   )
 }

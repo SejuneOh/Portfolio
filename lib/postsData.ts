@@ -1,6 +1,5 @@
 import type { Block, Post } from "./posts"
 import { TOKEN, BLOG_DATABASE_ID } from "../config"
-import { fallbackPosts } from "./postsFallback"
 
 // ── Notion 블로그 DB 스키마(속성명) ──────────────────────────────
 // 사용자가 Notion 에서 만드는 DB 의 속성 이름과 정확히 일치해야 한다.
@@ -153,9 +152,10 @@ async function mapPage(page: NotionPage): Promise<Post> {
   }
 }
 
-// 발행된 블로그 글을 최신순으로 반환. Notion 미설정/실패/빈 결과면 시드로 fallback.
+// 발행된 블로그 글을 최신순으로 반환.
+// DB 는 SSOT — 미설정/실패/빈 결과면 빈 목록을 반환한다(하드코딩 시드로 대체하지 않음).
 export async function getPosts(): Promise<Post[]> {
-  if (!TOKEN || !BLOG_DATABASE_ID) return fallbackPosts
+  if (!TOKEN || !BLOG_DATABASE_ID) return []
 
   try {
     const res = await fetch(
@@ -175,13 +175,13 @@ export async function getPosts(): Promise<Post[]> {
     const json = (await res.json()) as { results?: NotionPage[] }
 
     const pages = json.results || []
-    if (pages.length === 0) return fallbackPosts
+    if (pages.length === 0) return []
 
     const posts = await Promise.all(pages.map(mapPage))
     return posts.filter((p) => p.title)
   } catch (e) {
     console.error("[posts] Notion fetch failed:", (e as Error).message)
-    return fallbackPosts
+    return []
   }
 }
 

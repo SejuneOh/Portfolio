@@ -1,6 +1,6 @@
 // 블로그 도메인 타입 + 순수 유틸.
 // 이 모듈은 서버 전용 fetch 를 포함하지 않으므로 client 컴포넌트에서도 안전하게 import 가능하다.
-// 실제 데이터 조회(Notion)는 lib/postsData.ts, 시드 데이터는 lib/postsFallback.ts 참고.
+// 실제 데이터 조회(Notion)는 lib/postsData.ts 참고.
 // body 블록: { p } 문단, { h } 소제목, { code } 코드, { ul } 목록
 
 export type Block =

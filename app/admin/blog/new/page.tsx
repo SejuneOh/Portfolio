@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 export const dynamic = "force-dynamic"
+export const maxDuration = 60
 
 export default function NewBlogPost() {
   return (

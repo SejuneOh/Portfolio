@@ -1,7 +1,9 @@
 import type { Metadata } from "next"
+import Link from "next/link"
 import { auth, signOut } from "@/auth"
-import AdminForms from "../../components/admin/adminForms"
+import ProjectForm from "../../components/admin/projectForm"
 import { getInquiries } from "../../lib/inquiries"
+import { getAdminPosts } from "../../lib/postsData"
 
 // 검색엔진 비노출(민감 관리 페이지). 미들웨어가 접근 자체를 인증으로 막지만,
 // 색인/링크 노출도 이중으로 차단한다.
@@ -16,17 +18,34 @@ export const dynamic = "force-dynamic"
 export default async function AdminPage() {
   const session = await auth()
   const name = session?.user?.name ?? "관리자"
-  const inquiries = await getInquiries()
+  const [inquiries, posts] = await Promise.all([getInquiries(), getAdminPosts()])
+  const published = posts.filter((p) => p.published).length
 
   return (
     <main className="mx-auto max-w-[720px] px-6 py-16">
       <p className="font-mono text-xs uppercase tracking-[0.28em] text-accent">Admin</p>
       <h1 className="mt-3 text-2xl font-semibold text-fg">콘텐츠 관리</h1>
-      <p className="mt-2 text-sm text-muted">
-        {name}님으로 로그인됨. 블로그·프로젝트를 Notion 에 직접 등록할 수 있습니다.
-      </p>
+      <p className="mt-2 text-sm text-muted">{name}님으로 로그인됨.</p>
 
-      <AdminForms />
+      {/* 블로그 백오피스 진입 */}
+      <Link
+        href="/admin/blog"
+        className="card mt-8 flex items-center justify-between p-5 transition-colors hover:bg-surface-hover"
+      >
+        <div>
+          <h2 className="text-base font-semibold text-fg">블로그 관리</h2>
+          <p className="mt-1 text-sm text-muted">
+            글 작성·수정·삭제·발행 · 총 {posts.length}개 (발행 {published})
+          </p>
+        </div>
+        <span className="text-accent">→</span>
+      </Link>
+
+      {/* 프로젝트 등록 */}
+      <section className="mt-12">
+        <h2 className="mb-4 text-lg font-semibold text-fg">프로젝트 등록</h2>
+        <ProjectForm />
+      </section>
 
       {/* 접수된 문의 목록 */}
       <section className="mt-14">

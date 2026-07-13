@@ -84,14 +84,28 @@ function readCheckbox(page: NotionPage, name: string): boolean {
 // 연속된 목록 아이템은 하나의 { ul } 로 묶는다.
 // fresh=true 면 캐시 우회(관리자 수정 프리필 등 최신값이 필요할 때).
 async function fetchBody(pageId: string, fresh = false): Promise<Block[]> {
-  const res = await fetch(
-    `${NOTION_API}/blocks/${pageId}/children?page_size=100`,
-    fresh
-      ? { headers: headers(), cache: "no-store" }
-      : { headers: headers(), next: { revalidate: REVALIDATE } }
-  )
-  if (!res.ok) throw new Error(`Notion blocks ${res.status}`)
-  const json = (await res.json()) as { results?: NotionBlock[] }
+  // 100개 초과 블록도 모두 읽도록 start_cursor 페이지네이션.
+  const results: NotionBlock[] = []
+  let cursor: string | undefined
+  do {
+    const url = new URL(`${NOTION_API}/blocks/${pageId}/children`)
+    url.searchParams.set("page_size", "100")
+    if (cursor) url.searchParams.set("start_cursor", cursor)
+    const res = await fetch(
+      url.toString(),
+      fresh
+        ? { headers: headers(), cache: "no-store" }
+        : { headers: headers(), next: { revalidate: REVALIDATE } }
+    )
+    if (!res.ok) throw new Error(`Notion blocks ${res.status}`)
+    const json = (await res.json()) as {
+      results?: NotionBlock[]
+      has_more?: boolean
+      next_cursor?: string | null
+    }
+    for (const b of json.results || []) results.push(b)
+    cursor = json.has_more ? json.next_cursor ?? undefined : undefined
+  } while (cursor)
 
   const blocks: Block[] = []
   let listBuf: string[] = []
@@ -102,7 +116,7 @@ async function fetchBody(pageId: string, fresh = false): Promise<Block[]> {
     }
   }
 
-  for (const b of json.results || []) {
+  for (const b of results) {
     switch (b.type) {
       case "heading_1":
       case "heading_2":

@@ -137,18 +137,45 @@ async function patchPage(id: string, body: Record<string, unknown>) {
   return (await res.json()) as { id: string }
 }
 
-// 본문 교체: Notion 엔 children 전체 교체 API 가 없어 기존 블록 삭제 후 새로 append.
-async function replaceBody(pageId: string, bodyText: string) {
-  const listRes = await fetch(`${NOTION_API}/blocks/${pageId}/children?page_size=100`, {
-    headers: headers(),
-    cache: "no-store",
-  })
-  if (!listRes.ok) throw new Error(`기존 블록 조회 실패 (${listRes.status})`)
-  const list = (await listRes.json()) as { results?: { id: string }[] }
+// 페이지의 모든 하위 블록 id 를 페이지네이션으로 수집(100개 초과 대응).
+async function listChildIds(pageId: string): Promise<string[]> {
+  const ids: string[] = []
+  let cursor: string | undefined
+  do {
+    const url = new URL(`${NOTION_API}/blocks/${pageId}/children`)
+    url.searchParams.set("page_size", "100")
+    if (cursor) url.searchParams.set("start_cursor", cursor)
+    const res = await fetch(url.toString(), { headers: headers(), cache: "no-store" })
+    if (!res.ok) throw new Error(`기존 블록 조회 실패 (${res.status})`)
+    const json = (await res.json()) as {
+      results?: { id: string }[]
+      has_more?: boolean
+      next_cursor?: string | null
+    }
+    for (const b of json.results || []) ids.push(b.id)
+    cursor = json.has_more ? json.next_cursor ?? undefined : undefined
+  } while (cursor)
+  return ids
+}
 
-  // 순차 삭제는 블록 수만큼 왕복이 쌓여 서버리스 10초 한계를 넘긴다(504).
-  // 동시성을 제한한 배치 병렬로 삭제해 왕복 지연을 상수 수준으로 낮춘다.
-  const ids = (list.results || []).map((b) => b.id)
+// children 을 ≤100 청크로 append(Notion 은 요청당 children 100개 제한).
+async function appendChildren(pageId: string, children: Record<string, unknown>[]) {
+  for (let i = 0; i < children.length; i += 100) {
+    const chunk = children.slice(i, i + 100)
+    const res = await fetch(`${NOTION_API}/blocks/${pageId}/children`, {
+      method: "PATCH",
+      headers: headers(),
+      body: JSON.stringify({ children: chunk }),
+    })
+    if (!res.ok) {
+      const detail = await res.text().catch(() => "")
+      throw new Error(`본문 저장 실패 (${res.status}): ${detail.slice(0, 200)}`)
+    }
+  }
+}
+
+// 배치 병렬 삭제(동시성 제한 — 왕복 지연 완화).
+async function deleteBlocks(ids: string[]) {
   const CONCURRENCY = 8
   for (let i = 0; i < ids.length; i += CONCURRENCY) {
     await Promise.all(
@@ -157,19 +184,14 @@ async function replaceBody(pageId: string, bodyText: string) {
       )
     )
   }
+}
 
-  const children = textToBlocks(bodyText)
-  if (children.length) {
-    const appendRes = await fetch(`${NOTION_API}/blocks/${pageId}/children`, {
-      method: "PATCH",
-      headers: headers(),
-      body: JSON.stringify({ children }),
-    })
-    if (!appendRes.ok) {
-      const detail = await appendRes.text().catch(() => "")
-      throw new Error(`본문 저장 실패 (${appendRes.status}): ${detail.slice(0, 200)}`)
-    }
-  }
+// 본문 교체: 유실 방지를 위해 **새 블록을 먼저 append → 성공 후 옛 블록 삭제** 순서.
+// 중간 실패 시 최악은 '본문 중복'(복구 가능)이며, 유실은 발생하지 않는다.
+async function replaceBody(pageId: string, bodyText: string) {
+  const oldIds = await listChildIds(pageId) // 1) 옛 블록 파악(페이지네이션)
+  await appendChildren(pageId, textToBlocks(bodyText)) // 2) 새 본문 먼저 추가(≤100 청크)
+  await deleteBlocks(oldIds) // 3) 성공한 뒤에만 옛 블록 삭제
 }
 
 export interface BlogInput {
@@ -201,11 +223,13 @@ function blogProperties(input: BlogInput): Record<string, unknown> {
 
 export async function createBlogPage(input: BlogInput): Promise<{ id: string }> {
   if (!TOKEN || !BLOG_DATABASE_ID) throw new Error("NOTION_TOKEN / NOTION_BLOG_DB 미설정")
-  return createPage({
+  // 페이지를 먼저 만들고 본문은 ≤100 청크로 append(children 100 제한·긴 글 대응).
+  const page = await createPage({
     parent: { database_id: BLOG_DATABASE_ID },
     properties: blogProperties(input),
-    children: textToBlocks(input.body),
   })
+  await appendChildren(page.id, textToBlocks(input.body))
+  return page
 }
 
 // replaceBodyContent=false 면 속성만 갱신하고 본문 블록 교체를 건너뛴다.

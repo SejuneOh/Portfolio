@@ -9,6 +9,7 @@ const nav = [
   { href: "/projects", label: "PROJECTS" },
   { href: "/blog", label: "BLOG" },
   { href: "/resume", label: "RESUME" },
+  { href: "/contact", label: "CONTACT" },
 ]
 
 function GitHubIcon() {
@@ -52,12 +53,6 @@ export default function Sidebar() {
             {n.label}
           </Link>
         ))}
-        <a
-          href="mailto:etry0715@gmail.com"
-          className="w-fit text-lg font-bold tracking-wide text-fg transition-colors hover:text-accent"
-        >
-          CONTACT
-        </a>
       </nav>
 
       {/* Contact info */}
@@ -77,15 +72,6 @@ export default function Sidebar() {
           className="text-muted transition-colors hover:text-fg"
         >
           <GitHubIcon />
-        </a>
-        <a
-          href="https://sejuneoh.github.io/devlog/"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Blog"
-          className="text-sm text-muted transition-colors hover:text-fg"
-        >
-          Blog
         </a>
         <DarkModeToggleBtn />
       </div>

@@ -1,15 +1,30 @@
 import "../styles/globals.css"
 import type { Metadata, Viewport } from "next"
 import Providers from "./providers"
+import { SITE_URL, SITE_NAME, SITE_TITLE, SITE_DESCRIPTION } from "../lib/site"
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "Sejune Oh — 백엔드 개발자",
+    default: SITE_TITLE,
     template: "%s — Sejune Oh",
   },
-  description:
-    "헬스케어 SaaS의 채팅/메시징 백엔드를 설계·운영하는 C#/.NET 백엔드 개발자 오세준의 포트폴리오",
+  description: SITE_DESCRIPTION,
   icons: { icon: "/favicon.ico" },
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    locale: "ko_KR",
+    url: SITE_URL,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+  },
 }
 
 export const viewport: Viewport = {

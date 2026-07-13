@@ -6,6 +6,7 @@ import { readingMinutes } from "../../../../lib/posts"
 import { getPosts, getPost, getAdjacent } from "../../../../lib/postsData"
 import CodeBlock from "../../../../components/blog/codeBlock"
 import Toc from "../../../../components/blog/toc"
+import { renderInline } from "../../../../components/blog/inlineMarkdown"
 
 interface TocItem {
   id: string
@@ -16,10 +17,10 @@ function Block({ block, index }: { block: BlockType; index: number }) {
   if (block.h)
     return (
       <h2 id={`h-${index}`} className="mt-10 mb-3 scroll-mt-24 text-2xl font-bold text-fg">
-        {block.h}
+        {renderInline(block.h)}
       </h2>
     )
-  if (block.p) return <p className="mt-4 text-[16px] leading-[1.8] text-muted">{block.p}</p>
+  if (block.p) return <p className="mt-4 text-[16px] leading-[1.8] text-muted">{renderInline(block.p)}</p>
   if (block.code) return <CodeBlock code={block.code} />
   if (block.ul)
     return (
@@ -29,7 +30,7 @@ function Block({ block, index }: { block: BlockType; index: number }) {
             key={i}
             className="relative pl-5 text-[16px] leading-relaxed text-muted before:absolute before:left-0 before:top-[0.7em] before:h-1.5 before:w-1.5 before:rounded-sm before:bg-accent"
           >
-            {li}
+            {renderInline(li)}
           </li>
         ))}
       </ul>

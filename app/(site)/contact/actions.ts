@@ -1,6 +1,9 @@
 "use server"
 
+import { headers } from "next/headers"
 import { createInquiry, INQUIRY_TYPES } from "../../../lib/inquiries"
+import { notifyNewInquiry } from "../../../lib/notify"
+import { rateLimit } from "../../../lib/rateLimit"
 
 export interface ContactState {
   ok: boolean
@@ -18,6 +21,13 @@ export async function submitInquiry(
     return { ok: true, message: "문의가 접수되었습니다. 감사합니다." }
   }
 
+  // 레이트리밋: IP당 10분에 3회(인스턴스별 in-memory, 기본 남용 완화).
+  const h = await headers()
+  const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown"
+  if (!rateLimit(`contact:${ip}`, 3, 10 * 60 * 1000)) {
+    return { ok: false, message: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." }
+  }
+
   const name = String(formData.get("name") || "").trim()
   const email = String(formData.get("email") || "").trim()
   const type = String(formData.get("type") || "").trim()
@@ -30,6 +40,8 @@ export async function submitInquiry(
 
   try {
     await createInquiry({ name, email, type: safeType, message })
+    // 저장 성공 후 소유자에게 알림(미설정 시 skip, 실패해도 제출은 성공 처리).
+    await notifyNewInquiry({ name, email, type: safeType, message })
     return { ok: true, message: "문의가 접수되었습니다. 확인 후 회신드리겠습니다." }
   } catch (e) {
     return { ok: false, message: (e as Error).message }

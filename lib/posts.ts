@@ -6,7 +6,7 @@
 export type Block =
   | { p: string; h?: never; code?: never; ul?: never }
   | { h: string; p?: never; code?: never; ul?: never }
-  | { code: string; p?: never; h?: never; ul?: never }
+  | { code: string; lang?: string; p?: never; h?: never; ul?: never }
   | { ul: string[]; p?: never; h?: never; code?: never }
 
 export interface Post {

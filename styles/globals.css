@@ -33,6 +33,20 @@
   }
 }
 
+/* Shiki 코드 하이라이트 — 듀얼 테마(라이트 기본 + .dark 오버라이드) */
+.shiki {
+  margin: 0;
+  padding: 1rem;
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.6;
+}
+html.dark .shiki,
+html.dark .shiki span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
+}
+
 html {
   background: var(--bg);
   scroll-behavior: smooth;

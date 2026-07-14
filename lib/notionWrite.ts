@@ -3,6 +3,7 @@
 import type { Block } from "./posts"
 import { TOKEN, DATABASE_ID, BLOG_DATABASE_ID } from "../config"
 import { BLOG_PROPS } from "./postsData"
+import { fenceToNotion } from "./codeLang"
 
 const NOTION_API = "https://api.notion.com/v1"
 const NOTION_VERSION = "2022-06-28"
@@ -51,6 +52,7 @@ export function textToBlocks(src: string): Record<string, unknown>[] {
   let para: string[] = []
   let inCode = false
   let codeBuf: string[] = []
+  let codeLang = "" // 펜스 언어(```ts 등)
 
   const flushPara = () => {
     if (para.length) {
@@ -64,12 +66,14 @@ export function textToBlocks(src: string): Record<string, unknown>[] {
     const fence = line.trim().startsWith("```")
     if (fence) {
       if (inCode) {
-        blocks.push(block("code", codeBuf.join("\n"), { language: "plain text" }))
+        blocks.push(block("code", codeBuf.join("\n"), { language: fenceToNotion(codeLang) }))
         codeBuf = []
+        codeLang = ""
         inCode = false
       } else {
         flushPara()
         inCode = true
+        codeLang = line.trim().slice(3).trim() // ```ts → "ts"
       }
       continue
     }
@@ -93,7 +97,7 @@ export function textToBlocks(src: string): Record<string, unknown>[] {
       para.push(line.trim())
     }
   }
-  if (inCode && codeBuf.length) blocks.push(block("code", codeBuf.join("\n"), { language: "plain text" }))
+  if (inCode && codeBuf.length) blocks.push(block("code", codeBuf.join("\n"), { language: fenceToNotion(codeLang) }))
   flushPara()
   return blocks
 }
@@ -104,7 +108,10 @@ export function blocksToText(blocks: Block[]): string {
   const parts: string[] = []
   for (const b of blocks) {
     if (b.h) parts.push(`## ${b.h}`)
-    else if (b.code) parts.push("```\n" + b.code + "\n```")
+    else if (b.code) {
+      const fence = b.lang && b.lang !== "plain text" ? "```" + b.lang : "```"
+      parts.push(fence + "\n" + b.code + "\n```")
+    }
     else if (b.ul) parts.push(b.ul.map((li) => `- ${li}`).join("\n"))
     else if (b.p) parts.push(b.p)
   }

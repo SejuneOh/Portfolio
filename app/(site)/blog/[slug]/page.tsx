@@ -23,7 +23,7 @@ function Block({ block, index }: { block: BlockType; index: number }) {
       </h2>
     )
   if (block.p) return <p className="mt-4 text-[16px] leading-[1.8] text-muted">{renderInline(block.p)}</p>
-  if (block.code) return <CodeBlock code={block.code} />
+  if (block.code) return <CodeBlock code={block.code} lang={block.lang} />
   if (block.ul)
     return (
       <ul className="mt-4 space-y-2">

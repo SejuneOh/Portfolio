@@ -41,7 +41,7 @@ interface NotionBlock {
   heading_2?: { rich_text?: NotionRichText[] }
   heading_3?: { rich_text?: NotionRichText[] }
   paragraph?: { rich_text?: NotionRichText[] }
-  code?: { rich_text?: NotionRichText[] }
+  code?: { rich_text?: NotionRichText[]; language?: string }
   bulleted_list_item?: { rich_text?: NotionRichText[] }
   numbered_list_item?: { rich_text?: NotionRichText[] }
 }
@@ -135,7 +135,7 @@ async function fetchBody(pageId: string, fresh = false): Promise<Block[]> {
       case "code": {
         flushList()
         const code = plain(b.code?.rich_text)
-        if (code) blocks.push({ code })
+        if (code) blocks.push({ code, lang: b.code?.language })
         break
       }
       case "bulleted_list_item":

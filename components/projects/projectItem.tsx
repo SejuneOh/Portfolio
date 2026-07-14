@@ -45,6 +45,9 @@ export default function ProjectItem({ data }: { data: Project }) {
             alt=""
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            // Notion 커버 호스트(app.notion.com 등)가 remotePatterns 밖이면 최적화기가 400.
+            // 커버는 임의 호스트라 unoptimized 로 원본 서빙(어떤 호스트든 표시 보장). lazy/레이아웃은 유지.
+            unoptimized
             className="object-cover grayscale-[15%] opacity-95 transition group-hover:grayscale-0 group-hover:opacity-100 motion-safe:group-hover:scale-[1.03]"
           />
         ) : (

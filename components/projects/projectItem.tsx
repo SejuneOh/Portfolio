@@ -100,29 +100,18 @@ export default function ProjectItem({ data }: { data: Project }) {
 
         <div className="mt-auto flex items-center justify-between border-t border-line pt-4">
           <span className="font-mono text-xs text-muted">{hasPeriod ? period : ""}</span>
-          {data.url && (
-            <span className="text-sm text-accent group-hover:text-accent-hover">
-              GitHub →
-            </span>
-          )}
+          <span className="text-sm text-accent group-hover:text-accent-hover">
+            자세히 →
+          </span>
         </div>
       </div>
     </>
   );
 
-  // 카드 전체를 하나의 링크로: url 있으면 외부 GitHub, 없으면 /projects 로.
+  // 카드 전체를 프로젝트 상세 페이지 링크로(케이스스터디). GitHub/live 링크는 상세에서 노출.
   // 앵커 중첩을 피하기 위해 내부에는 별도의 <a>/<Link> 를 두지 않는다.
-  return data.url ? (
-    <a
-      href={data.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={cardClass}
-    >
-      {body}
-    </a>
-  ) : (
-    <Link href="/projects" className={cardClass}>
+  return (
+    <Link href={`/projects/${data.id}`} className={cardClass}>
       {body}
     </Link>
   );

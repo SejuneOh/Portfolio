@@ -9,8 +9,8 @@
   --text: #37352f;
   --text-muted: #787774;
   --border: #e9e9e7;
-  --accent: #2383e2;
-  --accent-hover: #0b6bcb;
+  --accent: #1d4ed8;
+  --accent-hover: #1e40af;
 }
 
 .dark {
@@ -20,8 +20,17 @@
   --text: rgba(255, 255, 255, 0.9);
   --text-muted: #9b9b98;
   --border: #2f2f2f;
-  --accent: #529cca;
-  --accent-hover: #6ab3df;
+  --accent: #3b82f6;
+  --accent-hover: #60a5fa;
+}
+
+@layer base {
+  /* 전역 키보드 포커스 표시(일관성) */
+  :where(a, button, input, textarea, select, summary):focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
 }
 
 html {

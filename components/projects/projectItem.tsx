@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 
 export interface ProjectTag {
   id: string;
@@ -37,14 +38,14 @@ export default function ProjectItem({ data }: { data: Project }) {
   const body = (
     <>
       {/* Cover strip */}
-      <div className="aspect-[16/9] w-full overflow-hidden">
+      <div className="relative aspect-[16/9] w-full overflow-hidden">
         {data.cover ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={data.cover}
             alt=""
-            loading="lazy"
-            className="h-full w-full object-cover grayscale-[15%] opacity-95 transition group-hover:grayscale-0 group-hover:opacity-100 motion-safe:group-hover:scale-[1.03]"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover grayscale-[15%] opacity-95 transition group-hover:grayscale-0 group-hover:opacity-100 motion-safe:group-hover:scale-[1.03]"
           />
         ) : (
           <div

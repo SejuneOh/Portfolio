@@ -83,7 +83,8 @@ function readCheckbox(page: NotionPage, name: string): boolean {
 // 페이지 하위 블록을 조회해 렌더용 Block[] 로 변환.
 // 연속된 목록 아이템은 하나의 { ul } 로 묶는다.
 // fresh=true 면 캐시 우회(관리자 수정 프리필 등 최신값이 필요할 때).
-async function fetchBody(pageId: string, fresh = false): Promise<Block[]> {
+// 임의 Notion 페이지의 하위 블록을 렌더용 Block[] 로. 블로그·프로젝트 상세가 공용.
+export async function fetchBody(pageId: string, fresh = false): Promise<Block[]> {
   // 100개 초과 블록도 모두 읽도록 start_cursor 페이지네이션.
   const results: NotionBlock[] = []
   let cursor: string | undefined

@@ -7,6 +7,8 @@ import { getPosts, getPost, getAdjacent } from "../../../../lib/postsData"
 import CodeBlock from "../../../../components/blog/codeBlock"
 import Toc from "../../../../components/blog/toc"
 import { renderInline } from "../../../../components/blog/inlineMarkdown"
+import JsonLd from "../../../../components/jsonLd"
+import { SITE_URL, AUTHOR } from "../../../../lib/site"
 
 interface TocItem {
   id: string
@@ -51,7 +53,25 @@ export async function generateMetadata({
   const { slug } = await params
   const post = await getPost(slug)
   if (!post) return {}
-  return { title: post.title }
+  const url = `${SITE_URL}/blog/${post.slug}`
+  return {
+    title: post.title,
+    description: post.summary,
+    alternates: { canonical: url },
+    openGraph: {
+      type: "article",
+      url,
+      title: post.title,
+      description: post.summary,
+      publishedTime: post.date || undefined,
+      tags: post.tags,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description: post.summary,
+    },
+  }
 }
 
 export default async function Post({
@@ -68,9 +88,23 @@ export default async function Post({
     .map((b, i) => (b.h ? { id: `h-${i}`, text: b.h } : null))
     .filter(Boolean) as TocItem[]
   const minutes = readingMinutes(post)
+  const url = `${SITE_URL}/blog/${post.slug}`
 
   return (
     <>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          headline: post.title,
+          description: post.summary,
+          datePublished: post.date || undefined,
+          url,
+          mainEntityOfPage: url,
+          keywords: post.tags.join(", "),
+          author: { "@type": "Person", name: AUTHOR.name, url: SITE_URL },
+        }}
+      />
       <Link href="/blog" className="font-mono text-xs text-muted hover:text-accent">
         ← Blog
       </Link>

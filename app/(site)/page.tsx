@@ -2,6 +2,8 @@ import Link from "next/link"
 import ProjectItem from "../../components/projects/projectItem"
 import AboutRail from "../../components/home/aboutRail"
 import { getProjects } from "../../lib/notion"
+import JsonLd from "../../components/jsonLd"
+import { SITE_URL, SITE_DESCRIPTION, AUTHOR } from "../../lib/site"
 
 export const revalidate = 3600
 
@@ -14,6 +16,18 @@ export default async function Home() {
 
   return (
     <>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Person",
+          name: AUTHOR.name,
+          alternateName: AUTHOR.alternateName,
+          jobTitle: AUTHOR.jobTitle,
+          description: SITE_DESCRIPTION,
+          url: SITE_URL,
+          sameAs: AUTHOR.sameAs,
+        }}
+      />
       {/* Masthead */}
       <section className="pb-8">
         <p className="font-mono text-xs uppercase tracking-[0.28em] text-accent">

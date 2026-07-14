@@ -16,6 +16,11 @@ export interface Project {
   startDate: string;
   endDate: string;
   status: boolean;
+  // 케이스스터디용 구조화 필드(선택). Notion 미설정 시 빈 값 → 상세에서 우아하게 폴백.
+  impact?: string;
+  role?: string;
+  teamSize?: string;
+  liveUrl?: string;
 }
 
 const cardClass =

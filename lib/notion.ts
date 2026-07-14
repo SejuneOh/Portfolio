@@ -17,6 +17,10 @@ interface NotionProperties {
   github?: { url?: string }
   workPeriod?: { date?: { start?: string; end?: string } }
   status?: { status?: { name?: string } }
+  impact?: { rich_text?: NotionText[] }
+  role?: { rich_text?: NotionText[] }
+  teamSize?: { rich_text?: NotionText[] }
+  liveUrl?: { url?: string }
 }
 interface NotionPage {
   id: string
@@ -39,6 +43,10 @@ function mapProject(data: NotionPage): Project {
     startDate: p.workPeriod?.date?.start || "",
     endDate: p.workPeriod?.date?.end || "",
     status: p.status?.status?.name === "Done",
+    impact: p.impact?.rich_text?.[0]?.plain_text ?? "",
+    role: p.role?.rich_text?.[0]?.plain_text ?? "",
+    teamSize: p.teamSize?.rich_text?.[0]?.plain_text ?? "",
+    liveUrl: p.liveUrl?.url || "",
   }
 }
 

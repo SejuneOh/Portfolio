@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next"
 import Providers from "./providers"
 import { SITE_URL, SITE_NAME, SITE_TITLE, SITE_DESCRIPTION } from "../lib/site"
 
+// 파비콘/터치 아이콘은 app/icon.svg · app/apple-icon 파일 컨벤션으로 자동 주입된다.
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
@@ -10,7 +11,6 @@ export const metadata: Metadata = {
     template: "%s — Sejune Oh",
   },
   description: SITE_DESCRIPTION,
-  icons: { icon: "/favicon.ico" },
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",

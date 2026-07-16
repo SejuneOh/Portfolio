@@ -33,6 +33,14 @@ module.exports = {
           "Malgun Gothic",
           "sans-serif",
         ],
+        display: [
+          "var(--font-display)",
+          "ui-sans-serif",
+          "Apple SD Gothic Neo",
+          "Pretendard",
+          "Malgun Gothic",
+          "sans-serif",
+        ],
       },
       maxWidth: {
         content: "1080px",

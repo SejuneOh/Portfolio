@@ -9,8 +9,8 @@
   --text: #37352f;
   --text-muted: #787774;
   --border: #e9e9e7;
-  --accent: #1d4ed8;
-  --accent-hover: #1e40af;
+  --accent: #4f46e5;
+  --accent-hover: #4338ca;
 }
 
 .dark {
@@ -20,8 +20,8 @@
   --text: rgba(255, 255, 255, 0.9);
   --text-muted: #9b9b98;
   --border: #2f2f2f;
-  --accent: #3b82f6;
-  --accent-hover: #60a5fa;
+  --accent: #6366f1;
+  --accent-hover: #818cf8;
 }
 
 @layer base {
@@ -63,8 +63,12 @@ body {
 }
 
 @layer base {
+  /* 제목: 디스플레이 폰트(라틴) → 한글은 산세리프로 폴백 */
   h1, h2, h3, h4, h5, h6 {
     color: var(--text);
+    font-family: var(--font-display), ui-sans-serif, -apple-system, BlinkMacSystemFont,
+      "Segoe UI", "Apple SD Gothic Neo", Pretendard, "Malgun Gothic", sans-serif;
+    letter-spacing: -0.01em;
   }
 }
 

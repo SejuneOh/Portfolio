@@ -20,7 +20,7 @@ export default async function Projects() {
       </header>
 
       {groups.length > 0 ? (
-        <div className="gap-8 sm:columns-2 xl:columns-3">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 xl:grid-cols-3">
           {groups.map((g) => (
             <ProjectItem key={g.slug} data={g} />
           ))}

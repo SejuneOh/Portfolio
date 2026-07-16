@@ -20,7 +20,10 @@ export const metadata: Metadata = {
     template: "%s — Sejune Oh",
   },
   description: SITE_DESCRIPTION,
-  alternates: { canonical: "/" },
+  alternates: {
+    canonical: "/",
+    types: { "application/rss+xml": "/feed.xml" },
+  },
   openGraph: {
     type: "website",
     siteName: SITE_NAME,

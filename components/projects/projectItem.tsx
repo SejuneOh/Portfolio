@@ -52,7 +52,7 @@ function fmt(d?: string) {
 }
 
 const cardClass =
-  "card group flex h-full flex-col overflow-hidden break-inside-avoid mb-8 " +
+  "card group flex h-full flex-col overflow-hidden " +
   "hover:border-accent/60 hover:bg-surface-hover motion-safe:hover:-translate-y-0.5 " +
   "focus-visible:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30";
 

@@ -2,17 +2,16 @@ import Link from "next/link"
 import Image from "next/image"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
-import { getProjects, getProject } from "../../../../lib/notion"
-import { fetchBody } from "../../../../lib/postsData"
-import type { Block } from "../../../../lib/posts"
+import { getProjectGroups, getProjectGroup } from "../../../../lib/notion"
+import type { Experience } from "../../../../components/projects/projectItem"
 import PostBody from "../../../../components/postBody"
 import { SITE_URL } from "../../../../lib/site"
 
 export const revalidate = 3600
 
 export async function generateStaticParams() {
-  const projects = await getProjects()
-  return projects.map((p) => ({ id: p.id }))
+  const groups = await getProjectGroups()
+  return groups.map((g) => ({ id: g.slug }))
 }
 
 export async function generateMetadata({
@@ -21,16 +20,85 @@ export async function generateMetadata({
   params: Promise<{ id: string }>
 }): Promise<Metadata> {
   const { id } = await params
-  const project = await getProject(id)
-  if (!project) return {}
+  const group = await getProjectGroup(id)
+  if (!group) return {}
   const url = `${SITE_URL}/projects/${id}`
-  const desc = project.impact || project.description || undefined
+  const desc = group.summary || group.experiences[0]?.impact || undefined
   return {
-    title: project.projectName,
+    title: group.name,
     description: desc,
     alternates: { canonical: url },
-    openGraph: { type: "article", url, title: project.projectName, description: desc },
+    openGraph: { type: "article", url, title: group.name, description: desc },
   }
+}
+
+// "2024-09-01" / "2024.09" → "2024.09"
+function fmt(d?: string) {
+  if (!d) return ""
+  const [y, m] = d.replace(/\./g, "-").split("-")
+  return m ? `${y}.${m}` : y
+}
+
+function periodOf(e: Experience) {
+  return [fmt(e.startDate), e.status ? fmt(e.endDate) : "현재"]
+    .filter(Boolean)
+    .join(" — ")
+}
+
+const CTA_LIVE =
+  "inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+const CTA_REPO =
+  "inline-flex items-center gap-1.5 rounded-lg border border-line px-4 py-2 text-sm font-medium text-fg transition-colors hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+
+function Cta({ e }: { e: Experience }) {
+  if (!e.url && !e.liveUrl) return null
+  return (
+    <div className="mt-4 flex flex-wrap gap-3">
+      {e.liveUrl && (
+        <a href={e.liveUrl} target="_blank" rel="noopener noreferrer" className={CTA_LIVE}>
+          라이브 데모 ↗
+        </a>
+      )}
+      {e.url && (
+        <a href={e.url} target="_blank" rel="noopener noreferrer" className={CTA_REPO}>
+          Repository ↗
+        </a>
+      )}
+    </div>
+  )
+}
+
+// 경험 단위 메타(역할·팀·기간·스택) 카드.
+function ExperienceMeta({ e }: { e: Experience }) {
+  const period = periodOf(e)
+  const rows = [
+    e.role?.trim() && { label: "역할", value: e.role.trim() },
+    e.teamSize?.trim() && { label: "팀", value: e.teamSize.trim() },
+    period && { label: "기간", value: period },
+  ].filter(Boolean) as { label: string; value: string }[]
+  if (rows.length === 0 && e.tags.length === 0) return null
+  return (
+    <dl className="mt-6 grid grid-cols-1 gap-x-8 gap-y-4 rounded-xl border border-line bg-surface p-5 sm:grid-cols-2">
+      {rows.map((r) => (
+        <div key={r.label} className="flex flex-col gap-0.5">
+          <dt className="font-mono text-[11px] uppercase tracking-widest text-muted">{r.label}</dt>
+          <dd className="text-sm text-fg">{r.value}</dd>
+        </div>
+      ))}
+      {e.tags.length > 0 && (
+        <div className="flex flex-col gap-1.5 sm:col-span-2">
+          <dt className="font-mono text-[11px] uppercase tracking-widest text-muted">스택</dt>
+          <dd className="flex flex-wrap gap-1.5">
+            {e.tags.map((t) => (
+              <span key={t.id} className="chip">
+                {t.name}
+              </span>
+            ))}
+          </dd>
+        </div>
+      )}
+    </dl>
+  )
 }
 
 export default async function ProjectDetail({
@@ -39,29 +107,18 @@ export default async function ProjectDetail({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const project = await getProject(id)
-  if (!project) notFound()
+  const group = await getProjectGroup(id)
+  if (!group) notFound()
 
-  // 케이스스터디 본문(문제/접근/아키텍처/결과). 미설정 시 빈 배열 → 히어로+메타만 노출.
-  let body: Block[] = []
-  try {
-    body = await fetchBody(id)
-  } catch {
-    body = []
-  }
+  const multi = group.count > 1
+  const lead = group.experiences[0]
+  const groupPeriod = [fmt(group.startDate), group.inProgress ? "현재" : fmt(group.endDate)]
+    .filter(Boolean)
+    .join(" — ")
 
-  const period = [project.startDate, project.endDate].filter(Boolean).join(" — ")
-  const statusLabel = project.status ? "완료" : "진행 중"
-  const hook = project.impact?.trim()
-  const desc = project.description?.trim()
-
-  const metaRows = [
-    project.role?.trim() && { label: "역할", value: project.role.trim() },
-    project.teamSize?.trim() && { label: "팀", value: project.teamSize.trim() },
-    period && { label: "기간", value: period },
-  ].filter(Boolean) as { label: string; value: string }[]
-
-  const hasMeta = metaRows.length > 0 || project.tags.length > 0
+  // 단일 경험: 히어로 리드 = 경험 임팩트(없으면 개요), 서브 = 설명.
+  const heroLead = multi ? group.summary : lead?.impact?.trim() || group.summary
+  const heroSub = multi ? "" : lead?.description?.trim()
 
   return (
     <article className="max-w-[760px]">
@@ -70,10 +127,10 @@ export default async function ProjectDetail({
       </Link>
 
       {/* Hero cover (선택) */}
-      {project.cover && (
+      {group.cover && (
         <div className="relative mt-6 aspect-[2/1] w-full overflow-hidden rounded-xl border border-line">
           <Image
-            src={project.cover}
+            src={group.cover}
             alt=""
             fill
             sizes="760px"
@@ -84,89 +141,95 @@ export default async function ProjectDetail({
         </div>
       )}
 
-      {/* Hero */}
+      {/* Group hero */}
       <header className="mt-6">
         <span
           className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-mono text-[11px] uppercase tracking-widest ${
-            project.status ? "border-line text-muted" : "border-accent/40 text-accent"
+            group.inProgress ? "border-accent/40 text-accent" : "border-line text-muted"
           }`}
         >
-          <span aria-hidden>{project.status ? "○" : "●"}</span>
-          {statusLabel}
+          <span aria-hidden>{group.inProgress ? "●" : "○"}</span>
+          {group.inProgress ? "진행 중" : "완료"}
         </span>
 
         <h1 className="mt-4 text-3xl font-bold leading-tight tracking-tight text-fg sm:text-4xl">
-          {project.projectName}
+          {group.name}
         </h1>
 
-        {/* 임팩트 한 줄(3초 훅). 없으면 설명이 리드 역할. */}
-        {hook ? (
-          <>
-            <p className="mt-4 text-lg font-medium leading-relaxed text-fg">{hook}</p>
-            {desc && <p className="mt-2 text-[15px] leading-relaxed text-muted">{desc}</p>}
-          </>
-        ) : (
-          desc && <p className="mt-4 text-lg leading-relaxed text-muted">{desc}</p>
+        {heroLead && (
+          <p className="mt-4 text-lg font-medium leading-relaxed text-fg">{heroLead}</p>
+        )}
+        {heroSub && heroSub !== heroLead && (
+          <p className="mt-2 text-[15px] leading-relaxed text-muted">{heroSub}</p>
         )}
 
-        {/* CTA */}
-        {(project.url || project.liveUrl) && (
-          <div className="mt-6 flex flex-wrap gap-3">
-            {project.liveUrl && (
-              <a
-                href={project.liveUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
-              >
-                라이브 데모 ↗
-              </a>
-            )}
-            {project.url && (
-              <a
-                href={project.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-line px-4 py-2 text-sm font-medium text-fg transition-colors hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
-              >
-                Repository ↗
-              </a>
-            )}
-          </div>
-        )}
+        {!multi && lead && <Cta e={lead} />}
       </header>
 
-      {/* At-a-glance 메타 */}
-      {hasMeta && (
-        <dl className="mt-8 grid grid-cols-1 gap-x-8 gap-y-4 rounded-xl border border-line bg-surface p-5 sm:grid-cols-2">
-          {metaRows.map((r) => (
-            <div key={r.label} className="flex flex-col gap-0.5">
-              <dt className="font-mono text-[11px] uppercase tracking-widest text-muted">
-                {r.label}
-              </dt>
-              <dd className="text-sm text-fg">{r.value}</dd>
+      {multi ? (
+        <>
+          {/* 대분류 종합 메타 */}
+          <dl className="mt-8 grid grid-cols-1 gap-x-8 gap-y-4 rounded-xl border border-line bg-surface p-5 sm:grid-cols-2">
+            {groupPeriod && (
+              <div className="flex flex-col gap-0.5">
+                <dt className="font-mono text-[11px] uppercase tracking-widest text-muted">기간</dt>
+                <dd className="text-sm text-fg">{groupPeriod}</dd>
+              </div>
+            )}
+            <div className="flex flex-col gap-0.5">
+              <dt className="font-mono text-[11px] uppercase tracking-widest text-muted">경험</dt>
+              <dd className="text-sm text-fg">{group.count}건</dd>
             </div>
-          ))}
-          {project.tags.length > 0 && (
-            <div className="flex flex-col gap-1.5 sm:col-span-2">
-              <dt className="font-mono text-[11px] uppercase tracking-widest text-muted">스택</dt>
-              <dd className="flex flex-wrap gap-1.5">
-                {project.tags.map((t) => (
-                  <span key={t.id} className="chip">
-                    {t.name}
-                  </span>
-                ))}
-              </dd>
-            </div>
-          )}
-        </dl>
-      )}
+            {group.tags.length > 0 && (
+              <div className="flex flex-col gap-1.5 sm:col-span-2">
+                <dt className="font-mono text-[11px] uppercase tracking-widest text-muted">스택</dt>
+                <dd className="flex flex-wrap gap-1.5">
+                  {group.tags.map((t) => (
+                    <span key={t.id} className="chip">
+                      {t.name}
+                    </span>
+                  ))}
+                </dd>
+              </div>
+            )}
+          </dl>
 
-      {/* 케이스스터디 본문 */}
-      {body.length > 0 && (
-        <div className="mt-10 border-t border-line pt-2">
-          <PostBody blocks={body} />
-        </div>
+          {/* 경험 스택 */}
+          {group.experiences.map((e, i) => (
+            <section key={e.id} className="mt-12 border-t border-line pt-8">
+              <p className="font-mono text-xs uppercase tracking-widest text-accent">
+                경험 {i + 1}
+              </p>
+              <h2 className="mt-2 text-2xl font-bold tracking-tight text-fg">{e.projectName}</h2>
+              {e.impact?.trim() && (
+                <p className="mt-3 text-[15px] font-medium leading-relaxed text-fg">
+                  {e.impact.trim()}
+                </p>
+              )}
+              {e.description?.trim() && e.description.trim() !== e.impact?.trim() && (
+                <p className="mt-2 text-sm leading-relaxed text-muted">{e.description.trim()}</p>
+              )}
+              <ExperienceMeta e={e} />
+              <Cta e={e} />
+              {e.body && e.body.length > 0 && (
+                <div className="mt-8">
+                  <PostBody blocks={e.body} />
+                </div>
+              )}
+            </section>
+          ))}
+        </>
+      ) : (
+        lead && (
+          <>
+            <ExperienceMeta e={lead} />
+            {lead.body && lead.body.length > 0 && (
+              <div className="mt-10 border-t border-line pt-2">
+                <PostBody blocks={lead.body} />
+              </div>
+            )}
+          </>
+        )
       )}
 
       {/* Footer nav */}

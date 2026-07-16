@@ -20,6 +20,19 @@ updates:
           - "minor"
           - "patch"
 
+    ignore:
+      # major 업그레이드는 breaking change라 자동 PR 대신 #102에서 수동 마이그레이션한다.
+      - dependency-name: "next"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint-config-next"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "tailwindcss"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+
   # GitHub Actions 워크플로
   - package-ecosystem: "github-actions"
     directory: "/"

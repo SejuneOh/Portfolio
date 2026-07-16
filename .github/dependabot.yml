@@ -1,0 +1,33 @@
+# Dependabot — 의존성 & GitHub Actions 자동 업데이트
+# PR은 feature→dev→main 플로에 맞춰 dev 브랜치를 타깃으로 생성한다.
+version: 2
+updates:
+  # npm 의존성 (루트)
+  - package-ecosystem: "npm"
+    directory: "/"
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore"
+    groups:
+      # minor/patch는 한 PR로 묶어 소음을 줄인다 (major는 개별 PR).
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # GitHub Actions 워크플로
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "ci"
+    commit-message:
+      prefix: "ci"

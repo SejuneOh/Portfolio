@@ -24,7 +24,7 @@ export default function OpengraphImage() {
           color: "#ffffff",
         }}
       >
-        <div style={{ fontSize: 28, letterSpacing: 8, color: "#2383e2", textTransform: "uppercase" }}>
+        <div style={{ fontSize: 28, letterSpacing: 8, color: "#818cf8", textTransform: "uppercase" }}>
           Backend Engineer · Fullstack
         </div>
         <div style={{ fontSize: 92, fontWeight: 800, marginTop: 24, lineHeight: 1.05 }}>Sejune Oh</div>

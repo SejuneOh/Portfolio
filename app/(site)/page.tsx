@@ -1,7 +1,7 @@
 import Link from "next/link"
 import ProjectItem from "../../components/projects/projectItem"
 import AboutRail from "../../components/home/aboutRail"
-import { getProjects } from "../../lib/notion"
+import { getProjectGroups } from "../../lib/notion"
 import JsonLd from "../../components/jsonLd"
 import { SITE_URL, SITE_DESCRIPTION, AUTHOR } from "../../lib/site"
 
@@ -10,9 +10,9 @@ export const revalidate = 3600
 const HOME_CAP = 7
 
 export default async function Home() {
-  const projects = await getProjects()
-  const homeProjects = projects.slice(0, HOME_CAP)
-  const hasMore = projects.length > homeProjects.length
+  const groups = await getProjectGroups()
+  const homeGroups = groups.slice(0, HOME_CAP)
+  const hasMore = groups.length > homeGroups.length
 
   return (
     <>
@@ -37,7 +37,7 @@ export default async function Home() {
           실시간 채팅·메시징 백엔드를 설계·운영하는 C#/.NET 엔지니어
         </h1>
         <p className="mt-3 font-mono text-xs tracking-widest text-muted">
-          {`${projects.length}개 프로젝트 · 2019—NOW`}
+          {`${groups.length}개 프로젝트 · 2019—NOW`}
         </p>
       </section>
 
@@ -48,13 +48,13 @@ export default async function Home() {
         {/* LEFT: project index */}
         <div className="lg:order-first">
           <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2">
-            {homeProjects.map((p, i) =>
+            {homeGroups.map((g, i) =>
               i === 0 ? (
-                <div key={p.id} className="sm:col-span-2">
-                  <ProjectItem data={p} />
+                <div key={g.slug} className="sm:col-span-2">
+                  <ProjectItem data={g} />
                 </div>
               ) : (
-                <ProjectItem key={p.id} data={p} />
+                <ProjectItem key={g.slug} data={g} />
               )
             )}
           </div>

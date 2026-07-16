@@ -1,12 +1,14 @@
 import Link from "next/link"
 import Image from "next/image"
+import type { Block } from "../../lib/posts"
 
 export interface ProjectTag {
   id: string;
   name: string;
 }
 
-export interface Project {
+// 하나의 "경험/기여"(Notion 행 1개). 여러 경험이 하나의 대분류 프로젝트로 묶인다.
+export interface Experience {
   id: string;
   projectName: string;
   description: string;
@@ -21,6 +23,32 @@ export interface Project {
   role?: string;
   teamSize?: string;
   liveUrl?: string;
+  // 대분류(프로젝트) 그룹핑. group 미설정 시 이 경험이 독립 프로젝트가 된다.
+  group?: string;
+  groupSummary?: string;
+  // 상세 페이지에서 채워지는 본문 블록.
+  body?: Block[];
+}
+
+// 대분류(실제 프로젝트). 경험 여러 개를 묶는다.
+export interface ProjectGroup {
+  slug: string;
+  name: string;
+  summary: string;
+  cover: string;
+  tags: ProjectTag[];
+  startDate: string;
+  endDate: string;
+  inProgress: boolean;
+  count: number;
+  experiences: Experience[];
+}
+
+// "2024-09-01" / "2024.09" → "2024.09"
+function fmt(d?: string) {
+  if (!d) return "";
+  const [y, m] = d.replace(/\./g, "-").split("-");
+  return m ? `${y}.${m}` : y;
 }
 
 const cardClass =
@@ -28,17 +56,16 @@ const cardClass =
   "hover:border-accent/60 hover:bg-surface-hover motion-safe:hover:-translate-y-0.5 " +
   "focus-visible:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30";
 
-export default function ProjectItem({ data }: { data: Project }) {
-  const glyph = Array.from(data.projectName)[0] ?? "·";
+// 대분류(프로젝트) 카드. 목록/홈 공용.
+export default function ProjectItem({ data }: { data: ProjectGroup }) {
+  const glyph = Array.from(data.name)[0] ?? "·";
   const firstTag = data.tags?.[0]?.name;
-  // status: true = Done, false = 진행 중
-  const inProgress = !data.status;
-  // 프로젝트명 기반 결정적 각도(해치 텍스처가 카드마다 조금씩 달라지도록)
+  const inProgress = data.inProgress;
   const hatchAngle =
-    (Array.from(data.projectName).reduce((sum, ch) => sum + ch.charCodeAt(0), 0) % 4) * 45;
+    (Array.from(data.name).reduce((sum, ch) => sum + ch.charCodeAt(0), 0) % 4) * 45;
 
   const hasPeriod = Boolean(data.startDate);
-  const period = `${data.startDate} — ${data.endDate || "현재"}`;
+  const period = `${fmt(data.startDate)} — ${data.inProgress ? "현재" : fmt(data.endDate) || "현재"}`;
 
   const body = (
     <>
@@ -50,8 +77,6 @@ export default function ProjectItem({ data }: { data: Project }) {
             alt=""
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            // Notion 커버 호스트(app.notion.com 등)가 remotePatterns 밖이면 최적화기가 400.
-            // 커버는 임의 호스트라 unoptimized 로 원본 서빙(어떤 호스트든 표시 보장). lazy/레이아웃은 유지.
             unoptimized
             className="object-cover grayscale-[15%] opacity-95 transition group-hover:grayscale-0 group-hover:opacity-100 motion-safe:group-hover:scale-[1.03]"
           />
@@ -81,12 +106,12 @@ export default function ProjectItem({ data }: { data: Project }) {
           >
             {inProgress ? "●" : "○"}
           </span>
-          <span className="line-clamp-1">{data.projectName}</span>
+          <span className="line-clamp-1">{data.name}</span>
         </h3>
 
-        {data.description && (
+        {data.summary && (
           <p className="mt-1.5 text-sm leading-relaxed text-muted line-clamp-2">
-            {data.description}
+            {data.summary}
           </p>
         )}
 
@@ -105,7 +130,10 @@ export default function ProjectItem({ data }: { data: Project }) {
 
         <div className="mt-auto flex items-center justify-between border-t border-line pt-4">
           <span className="font-mono text-xs text-muted">{hasPeriod ? period : ""}</span>
-          <span className="text-sm text-accent group-hover:text-accent-hover">
+          <span className="flex items-center gap-2 text-sm text-accent group-hover:text-accent-hover">
+            {data.count > 1 && (
+              <span className="font-mono text-xs text-muted">경험 {data.count}</span>
+            )}
             자세히 →
           </span>
         </div>
@@ -113,10 +141,8 @@ export default function ProjectItem({ data }: { data: Project }) {
     </>
   );
 
-  // 카드 전체를 프로젝트 상세 페이지 링크로(케이스스터디). GitHub/live 링크는 상세에서 노출.
-  // 앵커 중첩을 피하기 위해 내부에는 별도의 <a>/<Link> 를 두지 않는다.
   return (
-    <Link href={`/projects/${data.id}`} className={cardClass}>
+    <Link href={`/projects/${data.slug}`} className={cardClass}>
       {body}
     </Link>
   );

@@ -3,14 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import DarkModeToggleBtn from "./darkModeToggleBtn"
-
-const nav = [
-  { href: "/", label: "HOME" },
-  { href: "/projects", label: "PROJECTS" },
-  { href: "/blog", label: "BLOG" },
-  { href: "/resume", label: "RESUME" },
-  { href: "/contact", label: "CONTACT" },
-]
+import { NAV, isNavActive } from "../lib/nav"
 
 function GitHubIcon() {
   return (
@@ -20,13 +13,12 @@ function GitHubIcon() {
   )
 }
 
+// 데스크톱(md+) 전용 사이드바. 모바일은 MobileHeader 가 담당.
 export default function Sidebar() {
   const pathname = usePathname()
-  const isActive = (href: string) =>
-    href === "/" ? pathname === "/" : pathname.startsWith(href)
 
   return (
-    <aside className="py-10 md:sticky md:top-0 md:h-screen md:self-start md:overflow-y-auto">
+    <aside className="hidden py-10 md:block md:sticky md:top-0 md:h-screen md:self-start md:overflow-y-auto">
       {/* Brand block */}
       <Link href="/" aria-label="home" className="inline-block">
         <div className="relative flex h-36 w-36 flex-col justify-between bg-accent p-4 text-white">
@@ -42,12 +34,12 @@ export default function Sidebar() {
 
       {/* Vertical nav */}
       <nav className="mt-9 flex flex-col gap-2.5">
-        {nav.map((n) => (
+        {NAV.map((n) => (
           <Link
             key={n.href}
             href={n.href}
             className={`w-fit text-lg font-bold tracking-wide transition-colors ${
-              isActive(n.href) ? "text-accent" : "text-fg hover:text-accent"
+              isNavActive(pathname, n.href) ? "text-accent" : "text-fg hover:text-accent"
             }`}
           >
             {n.label}

@@ -1,6 +1,12 @@
 "use client"
 
 import Link from "next/link"
+import { Fraunces, Instrument_Sans, JetBrains_Mono } from "next/font/google"
+
+// 이력서 고유 서체 — next/font로 로드(렌더블로킹 <link> 제거, no-page-custom-font 해소).
+const fraunces = Fraunces({ subsets: ["latin"], weight: ["400", "600", "700"], style: ["normal", "italic"], variable: "--font-fraunces", display: "swap" })
+const instrument = Instrument_Sans({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-instrument", display: "swap" })
+const jbMono = JetBrains_Mono({ subsets: ["latin"], weight: ["400", "500", "700"], variable: "--font-jbmono", display: "swap" })
 
 /**
  * 정식 이력서 페이지 (/resume)
@@ -12,14 +18,8 @@ import Link from "next/link"
 export default function ResumeDoc() {
   return (
     <>
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      <link
-        href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap"
-        rel="stylesheet"
-      />
 
-      <div className="resume-page">
+      <div className={`resume-page ${fraunces.variable} ${instrument.variable} ${jbMono.variable}`}>
         <div className="sheet">
           <Link href="/" className="backlink">← Portfolio</Link>
 
@@ -281,7 +281,7 @@ export default function ResumeDoc() {
           min-height: 100vh;
           background: var(--paper);
           color: var(--ink);
-          font-family: "Instrument Sans", -apple-system, sans-serif;
+          font-family: var(--font-instrument), -apple-system, sans-serif;
           line-height: 1.55;
           font-size: 15px;
           letter-spacing: 0.005em;
@@ -300,7 +300,7 @@ export default function ResumeDoc() {
         }
         .resume-page .backlink {
           display: inline-block;
-          font-family: "JetBrains Mono", monospace;
+          font-family: var(--font-jbmono), monospace;
           font-size: 12px;
           letter-spacing: 0.05em;
           color: var(--ink-faint);
@@ -311,7 +311,7 @@ export default function ResumeDoc() {
 
         .resume-page header { margin-bottom: 44px; }
         .resume-page .eyebrow {
-          font-family: "JetBrains Mono", monospace;
+          font-family: var(--font-jbmono), monospace;
           font-size: 11px;
           letter-spacing: 0.28em;
           text-transform: uppercase;
@@ -319,7 +319,7 @@ export default function ResumeDoc() {
           margin-bottom: 16px;
         }
         .resume-page h1 {
-          font-family: "Fraunces", serif;
+          font-family: var(--font-fraunces), serif;
           font-weight: 600;
           font-size: clamp(48px, 8vw, 88px);
           line-height: 0.94;
@@ -336,7 +336,7 @@ export default function ResumeDoc() {
           margin-top: 10px;
         }
         .resume-page .tagline {
-          font-family: "Fraunces", serif;
+          font-family: var(--font-fraunces), serif;
           font-size: clamp(18px, 2.6vw, 23px);
           line-height: 1.45;
           font-weight: 400;
@@ -349,7 +349,7 @@ export default function ResumeDoc() {
           display: flex;
           flex-wrap: wrap;
           gap: 8px 22px;
-          font-family: "JetBrains Mono", monospace;
+          font-family: var(--font-jbmono), monospace;
           font-size: 12.5px;
           color: var(--ink-soft);
         }
@@ -372,7 +372,7 @@ export default function ResumeDoc() {
         }
         .resume-page .metric { background: var(--paper); padding: 20px 18px 18px; }
         .resume-page .metric .big {
-          font-family: "JetBrains Mono", monospace;
+          font-family: var(--font-jbmono), monospace;
           font-weight: 700;
           font-size: clamp(20px, 3vw, 27px);
           letter-spacing: -0.02em;
@@ -396,13 +396,13 @@ export default function ResumeDoc() {
         }
         .resume-page .sec-head { position: relative; }
         .resume-page .sec-num {
-          font-family: "JetBrains Mono", monospace;
+          font-family: var(--font-jbmono), monospace;
           font-size: 11px;
           color: var(--accent);
           letter-spacing: 0.1em;
         }
         .resume-page .sec-title {
-          font-family: "Fraunces", serif;
+          font-family: var(--font-fraunces), serif;
           font-weight: 600;
           font-size: 20px;
           line-height: 1.15;
@@ -422,7 +422,7 @@ export default function ResumeDoc() {
         }
         .resume-page .skill-row:last-child { border-bottom: 0; }
         .resume-page .skill-row .k {
-          font-family: "JetBrains Mono", monospace;
+          font-family: var(--font-jbmono), monospace;
           font-size: 11.5px;
           color: var(--accent-deep);
           letter-spacing: 0.02em;
@@ -433,8 +433,8 @@ export default function ResumeDoc() {
 
         .resume-page .job { margin-bottom: 6px; }
         .resume-page .job-top { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 4px 16px; }
-        .resume-page .job-org { font-family: "Fraunces", serif; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
-        .resume-page .job-when { font-family: "JetBrains Mono", monospace; font-size: 11.5px; color: var(--ink-faint); white-space: nowrap; }
+        .resume-page .job-org { font-family: var(--font-fraunces), serif; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+        .resume-page .job-when { font-family: var(--font-jbmono), monospace; font-size: 11.5px; color: var(--ink-faint); white-space: nowrap; }
         .resume-page .job-role { font-size: 13.5px; color: var(--accent-deep); margin-top: 3px; font-weight: 500; }
         .resume-page .job-note { font-size: 13px; color: var(--ink-soft); margin-top: 8px; font-style: italic; line-height: 1.5; }
 
@@ -475,7 +475,7 @@ export default function ResumeDoc() {
         }
         .resume-page li b { color: var(--ink); font-weight: 600; }
         .resume-page .kbd {
-          font-family: "JetBrains Mono", monospace;
+          font-family: var(--font-jbmono), monospace;
           font-size: 0.86em;
           background: var(--accent-wash);
           color: var(--accent-deep);
@@ -488,14 +488,14 @@ export default function ResumeDoc() {
         .resume-page .edu-item { margin-bottom: 16px; }
         .resume-page .edu-item:last-child { margin-bottom: 0; }
         .resume-page .edu-name { font-weight: 600; font-size: 14px; }
-        .resume-page .edu-meta { font-family: "JetBrains Mono", monospace; font-size: 11.5px; color: var(--ink-faint); margin-top: 2px; }
+        .resume-page .edu-meta { font-family: var(--font-jbmono), monospace; font-size: 11.5px; color: var(--ink-faint); margin-top: 2px; }
         .resume-page .edu-desc { font-size: 13px; color: var(--ink-soft); margin-top: 4px; }
 
         .resume-page footer {
           margin-top: 40px;
           padding-top: 20px;
           border-top: 1px solid var(--rule);
-          font-family: "JetBrains Mono", monospace;
+          font-family: var(--font-jbmono), monospace;
           font-size: 11px;
           color: var(--ink-faint);
           display: flex;
@@ -509,7 +509,7 @@ export default function ResumeDoc() {
           right: 24px;
           bottom: 24px;
           z-index: 20;
-          font-family: "JetBrains Mono", monospace;
+          font-family: var(--font-jbmono), monospace;
           font-size: 12.5px;
           font-weight: 500;
           background: var(--ink);
@@ -566,9 +566,9 @@ export default function ResumeDoc() {
             --ink-soft: #4a4740;
             --ink-faint: #8a857a;
             --rule: #e2e0db;
-            --accent: #2383e2;
-            --accent-deep: #0b6bcb;
-            --accent-wash: #eef3fb;
+            --accent: #4f46e5;
+            --accent-deep: #4338ca;
+            --accent-wash: #eef2ff;
           }
           .resume-page {
             padding: 0;

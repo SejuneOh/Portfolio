@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next"
 import { Space_Grotesk } from "next/font/google"
 import Providers from "./providers"
 import { SITE_URL, SITE_NAME, SITE_TITLE, SITE_DESCRIPTION } from "../lib/site"
+import { Analytics } from "@vercel/analytics/next"
 
 // 제목용 디스플레이 폰트(라틴). --font-display 변수로 노출 → globals.css 헤딩에서 사용.
 const spaceGrotesk = Space_Grotesk({
@@ -49,6 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ko" className={spaceGrotesk.variable} suppressHydrationWarning>
       <body>
         <Providers>{children}</Providers>
+        <Analytics />
       </body>
     </html>
   )

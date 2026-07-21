@@ -1,9 +1,13 @@
 "use client"
 
 import { useActionState } from "react"
+import Script from "next/script"
 import { submitInquiry, type ContactState } from "../../app/(site)/contact/actions"
 
 const INIT: ContactState = { ok: false, message: "" }
+
+// Turnstile 사이트 키가 있을 때만 위젯 렌더(없으면 폼은 그대로 동작).
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
 
 // UI 옵션(서버 액션이 INQUIRY_TYPES 로 재검증). 서버 모듈을 client 로 끌어오지 않도록 여기서 정의.
 const TYPES = ["이메일 요청", "면접 요청"] as const
@@ -51,6 +55,21 @@ export default function ContactForm() {
         <span className={labelCls}>메시지 *</span>
         <textarea name="message" rows={6} required className={fieldCls} placeholder="문의 내용을 남겨주세요." />
       </label>
+
+      {TURNSTILE_SITE_KEY && (
+        <>
+          <Script
+            src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+            async
+            defer
+          />
+          <div
+            className="cf-turnstile"
+            data-sitekey={TURNSTILE_SITE_KEY}
+            data-theme="auto"
+          />
+        </>
+      )}
 
       <div>
         <button

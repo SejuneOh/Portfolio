@@ -10,11 +10,17 @@ export const INQUIRY_PROPS = {
   email: "Email",
   type: "Type",
   message: "Message",
+  status: "Status",
 } as const
 
 // 문의 유형 (select 옵션명)
 export const INQUIRY_TYPES = ["이메일 요청", "면접 요청"] as const
 export type InquiryType = (typeof INQUIRY_TYPES)[number]
+
+// 문의 처리 상태 (Status 속성 옵션명). 배열 첫 항목이 기본값.
+export const INQUIRY_STATUSES = ["신규", "처리중", "완료"] as const
+export type InquiryStatus = (typeof INQUIRY_STATUSES)[number]
+export const DEFAULT_INQUIRY_STATUS: InquiryStatus = INQUIRY_STATUSES[0]
 
 function headers() {
   return {
@@ -68,6 +74,7 @@ export interface Inquiry {
   email: string
   type: string
   message: string
+  status: string
   createdTime: string
 }
 
@@ -103,17 +110,51 @@ export async function getInquiries(): Promise<Inquiry[]> {
 
     return (json.results || []).map((page) => {
       const p = (name: string) => page.properties?.[name] as Record<string, unknown> | undefined
+      // Status 는 사용자가 Select 또는 Notion Status 타입 중 무엇으로 만들었든 읽는다.
+      const statusProp = p(INQUIRY_PROPS.status)
+      const status =
+        (statusProp?.select as { name?: string } | undefined)?.name ??
+        (statusProp?.status as { name?: string } | undefined)?.name ??
+        DEFAULT_INQUIRY_STATUS
       return {
         id: page.id,
         name: plain(p(INQUIRY_PROPS.name)?.title as NotionRichText[] | undefined),
         email: (p(INQUIRY_PROPS.email)?.email as string) ?? "",
         type: ((p(INQUIRY_PROPS.type)?.select as { name?: string } | undefined)?.name) ?? "",
         message: plain(p(INQUIRY_PROPS.message)?.rich_text as NotionRichText[] | undefined),
+        status,
         createdTime: page.created_time ?? "",
       }
     })
   } catch (e) {
     console.error("[inquiries] Notion fetch failed:", (e as Error).message)
     return []
+  }
+}
+
+async function patchStatus(id: string, value: Record<string, unknown>) {
+  return fetch(`${NOTION_API}/pages/${id}`, {
+    method: "PATCH",
+    headers: headers(),
+    body: JSON.stringify({ properties: { [INQUIRY_PROPS.status]: value } }),
+  })
+}
+
+// 문의 처리 상태 변경. Status 속성이 Select 든 Notion Status 타입이든 동작하도록
+// select 로 먼저 시도하고, 실패 시 status 타입으로 재시도한다.
+// Status 속성이 아예 없으면(오너 미설정) Notion 이 400 을 주고, 그 메시지를 그대로 던진다.
+export async function setInquiryStatus(id: string, status: string): Promise<void> {
+  if (!TOKEN) throw new Error("NOTION_TOKEN 미설정")
+
+  let res = await patchStatus(id, { select: { name: status } })
+  if (!res.ok) {
+    // Select 가 아니면(예: Notion Status 타입) status 형태로 한 번 더 시도.
+    res = await patchStatus(id, { status: { name: status } })
+  }
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "")
+    throw new Error(
+      `문의 상태 변경 실패 (${res.status}). Inquiries DB 에 "${INQUIRY_PROPS.status}" 속성(옵션: ${INQUIRY_STATUSES.join("/")})이 있는지 확인하세요. ${detail.slice(0, 200)}`
+    )
   }
 }

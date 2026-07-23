@@ -16,6 +16,12 @@ export const PROJECT_PROPS = {
   github: "github",
   workPeriod: "workPeriod",
   status: "status",
+  impact: "impact",
+  role: "role",
+  teamSize: "teamSize",
+  liveUrl: "liveUrl",
+  group: "group",
+  groupSummary: "groupSummary",
 } as const
 
 function headers() {
@@ -271,22 +277,79 @@ export interface ProjectInput {
   startDate: string
   endDate: string
   status: string
+  // 케이스스터디/대분류 필드 (Notion projects DB 에 이미 존재하는 속성)
+  impact: string
+  role: string
+  teamSize: string
+  liveUrl: string
+  group: string
+  groupSummary: string
+  // 페이지 커버 이미지 URL(외부). 상세 히어로·목록 카드에 노출.
+  cover: string
+  // 상세 본문(마크다운 유사 텍스트).
+  body: string
+}
+
+// 생성/수정 공용 속성 빌더.
+// 수정 시엔 빈 값을 null 로 클리어(생성 시엔 빈 값은 넣지 않아도 동일 효과지만
+// 일관성·명확성을 위해 동일 규칙 적용).
+function projectProperties(input: ProjectInput): Record<string, unknown> {
+  const properties: Record<string, unknown> = {
+    [PROJECT_PROPS.name]: { title: rich(input.name) },
+    [PROJECT_PROPS.description]: { rich_text: rich(input.description) },
+    [PROJECT_PROPS.tags]: { multi_select: input.tags.map((name) => ({ name })) },
+    [PROJECT_PROPS.impact]: { rich_text: rich(input.impact) },
+    [PROJECT_PROPS.role]: { rich_text: rich(input.role) },
+    [PROJECT_PROPS.teamSize]: { rich_text: rich(input.teamSize) },
+    [PROJECT_PROPS.groupSummary]: { rich_text: rich(input.groupSummary) },
+  }
+  properties[PROJECT_PROPS.github] = input.github ? { url: input.github } : { url: null }
+  properties[PROJECT_PROPS.liveUrl] = input.liveUrl ? { url: input.liveUrl } : { url: null }
+  properties[PROJECT_PROPS.workPeriod] = input.startDate
+    ? { date: { start: input.startDate, end: input.endDate || null } }
+    : { date: null }
+  properties[PROJECT_PROPS.status] = input.status
+    ? { status: { name: input.status } }
+    : { status: null }
+  properties[PROJECT_PROPS.group] = input.group
+    ? { select: { name: input.group } }
+    : { select: null }
+  return properties
 }
 
 export async function createProjectPage(input: ProjectInput): Promise<{ id: string }> {
   if (!TOKEN || !DATABASE_ID) throw new Error("NOTION_TOKEN / NOTION_DB 미설정")
 
-  const properties: Record<string, unknown> = {
-    [PROJECT_PROPS.name]: { title: rich(input.name) },
-    [PROJECT_PROPS.description]: { rich_text: rich(input.description) },
-    [PROJECT_PROPS.tags]: { multi_select: input.tags.map((name) => ({ name })) },
+  const page: Record<string, unknown> = {
+    parent: { database_id: DATABASE_ID },
+    properties: projectProperties(input),
   }
-  if (input.github) properties[PROJECT_PROPS.github] = { url: input.github }
-  if (input.startDate)
-    properties[PROJECT_PROPS.workPeriod] = {
-      date: { start: input.startDate, end: input.endDate || null },
-    }
-  if (input.status) properties[PROJECT_PROPS.status] = { status: { name: input.status } }
+  if (input.cover) page.cover = { type: "external", external: { url: input.cover } }
 
-  return createPage({ parent: { database_id: DATABASE_ID }, properties })
+  const created = await createPage(page)
+  await appendChildren(created.id, textToBlocks(input.body))
+  return created
+}
+
+// replaceBodyContent=false 면 속성만 갱신하고 본문 블록 교체를 건너뛴다(빠른 저장).
+export async function updateProjectPage(
+  id: string,
+  input: ProjectInput,
+  replaceBodyContent = true
+): Promise<{ id: string }> {
+  if (!TOKEN || !DATABASE_ID) throw new Error("NOTION_TOKEN / NOTION_DB 미설정")
+
+  const body: Record<string, unknown> = { properties: projectProperties(input) }
+  // 커버: URL 이 있으면 설정, 비우면 제거(null).
+  body.cover = input.cover ? { type: "external", external: { url: input.cover } } : null
+
+  await patchPage(id, body)
+  if (replaceBodyContent) await replaceBody(id, input.body)
+  return { id }
+}
+
+// 삭제 = 아카이브(Notion 휴지통에서 복구 가능).
+export async function archiveProjectPage(id: string): Promise<void> {
+  if (!TOKEN) throw new Error("NOTION_TOKEN 미설정")
+  await patchPage(id, { archived: true })
 }

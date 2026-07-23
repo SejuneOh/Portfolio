@@ -3,7 +3,9 @@ import type {
   ProjectGroup,
   ProjectTag,
 } from "../components/projects/projectItem"
+import type { Block } from "./posts"
 import { TOKEN, DATABASE_ID } from "../config"
+import { PROJECT_PROPS } from "./notionWrite"
 import { fallbackExperiences } from "./projectsFallback"
 import { fetchBody } from "./postsData"
 
@@ -198,4 +200,89 @@ export async function getProjectGroup(
     })
   )
   return group
+}
+
+// ── 관리자(백오피스) 전용 조회 ────────────────────────────────────
+// 공개 조회(그룹핑·boolean status)와 달리, 수정 폼 프리필용으로 각 경험(행)을
+// pageId·원본 문자열 값(status 옵션명·커버 URL 등)째로 반환하고 캐시를 우회한다.
+export interface AdminProject {
+  id: string
+  name: string
+  description: string
+  tags: string[]
+  github: string
+  startDate: string
+  endDate: string
+  status: string // status 옵션명 원본(예: "Done"/"In progress")
+  impact: string
+  role: string
+  teamSize: string
+  liveUrl: string
+  group: string
+  groupSummary: string
+  cover: string
+  body?: Block[]
+}
+
+function mapAdminProject(page: NotionPage): AdminProject {
+  const p = page.properties || {}
+  return {
+    id: page.id,
+    name: p.projectName?.title?.[0]?.plain_text ?? "",
+    description: p.description?.rich_text?.[0]?.plain_text ?? "",
+    tags: (p.tag?.multi_select ?? []).map((t) => t.name).filter(Boolean),
+    github: p.github?.url || "",
+    startDate: p.workPeriod?.date?.start || "",
+    endDate: p.workPeriod?.date?.end || "",
+    status: p.status?.status?.name ?? "",
+    impact: p.impact?.rich_text?.[0]?.plain_text ?? "",
+    role: p.role?.rich_text?.[0]?.plain_text ?? "",
+    teamSize: p.teamSize?.rich_text?.[0]?.plain_text ?? "",
+    liveUrl: p.liveUrl?.url || "",
+    group: p.group?.select?.name ?? "",
+    groupSummary: p.groupSummary?.rich_text?.[0]?.plain_text ?? "",
+    cover: page.cover?.external?.url || page.cover?.file?.url || "",
+  }
+}
+
+// 백오피스 목록: 라이브 Notion 행 전체(캐시 우회). 미설정·실패 시 빈 목록.
+// (fallback 은 반환하지 않는다 — 관리 대상은 실제 DB 행뿐이라야 하므로.)
+export async function getAdminProjects(): Promise<AdminProject[]> {
+  if (!TOKEN || !DATABASE_ID) return []
+  try {
+    const res = await fetch(`https://api.notion.com/v1/databases/${DATABASE_ID}/query`, {
+      method: "POST",
+      headers: notionHeaders(),
+      body: JSON.stringify({
+        sorts: [{ property: PROJECT_PROPS.name, direction: "ascending" }],
+        page_size: 100,
+      }),
+      cache: "no-store",
+    })
+    if (!res.ok) throw new Error(`Notion API ${res.status}`)
+    const data = (await res.json()) as NotionQueryResponse
+    return (data.results || []).map(mapAdminProject).filter((p) => p.name)
+  } catch (e) {
+    console.error("[admin projects] Notion fetch failed:", (e as Error).message)
+    return []
+  }
+}
+
+// 수정 폼 프리필용 단건(본문 포함, 최신값).
+export async function getAdminProject(id: string): Promise<AdminProject | null> {
+  if (!TOKEN || !DATABASE_ID) return null
+  try {
+    const res = await fetch(`https://api.notion.com/v1/pages/${id}`, {
+      headers: notionHeaders(),
+      cache: "no-store",
+    })
+    if (!res.ok) throw new Error(`Notion page ${res.status}`)
+    const page = (await res.json()) as NotionPage
+    const meta = mapAdminProject(page)
+    meta.body = await fetchBody(id, true)
+    return meta
+  } catch (e) {
+    console.error("[admin project] Notion fetch failed:", (e as Error).message)
+    return null
+  }
 }

@@ -1,7 +1,7 @@
 import type { ActionState } from "../../lib/adminForm"
 
 export const fieldCls =
-  "mt-1 w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-fg outline-none focus-visible:ring-2 focus-visible:ring-accent"
+  "mt-1 w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-fg outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
 export const labelCls = "block text-xs font-medium uppercase tracking-wide text-muted"
 
 export function Field({

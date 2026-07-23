@@ -54,7 +54,7 @@ function fmt(d?: string) {
 const cardClass =
   "card group flex h-full flex-col overflow-hidden " +
   "hover:border-accent/60 hover:bg-surface-hover motion-safe:hover:-translate-y-0.5 " +
-  "focus-visible:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30";
+  "focus-visible:border-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-accent/30";
 
 // 대분류(프로젝트) 카드. 목록/홈 공용.
 export default function ProjectItem({ data }: { data: ProjectGroup }) {
@@ -70,7 +70,7 @@ export default function ProjectItem({ data }: { data: ProjectGroup }) {
   const body = (
     <>
       {/* Cover strip */}
-      <div className="relative aspect-[16/9] w-full overflow-hidden">
+      <div className="relative aspect-video w-full overflow-hidden">
         {data.cover ? (
           <Image
             src={data.cover}
@@ -78,7 +78,7 @@ export default function ProjectItem({ data }: { data: ProjectGroup }) {
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             unoptimized
-            className="object-cover grayscale-[15%] opacity-95 transition group-hover:grayscale-0 group-hover:opacity-100 motion-safe:group-hover:scale-[1.03]"
+            className="object-cover grayscale-15 opacity-95 transition group-hover:grayscale-0 group-hover:opacity-100 motion-safe:group-hover:scale-[1.03]"
           />
         ) : (
           <div

@@ -4,6 +4,7 @@ import { headers } from "next/headers"
 import { createInquiry, INQUIRY_TYPES } from "../../../lib/inquiries"
 import { notifyNewInquiry } from "../../../lib/notify"
 import { rateLimit } from "../../../lib/rateLimit"
+import { verifyTurnstile } from "../../../lib/turnstile"
 
 export interface ContactState {
   ok: boolean
@@ -26,6 +27,12 @@ export async function submitInquiry(
   const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown"
   if (!rateLimit(`contact:${ip}`, 3, 10 * 60 * 1000)) {
     return { ok: false, message: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." }
+  }
+
+  // Turnstile(설정 시): 봇 캡차 토큰 검증. 키 미설정이면 verifyTurnstile 가 통과시킴.
+  const turnstileToken = String(formData.get("cf-turnstile-response") || "")
+  if (!(await verifyTurnstile(turnstileToken, ip === "unknown" ? undefined : ip))) {
+    return { ok: false, message: "봇 방지 확인에 실패했습니다. 새로고침 후 다시 시도해주세요." }
   }
 
   const name = String(formData.get("name") || "").trim()

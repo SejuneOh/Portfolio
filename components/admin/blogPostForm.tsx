@@ -81,7 +81,7 @@ export default function BlogPostForm({ initial = {} }: { initial?: BlogFormIniti
           />
         </label>
         <label className="flex items-center gap-2 text-sm text-fg">
-          <input type="checkbox" name="published" defaultChecked={initial.published ?? true} className="h-4 w-4 rounded border-line" />
+          <input type="checkbox" name="published" defaultChecked={initial.published ?? true} className="h-4 w-4 rounded-sm border-line" />
           발행 (Published)
         </label>
 

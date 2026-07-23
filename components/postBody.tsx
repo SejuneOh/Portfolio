@@ -20,7 +20,7 @@ function BlockView({ block, index }: { block: Block; index: number }) {
         {block.ul.map((li, i) => (
           <li
             key={i}
-            className="relative pl-5 text-[16px] leading-relaxed text-muted before:absolute before:left-0 before:top-[0.7em] before:h-1.5 before:w-1.5 before:rounded-sm before:bg-accent"
+            className="relative pl-5 text-[16px] leading-relaxed text-muted before:absolute before:left-0 before:top-[0.7em] before:h-1.5 before:w-1.5 before:rounded-xs before:bg-accent"
           >
             {renderInline(li)}
           </li>

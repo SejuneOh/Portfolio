@@ -17,7 +17,7 @@ export default function CopyButton({ code }: { code: string }) {
       type="button"
       onClick={copy}
       aria-label="코드 복사"
-      className="absolute right-2 top-2 z-10 rounded-md border border-line bg-page/80 px-2 py-1 font-mono text-[11px] text-muted opacity-0 backdrop-blur transition-opacity hover:text-fg focus-visible:opacity-100 group-hover:opacity-100"
+      className="absolute right-2 top-2 z-10 rounded-md border border-line bg-page/80 px-2 py-1 font-mono text-[11px] text-muted opacity-0 backdrop-blur-sm transition-opacity hover:text-fg focus-visible:opacity-100 group-hover:opacity-100"
     >
       {copied ? "복사됨 ✓" : "복사"}
     </button>

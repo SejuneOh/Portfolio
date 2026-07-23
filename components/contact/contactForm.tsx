@@ -13,7 +13,7 @@ const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
 const TYPES = ["이메일 요청", "면접 요청"] as const
 
 const fieldCls =
-  "mt-1 w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-fg outline-none focus-visible:ring-2 focus-visible:ring-accent"
+  "mt-1 w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-fg outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
 const labelCls = "block text-xs font-medium uppercase tracking-wide text-muted"
 
 export default function ContactForm() {
@@ -22,7 +22,7 @@ export default function ContactForm() {
   return (
     <form action={action} className="mt-8 grid gap-4">
       {/* honeypot: 사람에겐 숨김, 봇이 채우면 스팸으로 처리 */}
-      <div className="absolute -left-[9999px]" aria-hidden="true">
+      <div className="absolute left-[-9999px]" aria-hidden="true">
         <label>
           회사
           <input type="text" name="company" tabIndex={-1} autoComplete="off" />

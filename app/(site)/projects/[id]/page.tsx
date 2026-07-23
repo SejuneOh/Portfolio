@@ -46,9 +46,9 @@ function periodOf(e: Experience) {
 }
 
 const CTA_LIVE =
-  "inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+  "inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-accent/40"
 const CTA_REPO =
-  "inline-flex items-center gap-1.5 rounded-lg border border-line px-4 py-2 text-sm font-medium text-fg transition-colors hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+  "inline-flex items-center gap-1.5 rounded-lg border border-line px-4 py-2 text-sm font-medium text-fg transition-colors hover:border-accent hover:text-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-accent/30"
 
 function Cta({ e }: { e: Experience }) {
   if (!e.url && !e.liveUrl) return null
@@ -128,7 +128,7 @@ export default async function ProjectDetail({
 
       {/* Hero cover (선택) */}
       {group.cover && (
-        <div className="relative mt-6 aspect-[2/1] w-full overflow-hidden rounded-xl border border-line">
+        <div className="relative mt-6 aspect-2/1 w-full overflow-hidden rounded-xl border border-line">
           <Image
             src={group.cover}
             alt=""

@@ -35,7 +35,7 @@ export default function MobileHeader() {
   return (
     <div className="md:hidden">
       {/* 상단 바 */}
-      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-line bg-page/90 py-3 backdrop-blur">
+      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-line bg-page/90 py-3 backdrop-blur-sm">
         <Link href="/" aria-label="home" className="flex items-center gap-2">
           <span className="flex h-7 w-7 items-center justify-center bg-accent text-[11px] font-extrabold text-white">
             SO
@@ -49,7 +49,7 @@ export default function MobileHeader() {
             aria-label={open ? "메뉴 닫기" : "메뉴 열기"}
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md text-fg transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md text-fg transition-colors hover:text-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-accent/30"
           >
             {open ? (
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">

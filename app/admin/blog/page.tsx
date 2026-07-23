@@ -53,7 +53,7 @@ export default async function AdminBlog() {
                     {p.title}
                   </Link>
                   {!p.published && (
-                    <span className="rounded border border-line px-1.5 py-0.5 font-mono text-[10px] uppercase text-muted">
+                    <span className="rounded-sm border border-line px-1.5 py-0.5 font-mono text-[10px] uppercase text-muted">
                       draft
                     </span>
                   )}

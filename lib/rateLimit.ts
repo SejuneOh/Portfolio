@@ -43,6 +43,8 @@ async function rateLimitUpstash(
     ]),
     // 레이트리밋 값은 캐시하면 안 됨.
     cache: "no-store",
+    // 가용성 우선: Redis 가 hang 해도 폴백에 도달하도록 짧은 타임아웃.
+    signal: AbortSignal.timeout(2000),
   })
   if (!res.ok) throw new Error(`upstash ${res.status}`)
   const data = (await res.json()) as Array<{ result?: number; error?: string }>

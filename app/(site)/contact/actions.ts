@@ -22,10 +22,11 @@ export async function submitInquiry(
     return { ok: true, message: "문의가 접수되었습니다. 감사합니다." }
   }
 
-  // 레이트리밋: IP당 10분에 3회(인스턴스별 in-memory, 기본 남용 완화).
+  // 레이트리밋: IP당 10분에 3회. Upstash 설정 시 인스턴스를 넘어 내구성 동작,
+  // 미설정 시 in-memory 폴백(lib/rateLimit.ts).
   const h = await headers()
   const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown"
-  if (!rateLimit(`contact:${ip}`, 3, 10 * 60 * 1000)) {
+  if (!(await rateLimit(`contact:${ip}`, 3, 10 * 60 * 1000))) {
     return { ok: false, message: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." }
   }
 

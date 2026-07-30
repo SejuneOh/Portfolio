@@ -45,8 +45,11 @@ echo
 # ---------------------------------------------------------------------------
 echo "--- 락 점검 ---"
 
-locked=$(gh issue list --repo "$REPO" --label "$LOCK_LABEL" --state open \
-           --json number --jq '.[].number' 2>/dev/null)
+# --label 서버 필터는 검색 인덱스 지연을 타므로 쓰지 않는다 (게이트 주석 참조).
+locked=$(gh issue list --repo "$REPO" --state open --limit 100 \
+           --json number,labels \
+           --jq ".[] | select([.labels[].name] | index(\"${LOCK_LABEL}\")) | .number" \
+           2>/dev/null)
 
 if [ -z "$locked" ]; then
   echo "락 걸린 이슈 없음"
@@ -54,8 +57,11 @@ else
   now=$(date -u +%s)
   for n in $locked; do
     # 연결된 열린 PR이 있으면 정상 작업 중이므로 유지한다.
-    linked=$(gh pr list --repo "$REPO" --state open --search "$n in:body" \
-               --json number --jq 'length' 2>/dev/null || echo 0)
+    # --search 도 인덱스 기반이라, 열린 PR을 모두 받아 본문에서 직접 찾는다.
+    linked=$(gh pr list --repo "$REPO" --state open --limit 100 \
+               --json number,body \
+               --jq "[.[] | select(.body | test(\"#${n}\\\\b\"))] | length" \
+               2>/dev/null || echo 0)
     if [ "${linked:-0}" -gt 0 ]; then
       echo "#${n}: 유지 — 연결된 열린 PR 있음"
       continue
@@ -107,8 +113,14 @@ echo
 # ---------------------------------------------------------------------------
 echo "--- 게이트 ---"
 
-open_prs=$(gh pr list --repo "$REPO" --label "$PR_LABEL" --state open \
-             --json number,title --jq '.[] | "#\(.number) \(.title)"' 2>/dev/null)
+# `gh pr list --label` 은 GitHub 검색 인덱스를 쓴다. 라벨 제거가 인덱스에
+# 반영되기까지 지연이 있어, 이미 떼어낸 라벨로도 PR이 걸린다(실측 확인).
+# 게이트가 그걸 믿으면 루프가 영원히 차단된다.
+# 그래서 서버 필터를 쓰지 않고, 열린 PR을 모두 받아 labels 필드로 직접 판정한다.
+open_prs=$(gh pr list --repo "$REPO" --state open --limit 100 \
+             --json number,title,labels \
+             --jq ".[] | select([.labels[].name] | index(\"${PR_LABEL}\")) | \"#\(.number) \(.title)\"" \
+             2>/dev/null)
 
 if [ -n "$open_prs" ]; then
   echo "차단 — 열린 ${PR_LABEL} PR이 있습니다:"

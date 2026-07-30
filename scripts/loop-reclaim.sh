@@ -36,7 +36,10 @@ act() { if [ $APPLY -eq 1 ]; then eval "$1"; else echo "      (dry-run) $1"; fi;
 command -v gh >/dev/null 2>&1 || die "gh CLI가 없습니다."
 git rev-parse --git-dir >/dev/null 2>&1 || die "git 저장소가 아닙니다."
 
-ROOT=$(git rev-parse --show-toplevel)
+# 지금 이 스크립트가 실행되고 있는 워크트리. 무슨 일이 있어도 이것은 지우지 않는다.
+# 자기가 서 있는 바닥을 빼면 실행 도중에 죽는다.
+SELF_WT=$(git rev-parse --show-toplevel 2>/dev/null)
+
 # 워크트리 안에서 실행돼도 본체 기준으로 동작해야 한다.
 MAIN=$(git worktree list --porcelain | awk '/^worktree /{print $2; exit}')
 cd "$MAIN" || die "본체 워크트리로 이동 실패: $MAIN"
@@ -74,6 +77,7 @@ unique_commits_of() {
 
 reclaimed=0
 kept=0
+candidates=0   # 대상은 아니지만 사람이 정리하면 좋을 것
 
 # ---------------------------------------------------------------------------
 # 1. 워크트리 회수
@@ -86,10 +90,12 @@ process_wt() {
   [ -z "$current_wt" ] && return
 
   local name; name=$(basename "$current_wt")
+  local br="${current_br#refs/heads/}"
 
-  # 루프가 만든 것만 대상으로 한다.
-  if ! [[ "$name" =~ ^(issue|review)-[0-9]+$ ]]; then
-    return
+  # 실행 중인 자기 워크트리는 어떤 조건에서도 건드리지 않는다.
+  if [ -n "$SELF_WT" ] && [ "$current_wt" = "$SELF_WT" ]; then
+    echo "  ${name}: 유지 — 이 스크립트가 실행 중인 워크트리"
+    kept=$((kept+1)); return
   fi
 
   if [ "$current_locked" -eq 1 ]; then
@@ -97,7 +103,30 @@ process_wt() {
     kept=$((kept+1)); return
   fi
 
-  local br="${current_br#refs/heads/}"
+  # 루프가 만든 것만 대상으로 한다. 판별 신호는 둘.
+  #   1. 이름이 issue-<번호> / review-<번호>
+  #   2. 브랜치의 PR에 agent-loop 라벨이 있다 (이름이 달라도 루프 산출물이다)
+  local is_target=0
+  if [[ "$name" =~ ^(issue|review)-[0-9]+$ ]]; then
+    is_target=1
+  elif [ -n "$br" ] && is_loop_branch "$br"; then
+    is_target=1
+  fi
+
+  if [ "$is_target" -eq 0 ]; then
+    # 대상이 아니다. 다만 PR이 이미 끝났다면 사람이 정리할 후보로 알려준다.
+    # 사람이 만든 작업 공간을 스크립트가 지우지는 않는다.
+    if [ -n "$br" ]; then
+      local hst; hst=$(pr_state_of "$br")
+      if [ "$hst" = "MERGED" ] || [ "$hst" = "CLOSED" ]; then
+        echo "  ${name}: 대상 아님 — 그러나 PR ${hst} (브랜치 ${br}). 사람이 정리할 후보"
+        candidates=$((candidates+1))
+        return
+      fi
+    fi
+    return
+  fi
+
   local st; st=$(pr_state_of "$br")
   local uniq; uniq=$(unique_commits_of "$br")
 
@@ -146,7 +175,7 @@ while IFS= read -r line; do
   esac
 done < <(git worktree list --porcelain; echo "")
 
-[ $reclaimed -eq 0 ] && [ $kept -eq 0 ] && echo "  루프가 만든 워크트리 없음"
+[ $reclaimed -eq 0 ] && [ $kept -eq 0 ] && [ $candidates -eq 0 ] && echo "  루프가 만든 워크트리 없음"
 
 echo
 
@@ -209,5 +238,8 @@ echo
 echo "=== 요약 ==="
 echo "워크트리 회수 : ${reclaimed}   유지: ${kept}"
 echo "브랜치 회수   : ${orphans}"
+if [ "$candidates" -gt 0 ]; then
+  echo "사람 정리 후보: ${candidates}  (루프 산출물이 아니라 자동 회수하지 않았다)"
+fi
 [ $APPLY -eq 0 ] && echo && echo "dry-run이었습니다. 실제로 회수하려면 --apply 를 붙이세요."
 exit 0

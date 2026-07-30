@@ -57,10 +57,27 @@ else
   now=$(date -u +%s)
   for n in $locked; do
     # 연결된 열린 PR이 있으면 정상 작업 중이므로 유지한다.
-    # --search 도 인덱스 기반이라, 열린 PR을 모두 받아 본문에서 직접 찾는다.
+    #
+    # 주의: 본문에 "#<번호>"가 등장하는 것만으로 연결이라고 보면 안 된다.
+    # `[Deploy] dev → main` 승격 PR은 포함된 커밋 제목을 모두 나열하고, 커밋 제목에는
+    # 이슈 번호가 들어 있다. 그래서 아무 관계 없는 이슈가 "작업 중"으로 잘못 판정되고,
+    # 락이 영원히 풀리지 않는다(실측 확인).
+    #
+    # 그래서 두 가지를 적용한다.
+    #   1. 승격 PR(base=main, head=dev)은 대상에서 제외한다
+    #   2. 연결로 인정하는 신호는 두 가지뿐이다
+    #      - 본문에 이슈를 닫는 키워드(Closes/Fixes/Resolves)와 함께 번호가 있다
+    #      - 브랜치 이름에 이슈 번호가 있다 (예: feat/54-auth-ratelimit)
+    #      커밋 제목에 우연히 섞인 번호는 둘 중 어느 쪽에도 걸리지 않는다
     linked=$(gh pr list --repo "$REPO" --state open --limit 100 \
-               --json number,body \
-               --jq "[.[] | select(.body | test(\"#${n}\\\\b\"))] | length" \
+               --json number,body,baseRefName,headRefName \
+               --jq "[.[]
+                      | select((.baseRefName == \"main\" and .headRefName == \"dev\") | not)
+                      | select(
+                          (.body // \"\" | test(\"(close[sd]?|fix(e[sd])?|resolve[sd]?)[[:space:]]*:?[[:space:]]*#${n}([^0-9]|\$)\"; \"i\"))
+                          or (.headRefName | test(\"(^|[^0-9])${n}([^0-9]|\$)\"))
+                        )
+                     ] | length" \
                2>/dev/null || echo 0)
     if [ "${linked:-0}" -gt 0 ]; then
       echo "#${n}: 유지 — 연결된 열린 PR 있음"

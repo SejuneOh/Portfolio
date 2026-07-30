@@ -4,6 +4,10 @@
 /node_modules
 /.pnp
 .pnp.js
+# 패키지 매니저 정본은 npm이다 (CI가 `npm ci`로 설치, package-lock.json이 커밋된다).
+# 다른 lockfile이 커밋되면 설치 결과가 갈리고 Next.js의 워크스페이스 루트 추정도 흔들린다.
+pnpm-lock.yaml
+yarn.lock
 
 # testing
 /coverage

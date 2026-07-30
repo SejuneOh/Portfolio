@@ -23,11 +23,13 @@ description: 열린 이슈를 트리아지해 자동 처리 가능한 것 하나
 ## 상수
 
 ```
-REPO       = SejuneOh/Portfolio
-BASE       = origin/dev
-RUN_LOG    = 이슈 #122          # 모든 실행의 로그를 코멘트로 남기는 곳
-LOCK_LABEL = in-progress
-PR_LABEL   = agent-loop
+REPO         = SejuneOh/Portfolio
+BASE         = origin/dev        # 일반 작업
+HOTFIX_BASE  = origin/main       # priority 라벨이 붙은 이슈
+RUN_LOG      = 이슈 #122          # 모든 실행의 로그를 코멘트로 남기는 곳
+LOCK_LABEL   = in-progress
+PR_LABEL     = agent-loop
+HOTFIX_LABEL = hotfix
 ```
 
 ## 절차
@@ -71,8 +73,14 @@ gh issue list --repo SejuneOh/Portfolio --state open \
 후보가 0개면 → **정상 종료.** 런 로그에 `처리 대상 없음`으로 기록하고 끝낸다.
 억지로 하나를 고르지 않는다.
 
-후보가 1개 이상이면 `docs/loop/PRIORITY.md`의 3단 정렬을 적용해 **하나만** 고른다.
-탈락한 후보와 그 사유를 기록해 둔다 (런 로그에 남긴다).
+후보 중 **`priority` 라벨이 붙은 것이 있으면 그것을 먼저 고른다** — 핫픽스 경로다.
+여러 개면 그 안에서만 변경 범위 → 이슈 번호 순으로 하나를 정한다.
+
+`priority`가 없으면 `docs/loop/PRIORITY.md`의 3단 정렬을 적용해 **하나만** 고른다.
+
+어느 쪽이든 탈락한 후보와 그 사유를 기록해 둔다 (런 로그에 남긴다).
+
+> **루프는 `priority` 라벨을 스스로 붙이지 않는다.** 사람만 붙인다.
 
 ### 4. 락
 
@@ -87,12 +95,22 @@ gh issue edit <N> --repo SejuneOh/Portfolio --add-label in-progress
 
 ### 5. 작업 공간
 
+**일반 작업** — 베이스는 `origin/dev`:
+
 ```bash
 git fetch origin dev
 git worktree add .claude/worktrees/issue-<N> -b <type>/<N>-<slug> origin/dev
 ```
 
+**핫픽스** (`priority` 라벨) — 베이스는 `origin/main`:
+
+```bash
+git fetch origin main
+git worktree add .claude/worktrees/issue-<N> -b hotfix/<N>-<slug> origin/main
+```
+
 - `<type>`은 이슈 라벨에서 가져온다 (`fix` `feat` `chore` `ci` `docs` `refactor`)
+- 베이스를 헷갈리지 않는다. 핫픽스를 `dev`에서 따면 아직 배포되지 않은 변경이 함께 프로덕션으로 나간다
 - 기존 체크아웃에서 직접 편집하지 않는다
 - 잠긴(locked) 워크트리는 건드리지 않는다
 
@@ -122,11 +140,37 @@ npm run build
 git add -A
 git commit -m "<type>(<scope>): <한국어 설명> (#<N>)"
 git push -u origin <브랜치>
+```
+
+**일반 작업** — PR 1개, base `dev`:
+
+```bash
 gh pr create --repo SejuneOh/Portfolio --base dev \
   --label agent-loop --label <type> \
   --title "<type>(<scope>): <한국어 설명> (#<N>)" \
   --body "..."
 ```
+
+**핫픽스** — PR **2개**를 같은 브랜치에서 만든다:
+
+```bash
+# ① main 병합 PR — 프로덕션 반영
+gh pr create --repo SejuneOh/Portfolio --base main --head hotfix/<N>-<slug> \
+  --label agent-loop --label hotfix --label priority \
+  --title "hotfix: <한국어 설명> (#<N>)" \
+  --body "..."   # Closes #<N> 포함
+
+# ② dev 동기화 PR — dev가 main과 어긋나지 않게
+gh pr create --repo SejuneOh/Portfolio --base dev --head hotfix/<N>-<slug> \
+  --label agent-loop --label hotfix \
+  --title "hotfix: <한국어 설명> — dev 동기화 (#<N>)" \
+  --body "..."   # Closes 없이, ①번 PR 번호를 참조
+```
+
+두 PR 본문에 **서로의 번호를 적는다.** 사람이 병합 순서를 판단할 수 있어야 한다:
+`main` 병합 → `dev` 동기화 순.
+
+`Closes #<N>`는 **①번(main)에만** 넣는다. 양쪽에 넣으면 중복 연결이 된다.
 
 PR 본문에 반드시 포함:
 

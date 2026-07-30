@@ -61,14 +61,31 @@ CI(`.github/workflows/ci.yml`)가 PR과 `dev`/`main` push마다 같은 검사를
 feature 브랜치  →  dev  →  main (프로덕션)
 ```
 
-- 작업은 항상 **`origin/dev`에서 브랜치를 딴다.** `main`에서 따지 않는다
+- 작업은 **`origin/dev`에서 브랜치를 딴다.** (핫픽스만 예외 — 아래 참조)
 - `dev` → `main` 승격 PR은 `promote.yml`이 자동 생성한다. **병합은 사람이 한다**
 - `main`에 직접 push하지 않는다. force-push하지 않는다
+
+### 핫픽스
+
+프로덕션 장애처럼 `dev`를 거칠 수 없는 경우에만 쓴다.
+이슈에 `priority` 라벨이 붙은 것이 판단 기준이다.
+
+```
+hotfix 브랜치  →  main (프로덕션)
+              →  dev  (동기화)
+```
+
+- 베이스는 **`origin/main`**. `dev`에서 따면 아직 배포되지 않은 변경이 함께 나간다
+- 브랜치 이름은 `hotfix/<이슈번호>-<slug>`
+- **PR을 2개 만든다** — `main` 병합용, `dev` 동기화용. 같은 브랜치에서 base만 다르게
+- `dev` 동기화 PR을 빠뜨리면 다음 승격 PR에서 핫픽스가 되돌려지거나 충돌한다
+- 병합 순서는 `main` → `dev`. **둘 다 사람이 병합한다**
 
 ### 브랜치 이름
 
 ```
-<type>/<이슈번호>-<slug>
+<type>/<이슈번호>-<slug>        일반
+hotfix/<이슈번호>-<slug>        핫픽스
 ```
 
 예: `feat/82-rss-feed`, `ci/93-dependabot`, `chore/122-issue-loop`

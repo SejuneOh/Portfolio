@@ -5,8 +5,84 @@ TRIAGE를 통과해 **자동 처리 가능**으로 판정된 이슈들 중에서
 매 실행은 빈 컨텍스트에서 시작하므로, 모델의 그때그때 감이 아니라
 **아래 순서를 기계적으로 적용**해야 실행 간 판단이 일관된다.
 
+## 0순위 — `priority` 라벨 = 핫픽스
+
+`priority` 라벨이 붙은 이슈는 **다른 모든 것보다 먼저** 처리한다.
+아래 "정렬 순서"는 적용하지 않는다 — 바로 이 절차로 간다.
+
+프로덕션에 지금 문제가 있다는 뜻이므로, `dev`를 거치지 않고 `main`에 직접 올린다.
+
+### 핫픽스 절차
+
+| 항목 | 일반 작업 | **핫픽스** |
+|---|---|---|
+| 베이스 | `origin/dev` | **`origin/main`** |
+| 브랜치 | `<type>/<N>-<slug>` | **`hotfix/<N>-<slug>`** |
+| PR base | `dev` | **`main`** |
+| PR 라벨 | `agent-loop` + type | **`agent-loop` + `hotfix` + `priority`** |
+| 생성 PR 수 | 1개 | **2개** (main용 + dev 동기화용) |
+
+1. `origin/main`에서 브랜치를 딴다
+
+   ```bash
+   git fetch origin main
+   git worktree add .claude/worktrees/issue-<N> -b hotfix/<N>-<slug> origin/main
+   ```
+
+2. 작업 후 평소와 같이 `npm run lint && npm run build`로 검증한다.
+   **핫픽스라고 해서 검증을 건너뛰지 않는다.** 급할수록 게이트가 필요하다
+
+3. **main 병합 PR**을 만든다
+
+   ```bash
+   gh pr create --base main --head hotfix/<N>-<slug> \
+     --label agent-loop --label hotfix --label priority \
+     --title "hotfix: <설명> (#<N>)"
+   ```
+
+4. **dev 동기화 PR**을 같은 브랜치에서 하나 더 만든다
+
+   ```bash
+   gh pr create --base dev --head hotfix/<N>-<slug> \
+     --label agent-loop --label hotfix \
+     --title "hotfix: <설명> — dev 동기화 (#<N>)"
+   ```
+
+   두 PR 본문에 **서로를 참조**한다 (`main 병합 PR: #NN` / `dev 동기화 PR: #NN`).
+
+### dev 동기화 PR을 함께 만드는 이유
+
+`main`에만 병합하면 `dev`에는 수정이 없다. 그 상태로 다음 기능이 `dev`에서 나가면
+`promote.yml`이 만드는 `dev → main` 승격 PR에서 **핫픽스가 되돌려지거나 충돌**한다.
+
+이 저장소에는 이미 그 흔적이 있다 —
+`Merge branch 'main' into dev — resolve promotion (#110) conflict`.
+
+두 PR을 **같이 만들어 두면** 사람이 `main`을 병합한 직후 `dev`도 바로 맞출 수 있다.
+
+### 병합 순서 (사람이 한다)
+
+```
+1. main 병합 PR  →  병합    (프로덕션 배포)
+2. dev 동기화 PR →  병합    (dev를 main과 맞춤)
+```
+
+**루프는 어느 쪽도 병합하지 않는다.** 순서 판단과 실행은 사람 몫이다.
+
+### `priority` 라벨 취급 규칙
+
+- **루프는 `priority` 라벨을 절대 스스로 붙이지 않는다.** 사람만 붙인다.
+  자동으로 붙일 수 있으면 루프가 스스로 프로덕션 경로를 열 수 있게 된다
+- `priority` 이슈가 여러 개면, 그 안에서만 아래 2·3순위 기준(변경 범위 → 이슈 번호)으로 하나를 고른다
+- `priority`가 붙었어도 **TRIAGE의 "사람 필요" 조건에는 그대로 걸린다.**
+  급하다고 인증 로직을 자동으로 고치지 않는다 → `needs-human`으로 에스컬레이션한다
+- `main`은 브랜치 보호 규칙(리뷰 필수)이 걸려 있어야 한다. 이 절차의 전제다
+
+---
+
 ## 정렬 순서
 
+`priority` 라벨이 없는 이슈들에 적용한다.
 앞 단계에서 동점이면 다음 단계로 넘어간다.
 
 ### 1순위 — 라벨 가중치

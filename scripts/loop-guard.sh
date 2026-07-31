@@ -10,13 +10,18 @@
 #   2. 진행 중 작업 확인 — 열린 `agent-loop` PR이 있으면 새 작업을 시작하지 않는다.
 #      사람이 병합해야 다음이 나가는 구조를 강제한다.
 #
+#      단, `needs-human`이 붙은 PR은 차단 대상에서 뺀다. 그것은 병합 대기가 아니라
+#      사람의 결정 대기이고, 결정이 날 때까지 다른 이슈까지 멈출 이유가 없다.
+#      라벨이 떼어지면 다시 정상적으로 게이트를 막는다.
+#
 # 사용법:
 #   scripts/loop-guard.sh            상태만 보고 (읽기 전용)
 #   scripts/loop-guard.sh --reap     오래된 락을 실제로 해제한 뒤 상태 보고
 #
 # 종료 코드:
-#   0  진행 가능 — 열린 agent-loop PR 없음
-#   1  진행 불가 — 열린 agent-loop PR 있음 (루프는 여기서 종료해야 한다)
+#   0  진행 가능 — 병합 대기 중인 agent-loop PR 없음
+#      (needs-human으로 파킹된 PR만 있는 경우도 여기에 해당한다)
+#   1  진행 불가 — 병합 대기 중인 agent-loop PR 있음 (루프는 여기서 종료해야 한다)
 #   2  실행 오류 (gh 미설치, 인증 실패 등)
 
 set -uo pipefail
@@ -24,6 +29,7 @@ set -uo pipefail
 REPO="${LOOP_REPO:-SejuneOh/Portfolio}"
 LOCK_LABEL="${LOOP_LOCK_LABEL:-in-progress}"
 PR_LABEL="${LOOP_PR_LABEL:-agent-loop}"
+PARK_LABEL="${LOOP_PARK_LABEL:-needs-human}"
 STALE_HOURS="${LOOP_STALE_HOURS:-2}"
 
 REAP=0
@@ -134,20 +140,41 @@ echo "--- 게이트 ---"
 # 반영되기까지 지연이 있어, 이미 떼어낸 라벨로도 PR이 걸린다(실측 확인).
 # 게이트가 그걸 믿으면 루프가 영원히 차단된다.
 # 그래서 서버 필터를 쓰지 않고, 열린 PR을 모두 받아 labels 필드로 직접 판정한다.
-open_prs=$(gh pr list --repo "$REPO" --state open --limit 100 \
+#
+# 파킹된 PR(`needs-human`)은 차단 대상에서 빼되 출력에는 남긴다.
+# 조용히 건너뛰면 "열린 PR이 없다"로 잘못 읽힌다.
+blocking=$(gh pr list --repo "$REPO" --state open --limit 100 \
              --json number,title,labels \
-             --jq ".[] | select([.labels[].name] | index(\"${PR_LABEL}\")) | \"#\(.number) \(.title)\"" \
+             --jq ".[]
+                   | select([.labels[].name] | index(\"${PR_LABEL}\"))
+                   | select(([.labels[].name] | index(\"${PARK_LABEL}\")) | not)
+                   | \"#\(.number) \(.title)\"" \
              2>/dev/null)
 
-if [ -n "$open_prs" ]; then
-  echo "차단 — 열린 ${PR_LABEL} PR이 있습니다:"
-  echo "$open_prs" | sed 's/^/  /'
+parked=$(gh pr list --repo "$REPO" --state open --limit 100 \
+           --json number,title,labels \
+           --jq ".[]
+                 | select([.labels[].name] | index(\"${PR_LABEL}\"))
+                 | select([.labels[].name] | index(\"${PARK_LABEL}\"))
+                 | \"#\(.number) \(.title)\"" \
+           2>/dev/null)
+
+if [ -n "$parked" ]; then
+  echo "파킹 — ${PARK_LABEL}가 붙어 차단 대상에서 제외한 ${PR_LABEL} PR:"
+  echo "$parked" | sed 's/^/  /'
+  echo "  (사람의 결정 대기. 라벨이 떼어지면 다시 게이트를 막습니다)"
+  echo
+fi
+
+if [ -n "$blocking" ]; then
+  echo "차단 — 병합 대기 중인 ${PR_LABEL} PR이 있습니다:"
+  echo "$blocking" | sed 's/^/  /'
   echo
   echo "결과: 진행 불가. 사람이 병합하거나 닫아야 다음 작업이 시작됩니다."
   exit 1
 fi
 
-echo "통과 — 열린 ${PR_LABEL} PR 없음"
+echo "통과 — 병합 대기 중인 ${PR_LABEL} PR 없음"
 echo
 echo "결과: 진행 가능"
 exit 0

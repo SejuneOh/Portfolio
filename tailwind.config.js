@@ -14,13 +14,16 @@ module.exports = {
         page: "var(--bg)",
         surface: "var(--surface)",
         "surface-hover": "var(--surface-hover)",
-        fg: "var(--text)",
+        fg: "var(--ink)",
         muted: "var(--text-muted)",
         line: "var(--border)",
         accent: {
           DEFAULT: "var(--accent)",
           hover: "var(--accent-hover)",
         },
+        ink: "var(--ink)",
+        lime: "var(--lime)",
+        track: "var(--track)",
       },
       fontFamily: {
         sans: [

@@ -13,11 +13,13 @@ const spaceGrotesk = Space_Grotesk({
   display: "swap",
 })
 
-// 코드·수치·메타·eyebrow용 고정폭 폰트. --font-mono 변수로 노출 → globals.css 유틸에서 사용.
+// 코드·수치·메타·eyebrow용 고정폭 폰트. --font-jbmono 변수로 노출 → globals.css 유틸에서 사용.
+// Tailwind 4가 기본 테마에 --font-mono를 이미 정의하고 font-mono 유틸이 곳곳에서 쓰이므로
+// 그 이름을 피한다. components/resumeDoc.tsx가 쓰는 이름과도 같아진다.
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
-  variable: "--font-mono",
+  variable: "--font-jbmono",
   display: "swap",
 })
 

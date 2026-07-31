@@ -56,6 +56,34 @@
   @apply inline-flex items-center rounded-full px-4 py-1.5 text-[13.5px] transition-colors;
 }
 
+/*
+  고정폭(JetBrains Mono) 유틸 — 폰트는 app/layout.tsx가 --font-mono로 노출한다.
+  최소 크기 규칙: 메타 텍스트는 10.5px 미만으로 내리지 않는다.
+*/
+
+/* eyebrow·메타 — 자간을 넓히고 대문자로 */
+@utility eyebrow {
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+/* 수치(Proof) — 히어로·강조용 */
+@utility proof {
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 30px;
+  font-weight: 600;
+}
+
+/* 수치(Proof) — 타일 등 좁은 자리용 */
+@utility proof-sm {
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 19px;
+  font-weight: 600;
+}
+
 @utility btn-accent {
   @apply inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover;
 }

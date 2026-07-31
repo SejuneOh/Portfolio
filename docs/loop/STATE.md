@@ -74,7 +74,19 @@
   `dev` 대상 PR의 `Closes`는 기본 브랜치(`main`) 병합에서만 자동 발동하므로 열린
   상태로 남아 있었다. `origin/dev`에 토큰·유틸이 실제로 들어갔는지 확인한 뒤 닫았다.
   **닫지 않았다면 다음 실행이 이미 끝난 일을 다시 집었을 것이다**
-- **결과:** PR #150 생성 — `chore/133-jetbrains-mono`
+- **결과:** PR #150 생성 → 검사 반려 → 에스컬레이션 → 사람 결정 후 재작업 (`chore/133-jetbrains-mono`)
+- **검사 1회차:** `issue-reviewer` 판정 **반려.** `--font-mono`가 Tailwind 4 기본 테마
+  변수와 이름이 겹치고 `font-mono` 유틸이 **25개 파일·58회** 사용 중이어서, 병합 시
+  화면 작업 없이 전역 고정폭이 즉시 바뀐다는 지적. 직접 세어 확인했고 PR 본문의
+  "쓰는 곳이 없다"는 서술이 틀렸음을 정정 코멘트로 남겼다
+- **재작업하지 않고 에스컬레이션한 이유:** 수정 방법이 변수명 변경인데 이슈 완료 조건
+  1번이 이름을 `--font-mono`로 지정한다. 완료 조건과 범위 밖 조항이 충돌하므로 8-2가
+  아니라 9번으로 갔다
+- **사람 결정 → 재작업:** `--font-jbmono`로 변경하는 방향을 선택했다. 4군데 수정
+  (`app/layout.tsx`의 `variable`, 유틸 3개의 `var()`). 재검증에서 `--font-mono`가
+  Tailwind 기본 정의만 남고 `.font-mono{font-family:var(--font-mono)}`가 원래 스택을
+  가리키는 것을 확인 — 기존 58곳은 영향 없다. `components/resumeDoc.tsx`는 자기
+  인스턴스를 `.resume-page` div에만 적용하므로 `/resume`도 동작 변화 없다
 - **검증:** lint ✅ build ✅
   - 빌드 로그에 폰트 관련 경고 0건. 로그의 `Compiled with warnings`는 `next-auth`가
     쓰는 `jose`의 엣지 런타임 경고로 기존 것이다

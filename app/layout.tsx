@@ -1,6 +1,6 @@
 import "../styles/globals.css"
 import type { Metadata, Viewport } from "next"
-import { Space_Grotesk } from "next/font/google"
+import { Space_Grotesk, JetBrains_Mono } from "next/font/google"
 import Providers from "./providers"
 import { SITE_URL, SITE_NAME, SITE_TITLE, SITE_DESCRIPTION } from "../lib/site"
 import { Analytics } from "@vercel/analytics/next"
@@ -10,6 +10,16 @@ const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   weight: ["500", "600", "700"],
   variable: "--font-display",
+  display: "swap",
+})
+
+// 코드·수치·메타·eyebrow용 고정폭 폰트. --font-jbmono 변수로 노출 → globals.css 유틸에서 사용.
+// Tailwind 4가 기본 테마에 --font-mono를 이미 정의하고 font-mono 유틸이 곳곳에서 쓰이므로
+// 그 이름을 피한다. components/resumeDoc.tsx가 쓰는 이름과도 같아진다.
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-jbmono",
   display: "swap",
 })
 
@@ -47,7 +57,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ko" className={spaceGrotesk.variable} suppressHydrationWarning>
+    <html
+      lang="ko"
+      className={`${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
+      suppressHydrationWarning
+    >
       <body>
         <Providers>{children}</Providers>
         <Analytics />

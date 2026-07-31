@@ -65,7 +65,33 @@ REVIEW_FAIL  = review-changes    # 검사가 반려한 이력이 있음 (사람�
 
 ## 절차
 
-### 0. 회수와 게이트
+### 0. 최신화 · 회수 · 게이트
+
+#### 먼저 로컬 `dev`를 최신화한다
+
+**루프는 `scripts/loop-*.sh`와 `docs/loop/*`를 로컬 체크아웃에서 읽어 실행한다.**
+로컬 `dev`가 뒤처져 있으면 낡은 판정 기준과 낡은 스크립트로 판정하게 되고,
+루프는 정상 동작하는 것처럼 보이므로 **그 사실이 로그에도 남지 않는다.**
+루프 자신을 개선해도 여기서 최신화하지 않으면 적용되지 않는다.
+
+```bash
+git fetch origin dev
+git switch dev                  # 다른 브랜치에 있으면
+git merge --ff-only origin/dev
+```
+
+`git pull`을 쓰지 않는다. **fast-forward만 허용한다** — 루프는 로컬 `dev`에 커밋을
+만들지 않으므로, fast-forward가 아니라는 것은 사람이 무언가 해둔 상태라는 뜻이다.
+
+| 상황 | 조치 |
+|---|---|
+| fast-forward 성공 | 계속 진행 |
+| fast-forward 불가 (로컬 `dev`에 원격에 없는 커밋) | 런 로그에 `실패`로 기록하고 종료 |
+| 워킹트리가 더러워 merge가 거부됨 | 런 로그에 `실패`로 기록하고 종료 |
+
+`git stash`·`git reset --hard`로 우회하지 않는다. 사람의 작업을 지우게 된다.
+
+#### 그다음 회수와 게이트
 
 ```bash
 scripts/loop-reclaim.sh --apply    # 작업 공간 회수 (워크트리·브랜치)

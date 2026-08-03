@@ -2,7 +2,6 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import DarkModeToggleBtn from "./darkModeToggleBtn"
 import { NAV, isNavActive } from "../lib/nav"
 
 function GitHubIcon() {
@@ -54,7 +53,7 @@ export default function Sidebar() {
         <p>Location. Seoul, Korea</p>
       </div>
 
-      {/* Socials + theme toggle */}
+      {/* Socials */}
       <div className="mt-6 flex items-center gap-3">
         <a
           href="https://github.com/SejuneOh"
@@ -65,7 +64,6 @@ export default function Sidebar() {
         >
           <GitHubIcon />
         </a>
-        <DarkModeToggleBtn />
       </div>
     </aside>
   )

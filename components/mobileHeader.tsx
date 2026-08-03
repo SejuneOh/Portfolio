@@ -4,7 +4,6 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
 import { NAV, isNavActive } from "../lib/nav"
-import DarkModeToggleBtn from "./darkModeToggleBtn"
 
 // 모바일(md 미만) 전용 상단 바 + 햄버거 드로어.
 // 데스크톱에서는 렌더 자체를 숨긴다(md:hidden). 사이드바가 데스크톱을 담당.
@@ -43,7 +42,6 @@ export default function MobileHeader() {
           <span className="text-sm font-bold tracking-wide text-fg">SEJUNE OH</span>
         </Link>
         <div className="flex items-center gap-1">
-          <DarkModeToggleBtn />
           <button
             type="button"
             aria-label={open ? "메뉴 닫기" : "메뉴 열기"}

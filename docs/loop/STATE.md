@@ -51,6 +51,41 @@
 
 ## 실행 기록
 
+### 2026-08-03 12:26 — 에스컬레이션 (작업 완료, PR 생성 불가)
+
+- **회수:** 없음 / 게이트: 통과 — 병합 대기 중인 `agent-loop` PR 없음
+- **후보:** #153 (유일)
+- **선택:** #153 — #152는 직전 실행에서 이미 처리해 브랜치 `chore/152-design-system-tune`
+  (`41fa581`)에 작업이 올라가 있다. 라벨을 걸 권한이 없어 잠기지 않았지만,
+  런 로그와 이 파일의 기록으로 중복 작업을 피했다
+- **탈락:** #154(결정 문서) · #151(루프 구성 요소) · #135~#145(선행 블록) ·
+  #134·#131·#146·#85·#54(`needs-human`) · #128·#102(`backlog`) · #133(완료, 종료 대상)
+- **락:** **실패.** `gh issue edit --add-label in-progress`가 403
+- **작업 내용:**
+  - `app/layout.tsx`: `Space_Grotesk` → `Fraunces` (400/600/700, normal+italic).
+    CSS 변수 `--font-display`는 유지
+  - `styles/globals.css`: 헤딩 자간 `-0.01em` → `-0.005em`
+- **판단 기록:** 완료 조건 3번이 자간을 "0 또는 -0.005em 범위로 완화"하라고 했다.
+  **-0.005em**을 택했다 — 0으로 두면 세리프 제목이 느슨해 보이고, 기존 값에서
+  절반만 줄이는 쪽이 변화 폭이 작다
+- **검증:** lint ✅ build ✅ 폰트 경고 0건
+  - Fraunces `@font-face`가 400/600/700 × normal/italic로 생성됨을 확인.
+    **Space Grotesk는 빌드 결과에서 완전히 사라졌다**
+  - 헤딩 규칙이 `font-family: var(--font-display), …, sans-serif; letter-spacing:-.005em`
+    로 방출됨을 확인. **폴백에 `serif` 제네릭이 없다** (있으면 Windows에서 한글 제목이
+    바탕체가 된다)
+  - **중복 로드가 발생하지 않았다.** 굵기·스타일을 `resumeDoc.tsx`와 동일하게 맞춘
+    결과 next/font가 두 인스턴스를 합쳐, `--font-fraunces`와 `--font-display`가
+    같은 클래스(`__variable_0d86af`)를 공유한다. Fraunces 파일은 한 벌만 내려간다.
+    (대조: JetBrains Mono는 굵기 집합이 달라 두 벌로 남아 있다 — #138에서 정리)
+- **결과:** **PR을 열지 못했다.** `gh pr create`가 `must be a collaborator`로 거부.
+  브랜치 `chore/153-fraunces`(`919ce70`)는 SSH로 푸시 완료
+- **검사:** 수행하지 못했다 (8-1은 PR 번호를 전제로 함)
+- **비고:** 이제 PR 없는 루프 브랜치가 **셋**이다 — `chore/151-loop-dev-sync`,
+  `chore/152-design-system-tune`, `chore/153-fraunces`. 전부 lint·build를 통과했고
+  각 이슈 코멘트에 PR 본문이 준비되어 있다. **토큰 권한이 복구되기 전까지 루프는
+  같은 자리에서 계속 멈춘다** — 코드를 쓰고 푸시까지 하고 마지막에 막힌다
+
 ### 2026-07-31 15:44 — PR 생성
 
 - **회수:** 없음 (`loop-reclaim.sh`: 워크트리 0개 회수. 열린 PR이 달린 브랜치

@@ -117,17 +117,6 @@
     --on-ink-border: #3b3d31;
     --track: #c9cbb8;
   }
-
-  .dark {
-    --bg: #191919;
-    --surface: #252525;
-    --surface-hover: #2f2f2f;
-    --ink: rgba(255, 255, 255, 0.9);
-    --text-muted: #9b9b98;
-    --border: #2f2f2f;
-    --accent: #6366f1;
-    --accent-hover: #818cf8;
-  }
 }
 
 @layer base {
@@ -140,18 +129,13 @@
 }
 
 @layer utilities {
-  /* Shiki 코드 하이라이트 — 듀얼 테마(라이트 기본 + .dark 오버라이드) */
+  /* Shiki 코드 하이라이트 — 라이트 단일 테마 */
   .shiki {
     margin: 0;
     padding: 1rem;
     overflow-x: auto;
     font-size: 13px;
     line-height: 1.6;
-  }
-  html.dark .shiki,
-  html.dark .shiki span {
-    color: var(--shiki-dark) !important;
-    background-color: var(--shiki-dark-bg) !important;
   }
 
   html {

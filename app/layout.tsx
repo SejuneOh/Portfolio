@@ -1,14 +1,17 @@
 import "../styles/globals.css"
 import type { Metadata, Viewport } from "next"
-import { Space_Grotesk, JetBrains_Mono } from "next/font/google"
+import { Fraunces, JetBrains_Mono } from "next/font/google"
 import Providers from "./providers"
 import { SITE_URL, SITE_NAME, SITE_TITLE, SITE_DESCRIPTION } from "../lib/site"
 import { Analytics } from "@vercel/analytics/next"
 
 // 제목용 디스플레이 폰트(라틴). --font-display 변수로 노출 → globals.css 헤딩에서 사용.
-const spaceGrotesk = Space_Grotesk({
+// 굵기·스타일 조합은 components/resumeDoc.tsx가 이미 쓰는 것과 같게 맞췄다.
+// /resume 를 /about 으로 흡수할 때 그쪽 인스턴스를 지우고 이것을 상속시키면 된다.
+const fraunces = Fraunces({
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: ["400", "600", "700"],
+  style: ["normal", "italic"],
   variable: "--font-display",
   display: "swap",
 })
@@ -59,7 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="ko"
-      className={`${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
+      className={`${fraunces.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
       <body>

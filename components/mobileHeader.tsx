@@ -38,7 +38,8 @@ export default function MobileHeader() {
   return (
     <div className="md:hidden">
       {/* 상단 바 */}
-      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-line bg-page/90 py-3 backdrop-blur-sm">
+      {/* 배경은 흰 표면에 맞춘다 — 이 헤더는 표면 안에 놓이므로 세이지를 쓰면 색이 어긋난다. */}
+      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-line bg-surface/90 py-3 backdrop-blur-sm">
         <Link href="/" aria-label="home" className="flex items-center gap-2">
           <span className="flex h-7 w-7 items-center justify-center bg-accent text-[11px] font-extrabold text-white">
             SO
@@ -75,7 +76,7 @@ export default function MobileHeader() {
             className="absolute inset-0 bg-black/40"
             onClick={() => setOpen(false)}
           />
-          <nav className="absolute right-0 top-0 flex h-full w-72 max-w-[80%] flex-col border-l border-line bg-page p-6 shadow-xl">
+          <nav className="absolute right-0 top-0 flex h-full w-72 max-w-[80%] flex-col border-l border-line bg-surface p-6 shadow-xl">
             <span className="mb-4 font-mono text-xs uppercase tracking-widest text-muted">Menu</span>
             {DRAWER_NAV.map((n) => (
               <Link

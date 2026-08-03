@@ -43,6 +43,8 @@ module.exports = {
           "Malgun Gothic",
           "sans-serif",
         ],
+        // 로고 워드마크 전용(라틴). app/layout.tsx 가 --font-logo 로 노출한다.
+        logo: ["var(--font-logo)", "ui-sans-serif", "sans-serif"],
       },
       maxWidth: {
         content: "1080px",

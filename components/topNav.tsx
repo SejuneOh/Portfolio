@@ -31,7 +31,7 @@ export default function TopNav() {
     <nav className="hidden grid-cols-[1fr_auto_1fr] items-center py-1 md:grid">
       {/* 좌 — 로고 */}
       <Link href="/" aria-label="home" className="w-fit">
-        <span className="font-display text-[21px] font-bold leading-none tracking-tight text-ink">
+        <span className="font-logo text-[21px] font-bold leading-none tracking-tight text-ink">
           SEJUNE<span className="text-lime">.</span>DEV
         </span>
       </Link>
@@ -47,8 +47,8 @@ export default function TopNav() {
                 aria-current={active ? "page" : undefined}
                 className={
                   active
-                    ? "block rounded-full bg-ink px-4 py-1.5 text-[13.5px] font-semibold text-white transition-colors hover:bg-[#2A2B22]"
-                    : "block rounded-full px-4 py-1.5 text-[13.5px] text-fg transition-colors hover:bg-surface-hover"
+                    ? "pill-nav-item bg-ink font-semibold text-white hover:bg-[#2A2B22]"
+                    : "pill-nav-item text-fg hover:bg-surface-hover"
                 }
               >
                 {n.label}
@@ -76,7 +76,7 @@ export default function TopNav() {
         {!onContact && (
           <Link
             href={CONTACT.href}
-            className="rounded-full bg-ink px-4 py-1.5 text-[13.5px] font-semibold text-white transition-colors hover:bg-[#2A2B22]"
+            className="pill-nav-item bg-ink font-semibold text-white hover:bg-[#2A2B22]"
           >
             {CONTACT.label}
           </Link>

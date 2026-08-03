@@ -1,6 +1,6 @@
 import "../styles/globals.css"
 import type { Metadata, Viewport } from "next"
-import { Fraunces, JetBrains_Mono } from "next/font/google"
+import { Fraunces, JetBrains_Mono, Space_Grotesk } from "next/font/google"
 import Providers from "./providers"
 import { SITE_URL, SITE_NAME, SITE_TITLE, SITE_DESCRIPTION } from "../lib/site"
 import { Analytics } from "@vercel/analytics/next"
@@ -23,6 +23,16 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
   variable: "--font-jbmono",
+  display: "swap",
+})
+
+// 로고(SEJUNE.DEV) 전용. --font-logo 변수로 노출 → tailwind.config.js 의 font-logo 로 사용.
+// 제목은 Fraunces 로 통일했지만 워드마크는 기하학적 산세리프를 쓴다 — 상단 필 내비 규격이
+// 이 조합을 지정한다. 굵기는 로고에 쓰는 700 하나만 받는다.
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["700"],
+  variable: "--font-logo",
   display: "swap",
 })
 
@@ -62,7 +72,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="ko"
-      className={`${fraunces.variable} ${jetbrainsMono.variable}`}
+      className={`${fraunces.variable} ${jetbrainsMono.variable} ${spaceGrotesk.variable}`}
       suppressHydrationWarning
     >
       <body>

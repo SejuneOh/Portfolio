@@ -3,10 +3,14 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
-import { NAV, isNavActive } from "../lib/nav"
+import { NAV, CONTACT, isNavActive } from "../lib/nav"
 
 // 모바일(md 미만) 전용 상단 바 + 햄버거 드로어.
-// 데스크톱에서는 렌더 자체를 숨긴다(md:hidden). 사이드바가 데스크톱을 담당.
+// 데스크톱에서는 렌더 자체를 숨긴다(md:hidden). TopNav 가 데스크톱을 담당.
+//
+// 드로어에는 Contact 를 함께 나열한다 — 데스크톱은 우측 버튼으로 두지만
+// 여기에는 버튼 자리가 없어서, 빼면 모바일에서 Contact 로 가는 경로가 사라진다.
+const DRAWER_NAV = [...NAV, CONTACT]
 export default function MobileHeader() {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
@@ -73,7 +77,7 @@ export default function MobileHeader() {
           />
           <nav className="absolute right-0 top-0 flex h-full w-72 max-w-[80%] flex-col border-l border-line bg-page p-6 shadow-xl">
             <span className="mb-4 font-mono text-xs uppercase tracking-widest text-muted">Menu</span>
-            {NAV.map((n) => (
+            {DRAWER_NAV.map((n) => (
               <Link
                 key={n.href}
                 href={n.href}

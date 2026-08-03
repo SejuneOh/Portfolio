@@ -1,12 +1,8 @@
 import Link from "next/link"
+import { NAV, CONTACT } from "../lib/nav"
 
-const nav = [
-  { href: "/", label: "HOME" },
-  { href: "/projects", label: "PROJECTS" },
-  { href: "/blog", label: "BLOG" },
-  { href: "/resume", label: "RESUME" },
-  { href: "/contact", label: "CONTACT" },
-]
+// 라벨을 여기서 따로 들고 있으면 상단 내비와 갈라진다. 한 곳(lib/nav.ts)만 본다.
+const nav = [...NAV, CONTACT]
 
 export default function Footer() {
   return (

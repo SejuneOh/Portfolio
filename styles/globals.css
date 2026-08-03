@@ -88,24 +88,30 @@
   @apply inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover;
 }
 
+/*
+  링크는 색이 아니라 밑줄로 구분한다.
+  --accent가 잉크가 되면서 본문과 색이 같아지므로, 라임 밑줄이 유일한 식별 신호다.
+*/
 @utility link-underline {
-  @apply border-b border-line pb-0.5 text-muted transition-colors hover:border-accent hover:text-accent;
+  @apply pb-0.5 text-accent transition-colors hover:text-accent-hover;
+  border-bottom: 2px solid var(--lime);
 }
 
 @layer utilities {
   :root {
-    --bg: #edefe1;
+    --bg: #dfe2ce;
     --surface: #ffffff;
     --surface-hover: #f7f8f1;
     --ink: #1c1d16;
     --text-muted: #7a7b70;
     --text-body: #3f4036;
-    --border: #e4e5d8;
+    --border: #d2d5c0;
     --lime: #d8f26a;
     --lime-ink: #4f5a1e;
     --lime-body: #3f4a18;
-    --accent: #4f46e5;
-    --accent-hover: #4338ca;
+    /* 강조색은 라임 하나. --accent는 링크·텍스트 액션의 글자색이며 잉크를 쓴다. */
+    --accent: #1c1d16;
+    --accent-hover: #3f4036;
     --on-ink-muted: #a8ab98;
     --on-ink-body: #b9bcaa;
     --on-ink-border: #3b3d31;

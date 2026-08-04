@@ -14,13 +14,16 @@ const LIST_CAP = 4
 // 정보가 아니라 빈칸으로 보인다.
 const TOPICS_MIN = 3
 
+// 수치 카드는 이만큼만 보여준다. 디자인이 3줄로 고정돼 있다.
+const METRIC_CAP = 3
+
 /*
-  홈은 개발 로그다. 최신 글이 주인공이고 정체성·케이스가 주변을 받친다.
+  홈은 개발 로그다. 최신 글이 주인공이고 정체성·케이스·수치가 주변을 받친다.
   Server Component 를 유지한다 — 데이터 페칭 방식은 바꾸지 않는다.
 
-  수치(Proof) 카드는 **이 파일에 없다.** 개선 전·후 값이 데이터에 없고 임시
-  하드코딩을 넣지 않기로 정해져 있어서, 골격도 두지 않았다. 필드가 들어오는
-  작업에서 카드와 조건부 렌더를 함께 추가하게 된다.
+  "기록해 둔 수치" 카드는 조건부 렌더로 써 두었다. 개선 전·후 값은 Notion 스키마
+  추가와 매핑이 끝나야 들어오므로 지금은 값이 없어 카드가 나오지 않는다. 임시
+  하드코딩은 넣지 않는다 — 매핑이 들어오면 이 카드가 그대로 살아난다.
 */
 export default async function Home() {
   const [groups, posts] = await Promise.all([getProjectGroups(), getPosts()])
@@ -41,6 +44,12 @@ export default async function Home() {
   const latestMeta = latest
     ? [latest.date, `${readingMinutes(latest)}분 읽기`].filter(Boolean).join(" · ")
     : ""
+
+  // 기록해 둔 수치 — 세 값이 모두 있는 경험만. 하나라도 비면 줄이 깨진다.
+  const metrics = groups
+    .flatMap((g) => g.experiences)
+    .filter((e) => e.metricLabel && e.metricBefore && e.metricAfter)
+    .slice(0, METRIC_CAP)
 
   // Topics — 실제 태그 집계. 디자인의 숫자는 예시라 계산해서 넣는다.
   const tagCount = new Map<string, number>()
@@ -162,7 +171,9 @@ export default async function Home() {
                         <h3 className="text-[18px] font-bold leading-[1.4] text-ink">
                           {post.title}
                         </h3>
-                        <time className="eyebrow shrink-0 text-muted">{post.date}</time>
+                        {post.date && (
+                          <time className="eyebrow shrink-0 text-muted">{post.date}</time>
+                        )}
                       </div>
                       {post.summary && (
                         <p className="mt-1.5 text-[14px] leading-[1.8] text-muted">{post.summary}</p>
@@ -235,6 +246,33 @@ export default async function Home() {
                   </span>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* 아웃라인 "기록해 둔 수치" 카드 — 값이 없으면 렌더하지 않는다 */}
+          {metrics.length > 0 && (
+            <div className="card p-6">
+              <p className="eyebrow text-muted">기록해 둔 수치</p>
+              <div className="mt-3 space-y-2">
+                {metrics.map((m) => (
+                  <p
+                    key={m.id}
+                    className="font-[family-name:var(--font-jbmono)] text-[15px] leading-relaxed text-ink"
+                  >
+                    <span className="text-muted">{m.metricLabel} </span>
+                    {m.metricBefore} →{" "}
+                    <span
+                      className="rounded-[5px] bg-lime px-[5px]"
+                      style={{ color: "var(--lime-ink)" }}
+                    >
+                      {m.metricAfter}
+                    </span>
+                  </p>
+                ))}
+              </div>
+              <p className="mt-4 text-[12.5px] leading-relaxed text-muted">
+                각 수치는 케이스와 글로 이어집니다.
+              </p>
             </div>
           )}
         </aside>

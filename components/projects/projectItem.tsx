@@ -23,6 +23,14 @@ export interface Experience {
   role?: string;
   teamSize?: string;
   liveUrl?: string;
+  /*
+    개선 전·후 수치. 성과 문장(impact)에 묻혀 있던 값을 재사용할 수 있게 분리한 것이다.
+    Notion 스키마 추가와 lib/notion.ts 매핑은 별도 작업이라 지금은 항상 undefined 이고,
+    이 값을 쓰는 화면은 셋 다 조건부 렌더라서 매핑이 들어오면 그때 나타난다.
+  */
+  metricBefore?: string;
+  metricAfter?: string;
+  metricLabel?: string;
   // 대분류(프로젝트) 그룹핑. group 미설정 시 이 경험이 독립 프로젝트가 된다.
   group?: string;
   groupSummary?: string;

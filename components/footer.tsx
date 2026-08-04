@@ -30,19 +30,32 @@ export default function Footer() {
         </div>
 
         <div className="flex shrink-0 flex-col items-start gap-3 md:items-end">
+          {/*
+            "고정폭"만 요구됐다. eyebrow 유틸은 대문자 변환과 넓은 자간을 함께 걸어
+            이메일 주소를 ETRY0715@GMAIL.COM 으로 만들므로 여기서는 쓰지 않는다.
+          */}
           <a
             href="mailto:etry0715@gmail.com"
-            className="eyebrow text-[12.5px] text-muted transition-colors hover:text-ink"
+            className="font-[family-name:var(--font-jbmono)] text-[12.5px] text-muted transition-colors hover:text-ink"
           >
             etry0715@gmail.com
           </a>
-          <Link href="/contact" className="btn-lime">
-            문의 남기기 →
-          </Link>
+          <div className="flex items-center gap-3">
+            {/* 히어로에서 내려온 RSS. 구독은 이력서와 같은 무게가 아니다. */}
+            <a
+              href="/feed.xml"
+              className="font-[family-name:var(--font-jbmono)] text-[12.5px] text-muted transition-colors hover:text-ink"
+            >
+              RSS ↗
+            </a>
+            <Link href="/contact" className="btn-lime">
+              문의 남기기 →
+            </Link>
+          </div>
         </div>
       </div>
 
-      <p className="eyebrow mt-8 text-muted">
+      <p className="mt-8 text-xs text-muted">
         © {new Date().getFullYear()} Sejune Oh · Backend / Fullstack
       </p>
     </footer>

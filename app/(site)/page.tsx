@@ -10,23 +10,34 @@ export const revalidate = 3600
 // 라임 카드 1개 + 텍스트 리스트 4개.
 const LIST_CAP = 4
 
+// Topics 카드는 태그가 이보다 적으면 렌더하지 않는다 — 칩 한두 개짜리 카드는
+// 정보가 아니라 빈칸으로 보인다.
+const TOPICS_MIN = 3
+
 /*
-  홈은 개발 로그다. 최신 글이 주인공이고 정체성·케이스·수치가 주변을 받친다.
+  홈은 개발 로그다. 최신 글이 주인공이고 정체성·케이스가 주변을 받친다.
   Server Component 를 유지한다 — 데이터 페칭 방식은 바꾸지 않는다.
 
-  수치(Proof) 카드는 렌더하지 않는다. 개선 전·후 값이 아직 데이터에 없고,
-  임시 하드코딩을 넣지 않기로 정해져 있다. 필드가 들어오면 조건부로 살아난다.
+  수치(Proof) 카드는 **이 파일에 없다.** 개선 전·후 값이 데이터에 없고 임시
+  하드코딩을 넣지 않기로 정해져 있어서, 골격도 두지 않았다. 필드가 들어오는
+  작업에서 카드와 조건부 렌더를 함께 추가하게 된다.
 */
 export default async function Home() {
   const [groups, posts] = await Promise.all([getProjectGroups(), getPosts()])
 
   const [latest, ...rest] = posts
   const list = rest.slice(0, LIST_CAP)
+  // 홈이 이미 전부 보여주고 있으면 "더 보기"는 막힌 링크가 된다.
+  const hasMore = posts.length > 1 + list.length
 
   // Now 카드 — 진행 중인 프로젝트가 있으면 그것, 없으면 가장 최근 것.
   const now = groups.find((g) => g.inProgress) ?? groups[0]
+  // endDate 가 빈 값인 경우가 있어(진행 중이 아닌데도) 구분자만 남지 않게 조립한다.
+  const nowPeriod = now
+    ? [now.startDate, now.inProgress ? "현재" : now.endDate].filter(Boolean).join(" — ")
+    : ""
 
-  // Topics — 태그 빈도. 가장 많이 쓴 하나만 라임으로 둔다.
+  // Topics — 실제 태그 집계. 디자인의 숫자는 예시라 계산해서 넣는다.
   const tagCount = new Map<string, number>()
   for (const p of posts) for (const t of p.tags) tagCount.set(t, (tagCount.get(t) ?? 0) + 1)
   const topics = [...tagCount.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8)
@@ -59,13 +70,14 @@ export default async function Home() {
           </p>
         </div>
 
-        <div className="flex shrink-0 flex-wrap items-center gap-2">
+        {/*
+          히어로에는 이력서 버튼만 둔다. RSS 는 푸터로 내렸다 — 채용 담당자를 겨냥한
+          화면에서 구독 링크가 이력서와 같은 무게를 가질 이유가 없다.
+        */}
+        <div className="shrink-0">
           <Link href="/about/resume" className="btn-pill">
             이력서 보기 ⟶
           </Link>
-          <a href="/feed.xml" className="btn-pill eyebrow">
-            RSS ↗
-          </a>
         </div>
       </section>
 
@@ -159,11 +171,13 @@ export default async function Home() {
                 </div>
               )}
 
-              <div className="mt-6">
-                <Link href="/writing" className="btn-pill">
-                  글 더 보기 →
-                </Link>
-              </div>
+              {hasMore && (
+                <div className="mt-6">
+                  <Link href="/writing" className="btn-pill">
+                    글 더 보기 →
+                  </Link>
+                </div>
+              )}
             </>
           )}
         </div>
@@ -179,7 +193,7 @@ export default async function Home() {
               <p className="mt-3 text-[14.5px] font-semibold text-white">{now.name}</p>
               <p className="mt-1.5 text-[13px] leading-relaxed">{now.summary}</p>
               <p className="eyebrow mt-3" style={{ color: "var(--on-ink-muted)" }}>
-                {now.startDate} — {now.inProgress ? "현재" : now.endDate}
+                {nowPeriod}
               </p>
               <Link href="/work" className="eyebrow mt-4 inline-block text-lime">
                 케이스 {groups.length}개 보기 →
@@ -187,21 +201,22 @@ export default async function Home() {
             </div>
           )}
 
-          {topics.length > 0 && (
+          {topics.length >= TOPICS_MIN && (
             <div className="rounded-[26px] bg-page p-6">
               <p className="eyebrow text-muted">Topics</p>
               <div className="mt-3 flex flex-wrap gap-1.5">
-                {topics.map(([t], i) => (
+                {topics.map(([t, n], i) => (
                   <span
                     key={t}
                     className={
                       i === 0
-                        ? "inline-flex items-center rounded-full bg-lime px-2.5 py-0.5 text-xs font-semibold"
-                        : "chip"
+                        ? "inline-flex items-center gap-1.5 rounded-full bg-lime px-2.5 py-0.5 text-xs font-semibold"
+                        : "chip gap-1.5"
                     }
                     style={i === 0 ? { color: "var(--lime-ink)" } : undefined}
                   >
                     {t}
+                    <span className="opacity-60">{n}</span>
                   </span>
                 ))}
               </div>

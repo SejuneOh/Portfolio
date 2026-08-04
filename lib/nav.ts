@@ -5,12 +5,12 @@ export interface NavItem {
 }
 
 // 4축 구조. /projects → /work, /blog → /writing 이동은 반영됐고,
-// /resume → /about 흡수는 뒤따르는 커밋에서 반영한다.
+// /resume 는 /about/resume 로 흡수됐다.
 export const NAV: NavItem[] = [
   { href: "/", label: "Home" },
   { href: "/work", label: "Work" },
   { href: "/writing", label: "Writing" },
-  { href: "/resume", label: "About" },
+  { href: "/about", label: "About" },
 ]
 
 // Contact는 주 내비가 아니라 액션이다. 데스크톱에서는 우측 버튼으로 렌더하고,

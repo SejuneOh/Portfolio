@@ -9,7 +9,7 @@ const instrument = Instrument_Sans({ subsets: ["latin"], weight: ["400", "500", 
 const jbMono = JetBrains_Mono({ subsets: ["latin"], weight: ["400", "500", "700"], variable: "--font-jbmono", display: "swap" })
 
 /**
- * 정식 이력서 페이지 (/resume)
+ * 정식 이력서 페이지 (/about/resume)
  * 홈/블로그가 "개성 있는 에디토리얼"이라면, 이 페이지는 정규화된 공식 문서다.
  * - 사이트 매거진 레이아웃(사이드바)을 쓰지 않는 독립 문서
  * - 사이트 테마(다크)와 무관하게 항상 페이퍼 톤 유지 (인쇄물 성격)

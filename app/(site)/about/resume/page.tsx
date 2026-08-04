@@ -1,4 +1,4 @@
-import ResumeDoc from "../../components/resumeDoc"
+import ResumeDoc from "../../../../components/resumeDoc"
 
 export const metadata = {
   title: "이력서 · 백엔드 개발자",

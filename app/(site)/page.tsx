@@ -2,6 +2,7 @@ import Link from "next/link"
 import { getProjectGroups } from "../../lib/notion"
 import { getPosts } from "../../lib/postsData"
 import { readingMinutes } from "../../lib/posts"
+import { periodLabel } from "../../lib/date"
 import JsonLd from "../../components/jsonLd"
 import { SITE_URL, SITE_DESCRIPTION, AUTHOR } from "../../lib/site"
 
@@ -35,10 +36,8 @@ export default async function Home() {
 
   // Now 카드 — 진행 중인 프로젝트가 있으면 그것, 없으면 가장 최근 것.
   const now = groups.find((g) => g.inProgress) ?? groups[0]
-  // endDate 가 빈 값인 경우가 있어(진행 중이 아닌데도) 구분자만 남지 않게 조립한다.
-  const nowPeriod = now
-    ? [now.startDate, now.inProgress ? "현재" : now.endDate].filter(Boolean).join(" — ")
-    : ""
+  // 날짜 표기와 빈 값 처리는 lib/date 에서 한 번만 정한다 — 화면마다 다르게 보이면 안 된다.
+  const nowPeriod = now ? periodLabel(now.startDate, now.endDate, now.inProgress) : ""
 
   // 빈 값이 섞이면 구분자만 남는다(`· 3분 읽기`). 조립해서 넘긴다.
   const latestMeta = latest

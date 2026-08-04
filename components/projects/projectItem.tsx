@@ -1,6 +1,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import type { Block } from "../../lib/posts"
+import { fmtMonth } from "../../lib/date";
 
 export interface ProjectTag {
   id: string;
@@ -25,8 +26,9 @@ export interface Experience {
   liveUrl?: string;
   /*
     개선 전·후 수치. 성과 문장(impact)에 묻혀 있던 값을 재사용할 수 있게 분리한 것이다.
-    Notion 스키마 추가와 lib/notion.ts 매핑은 별도 작업이라 지금은 항상 undefined 이고,
-    이 값을 쓰는 화면은 셋 다 조건부 렌더라서 매핑이 들어오면 그때 나타난다.
+    Notion 스키마 추가와 lib/notion.ts 매핑은 별도 작업이라 지금은 항상 undefined 다.
+    현재 이 값을 렌더하는 곳은 홈의 "기록해 둔 수치" 카드 하나이고 조건부라,
+    매핑이 들어오면 그때 나타난다.
   */
   metricBefore?: string;
   metricAfter?: string;
@@ -52,12 +54,6 @@ export interface ProjectGroup {
   experiences: Experience[];
 }
 
-// "2024-09-01" / "2024.09" → "2024.09"
-function fmt(d?: string) {
-  if (!d) return "";
-  const [y, m] = d.replace(/\./g, "-").split("-");
-  return m ? `${y}.${m}` : y;
-}
 
 const cardClass =
   "card group flex h-full flex-col overflow-hidden " +
@@ -73,7 +69,7 @@ export default function ProjectItem({ data }: { data: ProjectGroup }) {
     (Array.from(data.name).reduce((sum, ch) => sum + ch.charCodeAt(0), 0) % 4) * 45;
 
   const hasPeriod = Boolean(data.startDate);
-  const period = `${fmt(data.startDate)} — ${data.inProgress ? "현재" : fmt(data.endDate) || "현재"}`;
+  const period = `${fmtMonth(data.startDate)} — ${data.inProgress ? "현재" : fmtMonth(data.endDate) || "현재"}`;
 
   const body = (
     <>

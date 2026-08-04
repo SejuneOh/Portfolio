@@ -6,6 +6,7 @@ import { getProjectGroups, getProjectGroup } from "../../../../lib/notion"
 import type { Experience } from "../../../../components/projects/projectItem"
 import PostBody from "../../../../components/postBody"
 import { SITE_URL } from "../../../../lib/site"
+import { fmtMonth, periodLabel } from "../../../../lib/date"
 
 export const revalidate = 3600
 
@@ -33,16 +34,8 @@ export async function generateMetadata({
 }
 
 // "2024-09-01" / "2024.09" → "2024.09"
-function fmt(d?: string) {
-  if (!d) return ""
-  const [y, m] = d.replace(/\./g, "-").split("-")
-  return m ? `${y}.${m}` : y
-}
-
 function periodOf(e: Experience) {
-  return [fmt(e.startDate), e.status ? fmt(e.endDate) : "현재"]
-    .filter(Boolean)
-    .join(" — ")
+  return periodLabel(e.startDate, e.endDate, !e.status)
 }
 
 const CTA_LIVE =
@@ -112,7 +105,7 @@ export default async function ProjectDetail({
 
   const multi = group.count > 1
   const lead = group.experiences[0]
-  const groupPeriod = [fmt(group.startDate), group.inProgress ? "현재" : fmt(group.endDate)]
+  const groupPeriod = [fmtMonth(group.startDate), group.inProgress ? "현재" : fmtMonth(group.endDate)]
     .filter(Boolean)
     .join(" — ")
 

@@ -23,6 +23,13 @@ const DEFAULT_TYPE: (typeof TYPES)[number] = "면접 요청"
 const fieldCls =
   "mt-2 w-full rounded-[12px] border border-line bg-transparent px-[14px] py-3 text-sm text-ink placeholder:text-muted"
 
+/*
+  라벨은 규격이 10.5px 다. eyebrow 유틸(고정폭·대문자·자간)을 쓰되 크기만 덮는다 —
+  같은 조합을 인라인으로 다시 복사하지 않기 위해서다. 10.5px 는 이 디자인의
+  메타 텍스트 최소 크기이기도 하다.
+*/
+const labelCls = "eyebrow text-[10.5px] text-muted"
+
 export default function ContactForm() {
   const [state, action, pending] = useActionState(submitInquiry, INIT)
 
@@ -38,11 +45,11 @@ export default function ContactForm() {
 
       <div className="grid gap-6 sm:grid-cols-2">
         <label className="block">
-          <span className="eyebrow text-muted">이름 *</span>
+          <span className={labelCls}>이름 *</span>
           <input type="text" name="name" required className={fieldCls} placeholder="성함" />
         </label>
         <label className="block">
-          <span className="eyebrow text-muted">이메일 *</span>
+          <span className={labelCls}>이메일 *</span>
           <input
             type="email"
             name="email"
@@ -55,7 +62,7 @@ export default function ContactForm() {
 
       {/* 문의 유형 — select 가 아니라 필 라디오. 전송 필드는 여전히 name="type" 이다 */}
       <fieldset>
-        <legend className="eyebrow text-muted">문의 유형</legend>
+        <legend className={labelCls}>문의 유형</legend>
         <div className="mt-2 flex flex-wrap gap-2">
           {TYPES.map((t) => (
             <label key={t} className="cursor-pointer">
@@ -75,7 +82,7 @@ export default function ContactForm() {
       </fieldset>
 
       <label className="block">
-        <span className="eyebrow text-muted">메시지 *</span>
+        <span className={labelCls}>메시지 *</span>
         <textarea
           name="message"
           rows={7}

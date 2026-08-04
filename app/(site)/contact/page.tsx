@@ -12,12 +12,11 @@ export default function Contact() {
     <div className="grid gap-11 md:grid-cols-[1fr_320px]">
       {/* 본문 — 헤더 + 폼 */}
       <div className="min-w-0">
-        <h1 className="text-[48px] font-bold leading-[1.1] tracking-tight text-ink">
-          Contact<span className="text-lime">.</span>
-        </h1>
+        {/* 제목 뒤 마침표는 쓰지 않는다. 목록 화면(WHAT I FIXED·WRITING)과 규칙을 맞춘다 */}
+        <h1 className="text-[48px] font-bold leading-[1.1] tracking-tight text-ink">Contact</h1>
         <p className="mt-4 max-w-[52ch] text-[15px] leading-[1.8] text-muted">
-          면접·채용 제안, 기술 문의 모두 환영합니다. 형식은 자유롭게 — 어떤 팀에서 어떤 일을
-          하는지 한 줄만 적어주셔도 됩니다.
+          면접·채용 제안을 환영합니다. 형식은 자유롭게 — 어떤 팀에서 어떤 일을 하는지 한 줄만
+          적어주셔도 됩니다.
         </p>
 
         <ContactForm />
@@ -31,8 +30,12 @@ export default function Contact() {
             이런 제안을 기다립니다
           </p>
 
+          {/*
+            문의 유형에서 "기술 문의"를 빼기로 해서 이 목록에서도 뺐다.
+            고를 수 없는 유형을 안내하면 앞뒤가 맞지 않는다.
+          */}
           <ul className="mt-4 space-y-2.5 text-sm leading-relaxed">
-            {["백엔드 포지션 면접 제안", "성능·실시간 기술 문의", "글 피드백·정정"].map((t) => (
+            {["백엔드 포지션 면접 제안", "글 피드백·정정"].map((t) => (
               <li key={t} className="flex gap-2">
                 <span className="text-lime">—</span>
                 <span>{t}</span>

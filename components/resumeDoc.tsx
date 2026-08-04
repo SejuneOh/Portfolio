@@ -10,7 +10,9 @@ const instrument = Instrument_Sans({ subsets: ["latin"], weight: ["400", "500", 
  * 정식 이력서 페이지 (/about/resume)
  * 홈/글이 "개성 있는 에디토리얼"이라면, 이 페이지는 정규화된 공식 문서다.
  * - 화면에서는 (site) 레이아웃(상단 내비·흰 표면·푸터) 안에 놓인다
- * - 인쇄할 때는 그 크롬을 모두 숨기고 문서만 남긴다 (styles/globals.css 의 print 규칙)
+ * - 인쇄할 때는 그 크롬을 숨기고 문서만 남긴다. 규칙은 이 파일이 아니라 크롬 쪽에 있다 —
+ *   components/{topNav,mobileHeader,footer}.tsx 의 print:hidden 과
+ *   app/(site)/layout.tsx 의 print:* (표면 여백·라운드·최대폭 해제)
  * - 디스플레이·고정폭 서체는 app/layout.tsx 의 전역 인스턴스를 상속받는다.
  *   본문 서체(Instrument Sans)만 이 문서 고유라 여기서 로드한다
  * - PDF 다운로드 = 브라우저 인쇄(A4 최적화 print CSS)

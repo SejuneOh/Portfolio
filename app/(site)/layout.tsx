@@ -22,7 +22,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       <div className="mx-auto max-w-[1240px] rounded-[28px] bg-surface p-[26px] print:max-w-none print:rounded-none print:p-0">
         <MobileHeader />
         <TopNav />
-        <main className="min-w-0 py-10 md:py-14">{children}</main>
+        <main className="min-w-0 py-10 md:py-14 print:py-0">{children}</main>
         <Footer />
       </div>
     </div>

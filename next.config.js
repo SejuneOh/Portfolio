@@ -17,6 +17,17 @@ const nextConfig = {
       { protocol: "https", hostname: "**.unsplash.com" },
     ],
   },
+  // 경로 개편에 따른 영구 이동. 기존 색인과 외부 유입 링크를 잃지 않기 위해 301로 보낸다.
+  // permanent: true 가 301, false 면 308이 아니라 307/302 계열이 되어 검색엔진이
+  // 이전 경로를 계속 색인한다.
+  async redirects() {
+    return [
+      { source: "/projects", destination: "/work", permanent: true },
+      { source: "/projects/:id", destination: "/work/:id", permanent: true },
+      { source: "/blog", destination: "/writing", permanent: true },
+      { source: "/blog/:slug", destination: "/writing/:slug", permanent: true },
+    ]
+  },
 }
 
 module.exports = nextConfig

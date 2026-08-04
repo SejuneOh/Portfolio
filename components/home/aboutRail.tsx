@@ -36,7 +36,7 @@ export default function AboutRail() {
       </p>
       <p className="mt-3 text-[13px] font-medium text-fg">멀티플랫폼 채팅/메시징 백엔드 (Omni)</p>
       <p className="mt-1 font-mono text-[11px] text-muted">2024.09 — 현재 · 진행 중</p>
-      <Link href="/projects" className="link-underline mt-4 inline-block text-[13px]">
+      <Link href="/work" className="link-underline mt-4 inline-block text-[13px]">
         전체 프로젝트 →
       </Link>
     </aside>

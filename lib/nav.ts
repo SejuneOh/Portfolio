@@ -4,12 +4,12 @@ export interface NavItem {
   label: string
 }
 
-// 4축 구조. 경로는 아직 기존 값을 쓴다 — /projects → /work, /blog → /writing 이동과
-// /resume → /about 흡수는 각각 별도 작업이므로, 여기서는 라벨만 새 이름으로 둔다.
+// 4축 구조. /projects → /work, /blog → /writing 이동은 반영됐고,
+// /resume → /about 흡수는 뒤따르는 커밋에서 반영한다.
 export const NAV: NavItem[] = [
   { href: "/", label: "Home" },
-  { href: "/projects", label: "Work" },
-  { href: "/blog", label: "Writing" },
+  { href: "/work", label: "Work" },
+  { href: "/writing", label: "Writing" },
   { href: "/resume", label: "About" },
 ]
 

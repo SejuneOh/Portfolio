@@ -20,7 +20,7 @@ function rfc822(date: string): string {
 }
 
 export async function GET() {
-  const blogUrl = `${SITE_URL}/blog`
+  const blogUrl = `${SITE_URL}/writing`
   const feedUrl = `${SITE_URL}/feed.xml`
 
   let items = ""
@@ -28,7 +28,7 @@ export async function GET() {
     const posts = await getPosts()
     items = posts
       .map((p) => {
-        const link = `${SITE_URL}/blog/${p.slug}`
+        const link = `${SITE_URL}/writing/${p.slug}`
         const pub = rfc822(p.date)
         return [
           "    <item>",

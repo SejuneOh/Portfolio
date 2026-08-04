@@ -11,7 +11,7 @@ import { parseTags, requireOwner, type ActionState } from "../../lib/adminForm"
 
 function revalidateProjects() {
   revalidatePath("/admin/projects")
-  revalidatePath("/projects", "layout") // 목록 + /projects/[id] 상세까지 갱신
+  revalidatePath("/work", "layout") // 목록 + /work/[id] 상세까지 갱신
   revalidatePath("/")
 }
 

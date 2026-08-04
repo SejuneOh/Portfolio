@@ -37,6 +37,11 @@ export default async function Home() {
     ? [now.startDate, now.inProgress ? "현재" : now.endDate].filter(Boolean).join(" — ")
     : ""
 
+  // 빈 값이 섞이면 구분자만 남는다(`· 3분 읽기`). 조립해서 넘긴다.
+  const latestMeta = latest
+    ? [latest.date, `${readingMinutes(latest)}분 읽기`].filter(Boolean).join(" · ")
+    : ""
+
   // Topics — 실제 태그 집계. 디자인의 숫자는 예시라 계산해서 넣는다.
   const tagCount = new Map<string, number>()
   for (const p of posts) for (const t of p.tags) tagCount.set(t, (tagCount.get(t) ?? 0) + 1)
@@ -103,11 +108,13 @@ export default async function Home() {
                 style={{ color: "var(--lime-body)" }}
               >
                 <div className="flex flex-wrap items-center gap-3">
-                  <span className="inline-flex items-center rounded-full bg-ink px-3 py-1 text-[11px] font-semibold text-white">
-                    {latest.category}
-                  </span>
+                  {latest.category && (
+                    <span className="inline-flex items-center rounded-full bg-ink px-3 py-1 text-[11px] font-semibold text-white">
+                      {latest.category}
+                    </span>
+                  )}
                   <span className="eyebrow" style={{ color: "var(--lime-ink)" }}>
-                    {latest.date} · {readingMinutes(latest)}분 읽기
+                    {latestMeta}
                   </span>
                 </div>
 
@@ -117,7 +124,9 @@ export default async function Home() {
                 >
                   {latest.title}
                 </h2>
-                <p className="mt-3 text-[14.5px] leading-[1.8]">{latest.summary}</p>
+                {latest.summary && (
+                  <p className="mt-3 text-[14.5px] leading-[1.8]">{latest.summary}</p>
+                )}
 
                 <div className="mt-6 flex items-center justify-between gap-4">
                   <div className="flex flex-wrap gap-1.5">
@@ -155,7 +164,9 @@ export default async function Home() {
                         </h3>
                         <time className="eyebrow shrink-0 text-muted">{post.date}</time>
                       </div>
-                      <p className="mt-1.5 text-[14px] leading-[1.8] text-muted">{post.summary}</p>
+                      {post.summary && (
+                        <p className="mt-1.5 text-[14px] leading-[1.8] text-muted">{post.summary}</p>
+                      )}
                       <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
                         <span className="eyebrow text-muted">{readingMinutes(post)}분 읽기</span>
                         <div className="flex flex-wrap gap-1.5">
@@ -191,10 +202,14 @@ export default async function Home() {
                 Now
               </p>
               <p className="mt-3 text-[14.5px] font-semibold text-white">{now.name}</p>
-              <p className="mt-1.5 text-[13px] leading-relaxed">{now.summary}</p>
-              <p className="eyebrow mt-3" style={{ color: "var(--on-ink-muted)" }}>
-                {nowPeriod}
-              </p>
+              {now.summary && (
+                <p className="mt-1.5 text-[13px] leading-relaxed">{now.summary}</p>
+              )}
+              {nowPeriod && (
+                <p className="eyebrow mt-3" style={{ color: "var(--on-ink-muted)" }}>
+                  {nowPeriod}
+                </p>
+              )}
               <Link href="/work" className="eyebrow mt-4 inline-block text-lime">
                 케이스 {groups.length}개 보기 →
               </Link>

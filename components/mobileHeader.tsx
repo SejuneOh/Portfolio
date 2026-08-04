@@ -14,9 +14,9 @@ const DRAWER_NAV = [...NAV, CONTACT]
 
 /*
   하위 페이지에서 돌아갈 상위를 현재 경로로 판정한다.
-  `/blog/어떤글` → Writing, `/projects/어떤것` → Work.
+  `/writing/어떤글` → Writing, `/work/어떤것` → Work.
   홈은 제외하고, 경계는 `href + "/"` 로 본다 — 단순 startsWith 를 쓰면
-  가정상 `/blogfoo` 같은 경로도 `/blog` 의 하위로 잡힌다.
+  가정상 `/writingfoo` 같은 경로도 `/writing` 의 하위로 잡힌다.
 */
 function findParent(pathname: string) {
   return DRAWER_NAV.find(
@@ -51,7 +51,7 @@ export default function MobileHeader() {
   const parent = findParent(pathname)
 
   return (
-    <div className="md:hidden">
+    <div className="md:hidden print:hidden">
       {/*
         배경은 흰 표면에 맞춘다 — 이 헤더는 표면 안에 놓이므로 세이지를 쓰면 색이 어긋난다.
         표면이 rounded-[28px] 라 고정 헤더가 상단 곡선을 덮으므로 sticky 는 쓰지 않는다.

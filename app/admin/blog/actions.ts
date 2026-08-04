@@ -11,7 +11,7 @@ import { parseTags, slugify, requireOwner, type ActionState } from "../../../lib
 
 function revalidateBlog() {
   revalidatePath("/admin/blog")
-  revalidatePath("/blog")
+  revalidatePath("/writing")
   revalidatePath("/")
 }
 

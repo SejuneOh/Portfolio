@@ -142,7 +142,7 @@ export default function ProjectItem({ data }: { data: ProjectGroup }) {
   );
 
   return (
-    <Link href={`/projects/${data.slug}`} className={cardClass}>
+    <Link href={`/work/${data.slug}`} className={cardClass}>
       {body}
     </Link>
   );

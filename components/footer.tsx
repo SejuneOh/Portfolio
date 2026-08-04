@@ -6,7 +6,7 @@ const nav = [...NAV, CONTACT]
 
 export default function Footer() {
   return (
-    <footer className="pb-16">
+    <footer className="pb-16 print:hidden">
       {/* divider with // mark */}
       <div className="flex items-center py-10">
         <div className="h-px flex-1 bg-line" />

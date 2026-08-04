@@ -26,7 +26,7 @@ export async function generateMetadata({
   const { slug } = await params
   const post = await getPost(slug)
   if (!post) return {}
-  const url = `${SITE_URL}/blog/${post.slug}`
+  const url = `${SITE_URL}/writing/${post.slug}`
   return {
     title: post.title,
     description: post.summary,
@@ -61,7 +61,7 @@ export default async function Post({
     .map((b, i) => (b.h ? { id: `h-${i}`, text: b.h } : null))
     .filter(Boolean) as TocItem[]
   const minutes = readingMinutes(post)
-  const url = `${SITE_URL}/blog/${post.slug}`
+  const url = `${SITE_URL}/writing/${post.slug}`
 
   return (
     <>
@@ -78,7 +78,7 @@ export default async function Post({
           author: { "@type": "Person", name: AUTHOR.name, url: SITE_URL },
         }}
       />
-      <Link href="/blog" className="font-mono text-xs text-muted hover:text-accent">
+      <Link href="/writing" className="font-mono text-xs text-muted hover:text-accent">
         ← Blog
       </Link>
 
@@ -107,13 +107,13 @@ export default async function Post({
           {/* prev / next */}
           <nav className="mt-16 grid gap-4 border-t border-line pt-8 sm:grid-cols-2">
             {prev ? (
-              <Link href={`/blog/${prev.slug}`} className="group rounded-lg border border-line p-4 hover:bg-surface">
+              <Link href={`/writing/${prev.slug}`} className="group rounded-lg border border-line p-4 hover:bg-surface">
                 <span className="font-mono text-xs text-muted">← 이전 글</span>
                 <p className="mt-1 text-sm font-semibold text-fg group-hover:text-accent">{prev.title}</p>
               </Link>
             ) : <span />}
             {next ? (
-              <Link href={`/blog/${next.slug}`} className="group rounded-lg border border-line p-4 text-right hover:bg-surface">
+              <Link href={`/writing/${next.slug}`} className="group rounded-lg border border-line p-4 text-right hover:bg-surface">
                 <span className="font-mono text-xs text-muted">다음 글 →</span>
                 <p className="mt-1 text-sm font-semibold text-fg group-hover:text-accent">{next.title}</p>
               </Link>

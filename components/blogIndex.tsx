@@ -49,7 +49,7 @@ export default function BlogIndex({
       ) : (
       <div className="divide-y divide-line">
         {filtered.map((post) => (
-          <Link key={post.slug} href={`/blog/${post.slug}`} className="group block py-6">
+          <Link key={post.slug} href={`/writing/${post.slug}`} className="group block py-6">
             <div className="flex items-baseline justify-between gap-4">
               <h2 className="text-lg font-bold leading-snug text-fg transition-colors group-hover:text-accent">
                 {post.title}

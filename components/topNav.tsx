@@ -28,7 +28,7 @@ export default function TopNav() {
   const items = onContact ? [...NAV, CONTACT] : NAV
 
   return (
-    <nav className="hidden grid-cols-[1fr_auto_1fr] items-center py-1 md:grid">
+    <nav className="hidden grid-cols-[1fr_auto_1fr] items-center py-1 md:grid print:hidden">
       {/* 좌 — 로고 */}
       <Link href="/" aria-label="home" className="w-fit">
         <span className="font-logo text-[21px] font-bold leading-none tracking-tight text-ink">

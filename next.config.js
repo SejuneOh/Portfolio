@@ -17,6 +17,20 @@ const nextConfig = {
       { protocol: "https", hostname: "**.unsplash.com" },
     ],
   },
+  // 경로 개편에 따른 영구 이동. 기존 색인과 외부 유입 링크를 잃지 않기 위해 보낸다.
+  //
+  // `permanent: true` 는 301이 아니라 **308**을 내보낸다. 두 이슈가 모두 301을
+  // 요구하므로 statusCode 를 직접 지정한다. permanent 와 statusCode 는 함께 쓸 수 없다.
+  // (308도 영구 이동이지만 메서드를 보존한다는 점이 다르고, 요구된 값은 301이다.)
+  async redirects() {
+    return [
+      { source: "/projects", destination: "/work", statusCode: 301 },
+      { source: "/projects/:id", destination: "/work/:id", statusCode: 301 },
+      { source: "/blog", destination: "/writing", statusCode: 301 },
+      { source: "/blog/:slug", destination: "/writing/:slug", statusCode: 301 },
+      { source: "/resume", destination: "/about/resume", statusCode: 301 },
+    ]
+  },
 }
 
 module.exports = nextConfig

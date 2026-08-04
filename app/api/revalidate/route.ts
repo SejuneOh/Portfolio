@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache"
 // Notion(CMS) 수정 후 목록·상세·홈을 재배포 없이 즉시 갱신하는 on-demand revalidation.
 //   호출 예:
 //     POST /api/revalidate?secret=XXX                 → 기본 경로 일괄 갱신
-//     POST /api/revalidate?secret=XXX&path=/projects/omni  → 특정 경로만 갱신(반복 가능)
+//     POST /api/revalidate?secret=XXX&path=/work/omni  → 특정 경로만 갱신(반복 가능)
 // 시크릿은 ?secret= 쿼리 또는 x-revalidate-secret 헤더로 전달한다.
 
 export const dynamic = "force-dynamic"
@@ -12,10 +12,10 @@ export const dynamic = "force-dynamic"
 // 콘텐츠 변경 시 함께 갱신할 기본 경로 + 동적 라우트 패턴.
 const DEFAULTS: Array<[string] | [string, "page" | "layout"]> = [
   ["/"],
-  ["/projects"],
-  ["/projects/[id]", "page"],
-  ["/blog"],
-  ["/blog/[slug]", "page"],
+  ["/work"],
+  ["/work/[id]", "page"],
+  ["/writing"],
+  ["/writing/[slug]", "page"],
 ]
 
 function handle(req: NextRequest) {

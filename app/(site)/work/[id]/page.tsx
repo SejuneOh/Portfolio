@@ -22,7 +22,7 @@ export async function generateMetadata({
   const { id } = await params
   const group = await getProjectGroup(id)
   if (!group) return {}
-  const url = `${SITE_URL}/projects/${id}`
+  const url = `${SITE_URL}/work/${id}`
   const desc = group.summary || group.experiences[0]?.impact || undefined
   return {
     title: group.name,
@@ -122,7 +122,7 @@ export default async function ProjectDetail({
 
   return (
     <article className="max-w-[760px]">
-      <Link href="/projects" className="font-mono text-xs text-muted hover:text-accent">
+      <Link href="/work" className="font-mono text-xs text-muted hover:text-accent">
         ← Projects
       </Link>
 
@@ -234,7 +234,7 @@ export default async function ProjectDetail({
 
       {/* Footer nav */}
       <nav className="mt-14 flex items-center justify-between border-t border-line pt-6 text-sm">
-        <Link href="/projects" className="text-muted transition-colors hover:text-accent">
+        <Link href="/work" className="text-muted transition-colors hover:text-accent">
           ← 전체 프로젝트
         </Link>
         <Link href="/contact" className="text-accent transition-colors hover:text-accent-hover">

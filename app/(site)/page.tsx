@@ -61,7 +61,7 @@ export default async function Home() {
 
           {hasMore && (
             <div className="mt-4">
-              <Link href="/projects" className="link-underline text-sm">
+              <Link href="/work" className="link-underline text-sm">
                 전체 보기 →
               </Link>
             </div>

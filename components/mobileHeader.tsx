@@ -65,10 +65,14 @@ export default function MobileHeader() {
 
             색은 잉크다. 이 컴포넌트는 md:hidden 이라 hover 가 도달하지 않는 터치 환경이
             기본이고, 이 링크가 하위 페이지에서 상위로 가는 유일한 경로다.
+
+            같은 이유로 타깃도 44px 로 잡는다. 12px 텍스트의 라인 박스는 16px 뿐이고
+            header 의 py-3 은 링크의 타깃이 아니다. h-11 로 세로만 늘리므로
+            헤더 높이는 햄버거(44px)가 이미 정하고 있어 변하지 않는다.
           */
           <Link
             href={parent.href}
-            className="font-[family-name:var(--font-jbmono)] text-xs text-ink"
+            className="inline-flex h-11 items-center font-[family-name:var(--font-jbmono)] text-xs text-ink"
           >
             ← {parent.label}
           </Link>

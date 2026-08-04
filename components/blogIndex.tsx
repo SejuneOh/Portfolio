@@ -10,11 +10,13 @@ const ALL = "All"
   글 목록. 전폭 단일 컬럼이다 — 사이드 레일을 두지 않는다.
 
   목록은 스캔하는 화면이라 본문을 읽는 동안 곁눈으로 볼 정보가 없다. 그래서
-  Topics 는 제목 아래 필터 칩 행으로 올리고(Work 목록과 같은 문법), RSS 는 다 훑은
-  뒤에 나오도록 목록 하단에 둔다.
+  Topics 는 제목 아래 필터 칩 행으로 올리고, RSS 는 다 훑은 뒤에 나오도록 목록
+  하단에 둔다. 목록 화면의 필터를 위로 모으는 것은 화면 골격 결정(#154)이며,
+  Work 목록도 같은 문법을 쓰게 된다(그쪽은 아직 구 디자인이다).
 
   Pinned 여부를 나타내는 데이터가 없으므로 **가장 최근 글**을 그 자리에 놓고,
-  아래 리스트에서 제외해 중복을 피한다. 필터가 걸린 상태에서는 목록만 보여준다.
+  아래 리스트에서 제외해 중복을 피한다. 필터가 걸리면 Pinned 카드를 감추고
+  목록만 보여준다 — RSS 카드는 어느 상태에서든 남는다.
 */
 export default function BlogIndex({
   posts,
@@ -46,7 +48,12 @@ export default function BlogIndex({
         </p>
       </header>
 
-      {/* Topics — 필터 칩 행. 활성 칩만 검정 */}
+      {/*
+        Topics — 필터 칩 행. 활성 칩만 검정.
+        카테고리가 `All` 하나뿐이면(글이 없거나 전부 분류 미지정) 고를 것이 없어
+        `All 0` 칩과 보더만 남으므로 행 자체를 렌더하지 않는다.
+      */}
+      {categories.length > 1 && (
       <div className="flex flex-wrap gap-2 border-b border-line pb-4">
         {categories.map((c) => {
           const on = active === c
@@ -68,6 +75,7 @@ export default function BlogIndex({
           )
         })}
       </div>
+      )}
 
       {filtered.length === 0 ? (
         <p className="py-16 text-center text-sm text-muted">아직 작성된 글이 없습니다.</p>
@@ -128,10 +136,12 @@ export default function BlogIndex({
                 <Link
                   key={post.slug}
                   href={`/writing/${post.slug}`}
-                  className="group block border-b border-line py-5"
+                  className="group block border-b border-line py-5 transition-colors hover:bg-surface-hover"
                 >
                   <div className="flex items-baseline justify-between gap-4">
-                    <h2 className="text-[18px] font-bold leading-[1.4] text-ink">{post.title}</h2>
+                    <h2 className="text-[18px] font-bold leading-[1.4] text-ink underline-offset-4 group-hover:underline group-hover:decoration-lime group-hover:decoration-2">
+                      {post.title}
+                    </h2>
                     {post.date && (
                       <time className="eyebrow shrink-0 text-muted">{post.date}</time>
                     )}
@@ -154,22 +164,26 @@ export default function BlogIndex({
             </div>
           )}
 
-          {/* 검정 RSS 카드 — 목록 하단. 다 훑은 뒤 구독을 권한다 */}
-          <div className="card-ink mt-8 flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
-            <div className="min-w-0">
-              <p className="eyebrow" style={{ color: "var(--on-ink-muted)" }}>
-                Subscribe
-              </p>
-              <p className="mt-2 text-[14.5px] font-semibold text-white">
-                새 글을 리더로 받아보세요
-              </p>
-            </div>
-            <a href="/feed.xml" className="btn-lime shrink-0">
-              /feed.xml →
-            </a>
-          </div>
         </>
       )}
+
+      {/*
+        검정 RSS 카드 — 목록 하단. 다 훑은 뒤 구독을 권한다.
+        빈 상태 분기 밖에 둔다. getPosts() 는 Notion 미설정·실패 시 빈 배열을
+        반환하므로 글 0편은 운영 중 도달하는 경로이고, 그때 구독 경로까지
+        사라지면 화면에 남는 것이 안내 문구 하나뿐이다.
+      */}
+      <div className="card-ink mt-8 flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="eyebrow" style={{ color: "var(--on-ink-muted)" }}>
+            Subscribe
+          </p>
+          <p className="mt-2 text-[14.5px] font-semibold text-white">새 글을 리더로 받아보세요</p>
+        </div>
+        <a href="/feed.xml" className="btn-lime shrink-0">
+          /feed.xml →
+        </a>
+      </div>
     </>
   )
 }

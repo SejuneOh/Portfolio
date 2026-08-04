@@ -33,7 +33,7 @@ export async function generateMetadata({
   }
 }
 
-// "2024-09-01" / "2024.09" → "2024.09"
+// 경험 하나의 기간 문자열. 진행 중이면 끝이 "현재" 가 된다(status=true 가 완료).
 function periodOf(e: Experience) {
   return periodLabel(e.startDate, e.endDate, !e.status)
 }

@@ -54,13 +54,12 @@ export interface ProjectGroup {
   experiences: Experience[];
 }
 
-
 const cardClass =
   "card group flex h-full flex-col overflow-hidden " +
   "hover:border-accent/60 hover:bg-surface-hover motion-safe:hover:-translate-y-0.5 " +
   "focus-visible:border-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-accent/30";
 
-// 대분류(프로젝트) 카드. 목록/홈 공용.
+// 대분류(프로젝트) 카드. 목록(/work) 전용 — 홈은 최신 글 중심으로 바뀌어 이 카드를 쓰지 않는다.
 export default function ProjectItem({ data }: { data: ProjectGroup }) {
   const glyph = Array.from(data.name)[0] ?? "·";
   const firstTag = data.tags?.[0]?.name;

@@ -1,18 +1,35 @@
 import Link from "next/link"
-import ProjectItem from "../../components/projects/projectItem"
-import AboutRail from "../../components/home/aboutRail"
 import { getProjectGroups } from "../../lib/notion"
+import { getPosts } from "../../lib/postsData"
+import { readingMinutes } from "../../lib/posts"
 import JsonLd from "../../components/jsonLd"
 import { SITE_URL, SITE_DESCRIPTION, AUTHOR } from "../../lib/site"
 
 export const revalidate = 3600
 
-const HOME_CAP = 7
+// 라임 카드 1개 + 텍스트 리스트 4개.
+const LIST_CAP = 4
 
+/*
+  홈은 개발 로그다. 최신 글이 주인공이고 정체성·케이스·수치가 주변을 받친다.
+  Server Component 를 유지한다 — 데이터 페칭 방식은 바꾸지 않는다.
+
+  수치(Proof) 카드는 렌더하지 않는다. 개선 전·후 값이 아직 데이터에 없고,
+  임시 하드코딩을 넣지 않기로 정해져 있다. 필드가 들어오면 조건부로 살아난다.
+*/
 export default async function Home() {
-  const groups = await getProjectGroups()
-  const homeGroups = groups.slice(0, HOME_CAP)
-  const hasMore = groups.length > homeGroups.length
+  const [groups, posts] = await Promise.all([getProjectGroups(), getPosts()])
+
+  const [latest, ...rest] = posts
+  const list = rest.slice(0, LIST_CAP)
+
+  // Now 카드 — 진행 중인 프로젝트가 있으면 그것, 없으면 가장 최근 것.
+  const now = groups.find((g) => g.inProgress) ?? groups[0]
+
+  // Topics — 태그 빈도. 가장 많이 쓴 하나만 라임으로 둔다.
+  const tagCount = new Map<string, number>()
+  for (const p of posts) for (const t of p.tags) tagCount.set(t, (tagCount.get(t) ?? 0) + 1)
+  const topics = [...tagCount.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8)
 
   return (
     <>
@@ -28,50 +45,169 @@ export default async function Home() {
           sameAs: AUTHOR.sameAs,
         }}
       />
+
       {/* Masthead */}
-      <section className="pb-8">
-        <p className="font-mono text-xs uppercase tracking-[0.28em] text-accent">
-          Backend Engineer · Fullstack
-        </p>
-        <h1 className="mt-3 max-w-[18ch] text-2xl font-extrabold leading-tight tracking-tight text-fg sm:text-3xl">
-          실시간 채팅·메시징 백엔드를 설계·운영하는 C#/.NET 엔지니어
-        </h1>
-        <p className="mt-3 font-mono text-xs tracking-widest text-muted">
-          {`${groups.length}개 프로젝트 · 2019—NOW`}
-        </p>
+      <section className="flex flex-col gap-6 pb-10 md:flex-row md:items-start md:justify-between">
+        <div className="min-w-0">
+          <p className="eyebrow text-muted">Backend engineer · C#/.NET · Seoul</p>
+          <h1 className="mt-3 text-[46px] font-bold leading-[1.06] tracking-[-0.032em] text-ink">
+            Dev Log
+          </h1>
+          <p className="mt-4 max-w-[56ch] text-[15px] leading-[1.8] text-muted">
+            서버를 만들며 부딪힌 문제와 해결 과정을 기록합니다. 원인을 끝까지 파고, 결과는
+            숫자로 남깁니다.
+          </p>
+        </div>
+
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <Link href="/about/resume" className="btn-pill">
+            이력서 보기 ⟶
+          </Link>
+          <a href="/feed.xml" className="btn-pill eyebrow">
+            RSS ↗
+          </a>
+        </div>
       </section>
 
-      <div className="border-t border-line" />
-
-      {/* 2-column split: project index + colophon rail */}
-      <div className="mt-8 lg:grid lg:grid-cols-[minmax(0,1fr)_260px] lg:gap-12">
-        {/* LEFT: project index */}
-        <div className="lg:order-first">
-          <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2">
-            {homeGroups.map((g, i) =>
-              i === 0 ? (
-                <div key={g.slug} className="sm:col-span-2">
-                  <ProjectItem data={g} />
-                </div>
-              ) : (
-                <ProjectItem key={g.slug} data={g} />
-              )
-            )}
+      {/* 본문 — 최신 글 + aside */}
+      <div className="grid gap-11 lg:grid-cols-[minmax(0,1fr)_300px]">
+        {/* 좌 — 최신 글 */}
+        <div className="min-w-0">
+          <div className="flex items-baseline justify-between gap-4 border-b border-line pb-3">
+            <p className="eyebrow text-muted">Latest posts</p>
+            <Link href="/writing" className="link-underline text-[13px]">
+              전체 {posts.length}편 →
+            </Link>
           </div>
 
-          {hasMore && (
-            <div className="mt-4">
-              <Link href="/work" className="link-underline text-sm">
-                전체 보기 →
+          {posts.length === 0 ? (
+            <p className="py-16 text-center text-sm text-muted">아직 작성된 글이 없습니다.</p>
+          ) : (
+            <>
+              {/* 라임 최신 글 카드 */}
+              <Link
+                href={`/writing/${latest.slug}`}
+                className="group mt-6 block rounded-[26px] bg-lime p-[26px] transition-colors hover:bg-[#CDEA55]"
+                style={{ color: "var(--lime-body)" }}
+              >
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="inline-flex items-center rounded-full bg-ink px-3 py-1 text-[11px] font-semibold text-white">
+                    {latest.category}
+                  </span>
+                  <span className="eyebrow" style={{ color: "var(--lime-ink)" }}>
+                    {latest.date} · {readingMinutes(latest)}분 읽기
+                  </span>
+                </div>
+
+                <h2
+                  className="mt-4 text-[29px] font-bold leading-[1.22]"
+                  style={{ color: "var(--lime-ink)" }}
+                >
+                  {latest.title}
+                </h2>
+                <p className="mt-3 text-[14.5px] leading-[1.8]">{latest.summary}</p>
+
+                <div className="mt-6 flex items-center justify-between gap-4">
+                  <div className="flex flex-wrap gap-1.5">
+                    {latest.tags.map((t) => (
+                      <span
+                        key={t}
+                        className="inline-flex items-center rounded-full bg-white/45 px-2.5 py-0.5 text-xs font-medium"
+                        style={{ color: "var(--lime-ink)" }}
+                      >
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                  <span
+                    aria-hidden
+                    className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ink text-white transition-colors group-hover:bg-[#2A2B22]"
+                  >
+                    ⟶
+                  </span>
+                </div>
               </Link>
-            </div>
+
+              {/* 텍스트 리스트 */}
+              {list.length > 0 && (
+                <div className="mt-2">
+                  {list.map((post) => (
+                    <Link
+                      key={post.slug}
+                      href={`/writing/${post.slug}`}
+                      className="group block border-b border-line py-5"
+                    >
+                      <div className="flex items-baseline justify-between gap-4">
+                        <h3 className="text-[18px] font-bold leading-[1.4] text-ink">
+                          {post.title}
+                        </h3>
+                        <time className="eyebrow shrink-0 text-muted">{post.date}</time>
+                      </div>
+                      <p className="mt-1.5 text-[14px] leading-[1.8] text-muted">{post.summary}</p>
+                      <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                        <span className="eyebrow text-muted">{readingMinutes(post)}분 읽기</span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {post.tags.map((t) => (
+                            <span key={t} className="chip">
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+
+              <div className="mt-6">
+                <Link href="/writing" className="btn-pill">
+                  글 더 보기 →
+                </Link>
+              </div>
+            </>
           )}
         </div>
 
-        {/* RIGHT: colophon rail (above index on mobile) */}
-        <div className="mb-10 order-first lg:order-last lg:mb-0">
-          <AboutRail />
-        </div>
+        {/* 우 — aside 300px */}
+        <aside className="flex flex-col gap-4">
+          {now && (
+            <div className="card-ink p-6">
+              <p className="eyebrow flex items-center gap-1.5" style={{ color: "var(--on-ink-muted)" }}>
+                <span aria-hidden className="text-lime">●</span>
+                Now
+              </p>
+              <p className="mt-3 text-[14.5px] font-semibold text-white">{now.name}</p>
+              <p className="mt-1.5 text-[13px] leading-relaxed">{now.summary}</p>
+              <p className="eyebrow mt-3" style={{ color: "var(--on-ink-muted)" }}>
+                {now.startDate} — {now.inProgress ? "현재" : now.endDate}
+              </p>
+              <Link href="/work" className="eyebrow mt-4 inline-block text-lime">
+                케이스 {groups.length}개 보기 →
+              </Link>
+            </div>
+          )}
+
+          {topics.length > 0 && (
+            <div className="rounded-[26px] bg-page p-6">
+              <p className="eyebrow text-muted">Topics</p>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {topics.map(([t], i) => (
+                  <span
+                    key={t}
+                    className={
+                      i === 0
+                        ? "inline-flex items-center rounded-full bg-lime px-2.5 py-0.5 text-xs font-semibold"
+                        : "chip"
+                    }
+                    style={i === 0 ? { color: "var(--lime-ink)" } : undefined}
+                  >
+                    {t}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </aside>
       </div>
     </>
   )

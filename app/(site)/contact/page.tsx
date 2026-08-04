@@ -2,17 +2,82 @@ import ContactForm from "../../../components/contact/contactForm"
 
 export const metadata = { title: "Contact" }
 
+/*
+  상단 내비의 이 페이지 예외(우측 Contact 버튼을 렌더하지 않고 필 내비에 Contact 를
+  다섯 번째 항목으로 넣어 활성 표시)는 components/topNav.tsx 에 이미 들어 있다.
+  이 파일에서 할 일은 없다.
+*/
 export default function Contact() {
   return (
-    <div className="max-w-[640px]">
-      <p className="font-mono text-xs uppercase tracking-[0.28em] text-accent">Contact</p>
-      <h1 className="mt-3 text-3xl font-bold tracking-tight text-fg sm:text-4xl">
-        연락하기
-      </h1>
-      <p className="mt-3 text-[15px] leading-relaxed text-muted">
-        협업·채용·면접 요청 등 무엇이든 편하게 남겨주세요. 이메일로 확인 후 회신드립니다.
-      </p>
-      <ContactForm />
+    <div className="grid gap-11 md:grid-cols-[1fr_320px]">
+      {/* 본문 — 헤더 + 폼 */}
+      <div className="min-w-0">
+        <h1 className="text-[48px] font-bold leading-[1.1] tracking-tight text-ink">
+          Contact<span className="text-lime">.</span>
+        </h1>
+        <p className="mt-4 max-w-[52ch] text-[15px] leading-[1.8] text-muted">
+          면접·채용 제안, 기술 문의 모두 환영합니다. 형식은 자유롭게 — 어떤 팀에서 어떤 일을
+          하는지 한 줄만 적어주셔도 됩니다.
+        </p>
+
+        <ContactForm />
+      </div>
+
+      {/* 사이드 320px */}
+      <aside className="flex flex-col gap-4">
+        {/* 검정 카드 — 어떤 연락을 기다리는지 */}
+        <div className="card-ink p-6">
+          <p className="eyebrow" style={{ color: "var(--on-ink-muted)" }}>
+            이런 제안을 기다립니다
+          </p>
+
+          <ul className="mt-4 space-y-2.5 text-sm leading-relaxed">
+            {["백엔드 포지션 면접 제안", "성능·실시간 기술 문의", "글 피드백·정정"].map((t) => (
+              <li key={t} className="flex gap-2">
+                <span className="text-lime">—</span>
+                <span>{t}</span>
+              </li>
+            ))}
+          </ul>
+
+          {/* 응답 시간을 약속하지 않는다(24시간·30분 같은 문구). 부담이 된다. */}
+          <p
+            className="mt-5 border-t pt-4 text-[12.5px] leading-relaxed"
+            style={{ borderColor: "var(--on-ink-border)", color: "var(--on-ink-muted)" }}
+          >
+            읽고 회신드립니다. 이력서나 채용 공고 링크가 있으면 함께 남겨주시면 더 정확히
+            답할 수 있습니다.
+          </p>
+        </div>
+
+        {/* 아웃라인 카드 — 직접 연락 */}
+        <div className="card p-6">
+          <p className="eyebrow text-muted">직접 연락</p>
+          <div className="mt-4 space-y-2 text-sm leading-relaxed text-ink">
+            <p>
+              <span className="text-muted">Email. </span>
+              <a href="mailto:etry0715@gmail.com" className="link-underline">
+                etry0715@gmail.com
+              </a>
+            </p>
+            <p>
+              <span className="text-muted">GitHub. </span>
+              <a
+                href="https://github.com/SejuneOh"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="link-underline"
+              >
+                github.com/SejuneOh
+              </a>
+            </p>
+            <p>
+              <span className="text-muted">Location. </span>
+              Seoul, Korea
+            </p>
+          </div>
+        </div>
+      </aside>
     </div>
   )
 }

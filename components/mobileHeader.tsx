@@ -59,9 +59,16 @@ export default function MobileHeader() {
       <header className="flex items-center justify-between border-b border-line bg-surface py-3">
         {/* 좌 — 하위 페이지면 백링크, 아니면 로고 */}
         {parent ? (
+          /*
+            고정폭은 JetBrains Mono(--font-jbmono)를 쓴다. Tailwind 의 font-mono 는
+            기본 테마의 시스템 고정폭 스택이라 이 디자인의 고정폭이 아니다.
+
+            색은 잉크다. 이 컴포넌트는 md:hidden 이라 hover 가 도달하지 않는 터치 환경이
+            기본이고, 이 링크가 하위 페이지에서 상위로 가는 유일한 경로다.
+          */
           <Link
             href={parent.href}
-            className="font-mono text-xs text-muted transition-colors hover:text-ink"
+            className="font-[family-name:var(--font-jbmono)] text-xs text-ink"
           >
             ← {parent.label}
           </Link>

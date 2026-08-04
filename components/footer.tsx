@@ -1,12 +1,8 @@
 import Link from "next/link"
+import { NAV, CONTACT } from "../lib/nav"
 
-const nav = [
-  { href: "/", label: "HOME" },
-  { href: "/projects", label: "PROJECTS" },
-  { href: "/blog", label: "BLOG" },
-  { href: "/resume", label: "RESUME" },
-  { href: "/contact", label: "CONTACT" },
-]
+// 라벨을 여기서 따로 들고 있으면 상단 내비와 갈라진다. 한 곳(lib/nav.ts)만 본다.
+const nav = [...NAV, CONTACT]
 
 export default function Footer() {
   return (
@@ -32,6 +28,16 @@ export default function Footer() {
           <Link href="/contact" className="link-underline mt-1 inline-block text-accent">
             문의 남기기 →
           </Link>
+
+          {/*
+            사이드바가 갖고 있던 연락처. 사이드바를 없애면 데스크톱에서 이 정보의 자리가
+            사라지므로(모바일 드로어에만 남는다) 여기로 옮겨 보존한다.
+          */}
+          <div className="mt-4 space-y-1 leading-relaxed">
+            <p>Email. etry0715@gmail.com</p>
+            <p>GitHub. github.com/SejuneOh</p>
+            <p>Location. Seoul, Korea</p>
+          </div>
         </div>
       </div>
 

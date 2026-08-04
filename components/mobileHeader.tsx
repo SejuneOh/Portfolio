@@ -51,7 +51,7 @@ export default function MobileHeader() {
   const parent = findParent(pathname)
 
   return (
-    <div className="md:hidden">
+    <div className="md:hidden print:hidden">
       {/*
         배경은 흰 표면에 맞춘다 — 이 헤더는 표면 안에 놓이므로 세이지를 쓰면 색이 어긋난다.
         표면이 rounded-[28px] 라 고정 헤더가 상단 곡선을 덮으므로 sticky 는 쓰지 않는다.

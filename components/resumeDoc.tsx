@@ -1,25 +1,25 @@
 "use client"
 
 import Link from "next/link"
-import { Fraunces, Instrument_Sans, JetBrains_Mono } from "next/font/google"
+import { Instrument_Sans } from "next/font/google"
 
 // 이력서 고유 서체 — next/font로 로드(렌더블로킹 <link> 제거, no-page-custom-font 해소).
-const fraunces = Fraunces({ subsets: ["latin"], weight: ["400", "600", "700"], style: ["normal", "italic"], variable: "--font-fraunces", display: "swap" })
 const instrument = Instrument_Sans({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-instrument", display: "swap" })
-const jbMono = JetBrains_Mono({ subsets: ["latin"], weight: ["400", "500", "700"], variable: "--font-jbmono", display: "swap" })
 
 /**
  * 정식 이력서 페이지 (/about/resume)
- * 홈/블로그가 "개성 있는 에디토리얼"이라면, 이 페이지는 정규화된 공식 문서다.
- * - 사이트 매거진 레이아웃(사이드바)을 쓰지 않는 독립 문서
- * - 사이트 테마(다크)와 무관하게 항상 페이퍼 톤 유지 (인쇄물 성격)
+ * 홈/글이 "개성 있는 에디토리얼"이라면, 이 페이지는 정규화된 공식 문서다.
+ * - 화면에서는 (site) 레이아웃(상단 내비·흰 표면·푸터) 안에 놓인다
+ * - 인쇄할 때는 그 크롬을 모두 숨기고 문서만 남긴다 (styles/globals.css 의 print 규칙)
+ * - 디스플레이·고정폭 서체는 app/layout.tsx 의 전역 인스턴스를 상속받는다.
+ *   본문 서체(Instrument Sans)만 이 문서 고유라 여기서 로드한다
  * - PDF 다운로드 = 브라우저 인쇄(A4 최적화 print CSS)
  */
 export default function ResumeDoc() {
   return (
     <>
 
-      <div className={`resume-page ${fraunces.variable} ${instrument.variable} ${jbMono.variable}`}>
+      <div className={`resume-page ${instrument.variable}`}>
         <div className="sheet">
           <Link href="/" className="backlink">← Portfolio</Link>
 
@@ -270,7 +270,6 @@ export default function ResumeDoc() {
           /* 사이트(Notion) 팔레트에 매핑 — --accent 는 사이트 :root/.dark 값을 그대로 상속(라이트/다크 자동) */
           --paper: var(--bg);
           --paper-2: var(--surface);
-          --ink: var(--text);
           --ink-soft: var(--text-muted);
           --ink-faint: var(--text-muted);
           --rule: var(--border);
@@ -319,7 +318,7 @@ export default function ResumeDoc() {
           margin-bottom: 16px;
         }
         .resume-page h1 {
-          font-family: var(--font-fraunces), serif;
+          font-family: var(--font-display), serif;
           font-weight: 600;
           font-size: clamp(48px, 8vw, 88px);
           line-height: 0.94;
@@ -336,7 +335,7 @@ export default function ResumeDoc() {
           margin-top: 10px;
         }
         .resume-page .tagline {
-          font-family: var(--font-fraunces), serif;
+          font-family: var(--font-display), serif;
           font-size: clamp(18px, 2.6vw, 23px);
           line-height: 1.45;
           font-weight: 400;
@@ -373,7 +372,9 @@ export default function ResumeDoc() {
         .resume-page .metric { background: var(--paper); padding: 20px 18px 18px; }
         .resume-page .metric .big {
           font-family: var(--font-jbmono), monospace;
-          font-weight: 700;
+          /* 전역 JetBrains Mono 인스턴스가 로드하는 굵기는 400·500·600 이다.
+             자체 인스턴스를 지우면서 700 을 쓰면 합성 볼드로 떨어지므로 600 으로 맞춘다. */
+          font-weight: 600;
           font-size: clamp(20px, 3vw, 27px);
           letter-spacing: -0.02em;
           color: var(--accent-deep);
@@ -402,7 +403,7 @@ export default function ResumeDoc() {
           letter-spacing: 0.1em;
         }
         .resume-page .sec-title {
-          font-family: var(--font-fraunces), serif;
+          font-family: var(--font-display), serif;
           font-weight: 600;
           font-size: 20px;
           line-height: 1.15;
@@ -433,7 +434,7 @@ export default function ResumeDoc() {
 
         .resume-page .job { margin-bottom: 6px; }
         .resume-page .job-top { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 4px 16px; }
-        .resume-page .job-org { font-family: var(--font-fraunces), serif; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+        .resume-page .job-org { font-family: var(--font-display), serif; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
         .resume-page .job-when { font-family: var(--font-jbmono), monospace; font-size: 11.5px; color: var(--ink-faint); white-space: nowrap; }
         .resume-page .job-role { font-size: 13.5px; color: var(--accent-deep); margin-top: 3px; font-weight: 500; }
         .resume-page .job-note { font-size: 13px; color: var(--ink-soft); margin-top: 8px; font-style: italic; line-height: 1.5; }

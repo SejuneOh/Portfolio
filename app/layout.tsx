@@ -7,7 +7,7 @@ import { Analytics } from "@vercel/analytics/next"
 
 // 제목용 디스플레이 폰트(라틴). --font-display 변수로 노출 → globals.css 헤딩에서 사용.
 // 굵기·스타일 조합은 components/resumeDoc.tsx가 이미 쓰는 것과 같게 맞췄다.
-// /about/resume 가 (site) 레이아웃 안에 있으므로 이 인스턴스를 그대로 상속받는다.
+// components/resumeDoc.tsx 가 이 인스턴스를 상속받는다(자체 Fraunces 로드는 제거됨).
 const fraunces = Fraunces({
   subsets: ["latin"],
   weight: ["400", "600", "700"],

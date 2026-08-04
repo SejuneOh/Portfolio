@@ -38,8 +38,13 @@ export default function MobileHeader() {
   return (
     <div className="md:hidden">
       {/* 상단 바 */}
-      {/* 배경은 흰 표면에 맞춘다 — 이 헤더는 표면 안에 놓이므로 세이지를 쓰면 색이 어긋난다. */}
-      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-line bg-surface/90 py-3 backdrop-blur-sm">
+      {/*
+        배경은 흰 표면에 맞춘다 — 이 헤더는 표면 안에 놓이므로 세이지를 쓰면 색이 어긋난다.
+        sticky 를 뗀 이유: 표면이 rounded-[28px] 인데 고정된 사각 헤더가 스크롤 중
+        그 곡선을 덮고, 좌우 세이지 여백과 만나 띠처럼 분리돼 보인다. 표면 안에서
+        같이 흐르게 둔다. 모바일 헤더의 최종 형태는 별도 작업에서 정한다.
+      */}
+      <header className="flex items-center justify-between border-b border-line bg-surface py-3">
         <Link href="/" aria-label="home" className="flex items-center gap-2">
           <span className="flex h-7 w-7 items-center justify-center bg-accent text-[11px] font-extrabold text-white">
             SO

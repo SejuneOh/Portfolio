@@ -95,8 +95,13 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
         }}
       />
 
+      {/*
+        Toc 는 한 번만 마운트한다. 컴포넌트가 안에서 모바일(접힘)·데스크톱(sticky)을
+        모두 처리하므로 두 자리에 놓으면 같은 헤딩에 IntersectionObserver 가 두 번 붙는다.
+        모바일에서는 목차가 본문 앞에 와야 쓸모가 있어 order 로 순서만 바꾼다.
+      */}
       <div className="grid gap-11 lg:grid-cols-[minmax(0,1fr)_220px]">
-        <article className="min-w-0 max-w-[700px]">
+        <article className="order-2 min-w-0 max-w-[700px] lg:order-1">
           <Link
             href="/writing"
             className="font-[family-name:var(--font-jbmono)] text-xs text-ink transition-colors hover:text-muted"
@@ -135,11 +140,6 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
             </div>
           )}
 
-          {/* 모바일에서는 본문 앞에 접힌 목차를 둔다 */}
-          <div className="mt-6 lg:hidden">
-            <Toc items={toc} />
-          </div>
-
           <div className="mt-8">
             <PostBody blocks={post.body} />
           </div>
@@ -172,8 +172,8 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
           )}
         </article>
 
-        {/* 사이드 220px — 데스크톱에서만 */}
-        <div className="hidden lg:block">
+        {/* 사이드 220px. 모바일에서는 order 로 본문 앞에 온다 */}
+        <div className="order-1 lg:order-2">
           <Toc items={toc} />
           {/*
             "관련 케이스" 링크는 만들지 않았다. 글과 케이스를 잇는 데이터가 없다.

@@ -51,6 +51,43 @@
 
 ## 실행 기록
 
+### 2026-08-05 18:52 — PR 생성
+
+- **회수:** `loop-reclaim.sh --apply`: 브랜치 `fix/175-shiki-dark-theme` 회수 (PR #197 MERGED) /
+  `loop-guard.sh --reap`: 락 걸린 이슈 없음
+- **게이트:** 통과 — 병합 대기 중인 `agent-loop` PR 없음
+- **후보:** #176 #179 (2개)
+- **선택:** #179 — 라벨 가중치에서 갈렸다. `refactor`(40) > `feat`(20)
+- **탈락:** #176 (`feat` 20). **2단계의 마지막 남은 이슈다**
+  - 관문 1 제외: `backlog` #102 #128 #191 / `needs-human` #54 #85 #180~#186 #192 — **코멘트 없음**
+- **결과:** PR 생성 — `refactor/179-resume-dead-selectors`
+- **검증:** lint ✅ (경고 0) build ✅ (`Compiled successfully`)
+  - `resumeDoc.tsx` 는 `"use client"` + `<style jsx global>` 이라 **스타일이 프리렌더 HTML 에
+    들어가지 않는다.** `.next/server/app/about/resume.html` 에는 `media print` 가 0건이다
+  - 스타일은 클라이언트 청크에 있다:
+    `.next/static/chunks/app/(site)/about/resume/page-*.js`.
+    **HTML 출력은 라우트 그룹 `(site)` 를 벗기지만 JS 청크 경로는 유지한다** — 둘을 혼동하면
+    "산출물에 없다" 는 잘못된 결론이 난다 (이 세션에서 이전에 같은 착오를 한 적이 있다)
+  - 청크에서 확인: `@media print{...}` 안이 `.resume-page` **단일 셀렉터**,
+    `--accent:#1c1b18;--accent-deep:#000000;--accent-wash:#f2f1ee`,
+    `.dark` 0건, 인디고(`4f46e5`·`4338ca`·`eef2ff`) 0건,
+    `html,body{background:#fff}` 와 `print-color-adjust:exact` 유지
+- **산출물:** PR #NN (아래 비고)
+- **비고:**
+  - **`#175` 를 수동으로 닫았다** — `dev` 대상 `Closes` 미작동(#192). 이번이 4회째다
+  - 인쇄용 강조색을 먹색으로 덮기 전에 `var(--accent*)` 사용처 14곳을 확인했다.
+    5×5px 리스트 불릿(`background: var(--accent)`)과 `.kbd` 칩
+    (`--accent-wash` 배경 + `--accent-deep` 글자)이 먹색으로도 읽힌다 —
+    `#f2f1ee` 바탕에 `#000000` 글자다
+  - 화면 모드는 건드리지 않았다. `--paper: var(--bg)` 등으로 사이트 토큰을 상속하는 구조가
+    의도된 것이다(#186 결정: 이력서는 화면에서 어둡게, 인쇄는 흰 종이)
+  - **더 나은 선택지를 발견했지만 하지 않았다** — 인쇄용 강조색을 먹색이 아니라
+    라임에서 파생한 어두운 올리브(예: `#4f5a1e`, 옛 `--lime-ink`)로 두면 종이에서도 읽히면서
+    사이트 정체성과 색상 관계가 이어진다. 이 이슈는 `refactor`(기능 변화 없음) + "인디고 잔재 제거"
+    라서 색을 새로 고르는 것은 범위를 넘는다. **PR 리뷰 지점으로 올렸다**
+  - 남은 후보: **#176 하나.** 그것이 끝나면 2단계 완료이고 3단계(#180~#185)는 전부
+    `needs-human` 이라 루프가 집을 수 없다
+
 ### 2026-08-05 18:30 — PR 생성
 
 - **회수:** `loop-reclaim.sh --apply`: 브랜치 `fix/194-favicon-console-palette` 회수

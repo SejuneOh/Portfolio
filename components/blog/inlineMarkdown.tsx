@@ -12,28 +12,29 @@ const RULES: { kind: Kind; re: RegExp }[] = [
 ]
 
 function renderMatch(kind: Kind, m: RegExpMatchArray, key: number): React.ReactNode {
+  // 인라인 코드 — 세이지 배경. 라임은 코드 영역에 쓰지 않는다.
   if (kind === "code")
     return (
       <code
         key={key}
-        className="rounded-sm bg-surface px-1.5 py-0.5 font-mono text-[0.88em] text-accent"
+        className="rounded-[4px] bg-page px-[5px] py-px font-[family-name:var(--font-jbmono)] text-[0.88em] text-ink"
       >
         {m[1]}
       </code>
     )
   if (kind === "bold")
     return (
-      <strong key={key} className="font-semibold text-fg">
+      <strong key={key} className="font-semibold text-ink">
         {m[1]}
       </strong>
     )
-  // link
+  // 링크는 색이 아니라 라임 밑줄로 구분한다(디자인 시스템의 link-underline 규칙).
   const external = /^https?:\/\//.test(m[2])
   return (
     <a
       key={key}
       href={m[2]}
-      className="text-accent underline underline-offset-2 hover:opacity-80"
+      className="link-underline"
       {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
     >
       {m[1]}

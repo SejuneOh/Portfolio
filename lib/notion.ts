@@ -2,7 +2,7 @@ import type {
   Experience,
   ProjectGroup,
   ProjectTag,
-} from "../components/projects/projectItem"
+} from "../components/projects/caseRow"
 import type { Block } from "./posts"
 import { TOKEN, DATABASE_ID } from "../config"
 import { PROJECT_PROPS } from "./notionWrite"

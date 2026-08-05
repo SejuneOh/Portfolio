@@ -28,11 +28,15 @@
   @apply inline-flex items-center rounded-full border border-line bg-surface px-2.5 py-0.5 text-xs font-medium text-muted;
 }
 
-/* 검정 카드 — 내부 구분선은 표면 보더가 아니라 --on-ink-border를 쓴다 */
+/*
+  지면보다 한 단 올라온 판. 밝은 지면에 얹던 '검정 카드'의 자리를 대신한다.
+  어두운 지면에서는 반전이 성립하지 않으므로 bg-ink(=본문색)가 아니라 --surface-hover를 쓴다.
+  이름을 유지하는 이유는 사용처 6곳을 건드리지 않기 위한 것이다.
+*/
 @utility card-ink {
-  @apply rounded-[26px] border bg-ink transition-all duration-200;
-  border-color: var(--on-ink-border);
-  color: var(--on-ink-body);
+  @apply rounded-[26px] border border-line transition-all duration-200;
+  background: var(--surface-hover);
+  color: var(--text-body);
 }
 
 /* 소형 타일 */
@@ -98,31 +102,54 @@
 }
 
 @layer utilities {
+  /*
+    계측 콘솔(CONSOLE) 팔레트. 단일 다크 테마다 — 라이트 대응물은 없다.
+    변수 이름은 세이지 시절 그대로 유지한다. tailwind.config.js가 bg-surface·text-muted
+    같은 유틸을 이 이름에 이어 두었으므로, 이름을 바꾸면 화면 코드를 전부 고쳐야 한다.
+  */
   :root {
-    --bg: #dfe2ce;
-    --surface: #ffffff;
-    --surface-hover: #f7f8f1;
-    --ink: #1c1d16;
-    --text-muted: #7a7b70;
-    --text-body: #3f4036;
-    --border: #d2d5c0;
+    --bg: #070b0d;
+    --surface: #0c1216;
+    --surface-hover: #111a20;
+    --ink: #dde8ec;
+    --text-muted: #7c8f9a;
+    --text-body: #b9c6cc;
+    --border: #1e2c35;
     --lime: #d8f26a;
-    --lime-ink: #4f5a1e;
-    --lime-body: #3f4a18;
-    /* 강조색은 라임 하나. --accent는 링크·텍스트 액션의 글자색이며 잉크를 쓴다. */
-    --accent: #1c1d16;
-    --accent-hover: #3f4036;
-    --on-ink-muted: #a8ab98;
-    --on-ink-body: #b9bcaa;
-    --on-ink-border: #3b3d31;
-    --track: #c9cbb8;
+    --lime-ink: #0b0f11;
+    --lime-body: #0b0f11;
+    /*
+      강조색은 라임 하나. --accent는 링크·텍스트 액션의 글자색이며 본문색(--ink)과 같다.
+      색이 아니라 밑줄로 링크를 구분하는 규칙은 그대로다 (link-underline 참조).
+    */
+    --accent: #dde8ec;
+    --accent-hover: #f2f8fa;
+    /*
+      밝은 지면에 얹던 검정 카드의 반전 색이었다. 어두운 지면에서는 반전이 성립하지 않으므로
+      본문 토큰과 같은 값으로 맞춘다. 변수 제거와 호출부 정리는 #173·#174에서 한다 —
+      인라인 style로 참조하는 곳이 app/과 components/에 걸쳐 있어 이 이슈 범위를 넘는다.
+    */
+    --on-ink-muted: #7c8f9a;
+    --on-ink-body: #b9c6cc;
+    --on-ink-border: #1e2c35;
+    --track: #16232b;
+    /* 계기판 격자. #180에서 계측 배경이 쓴다 */
+    --grid: #16232b;
+    /* 계측 3채널 — 1번은 --lime이고, 2·3번은 아직 쓰는 곳이 없다 */
+    --ch2: #4fd0d8;
+    --ch3: #f2a54a;
+    --glow1: rgb(216 242 106 / 0.42);
+    --glow2: rgb(79 208 216 / 0.34);
   }
 }
 
 @layer base {
-  /* 전역 키보드 포커스 표시(일관성) */
+  /*
+    전역 키보드 포커스 표시(일관성).
+    --accent는 본문색과 같아졌으므로 외곽선에 쓰면 포커스가 배경과 구분되지 않는다. 라임을 쓴다.
+  */
   :where(a, button, input, textarea, select, summary):focus-visible {
-    outline: 2px solid var(--accent);
+    outline: 2px solid var(--lime);
     outline-offset: 2px;
     border-radius: 4px;
   }
@@ -148,9 +175,10 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
+  /* 라임 배경에 흰 글자는 읽히지 않는다. 라임 위 글자색은 --lime-ink를 쓴다 */
   ::selection {
-    background: var(--accent);
-    color: #fff;
+    background: var(--lime);
+    color: var(--lime-ink);
   }
 }
 

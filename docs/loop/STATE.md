@@ -51,6 +51,40 @@
 
 ## 실행 기록
 
+### 2026-08-05 18:30 — PR 생성
+
+- **회수:** `loop-reclaim.sh --apply`: 브랜치 `fix/194-favicon-console-palette` 회수
+  (PR #196 MERGED) / `loop-guard.sh --reap`: 락 걸린 이슈 없음
+- **게이트:** 통과 — 병합 대기 중인 `agent-loop` PR 없음
+- **후보:** #175 #176 #179 (3개)
+- **선택:** #175 — 라벨 가중치에서 바로 갈렸다. `fix`(100) 는 #175 하나뿐이고
+  #179 는 `refactor`(40), #176 은 `feat`(20) 이다. 범위 비교까지 갈 필요가 없었다
+- **탈락:** #179 (`refactor` 40) · #176 (`feat` 20)
+  - 관문 1 제외: `backlog` #102 #128 #191 / `needs-human` #54 #85 #180~#186 #192 — **코멘트 없음**
+- **결과:** PR 생성 — `fix/175-shiki-dark-theme`
+- **검증:** lint ✅ (경고 0) build ✅ (`Compiled successfully`)
+  - **프리렌더 HTML 에는 코드블록이 없다** — 폴백 데이터에 코드 블록이 없고
+    `.env.local` 부재로 글이 0편이다. `class="shiki"` 가 어느 페이지에도 나오지 않는다
+  - 대신 컴포넌트가 실제로 쓰는 인자로 `codeToHtml` 을 직접 호출해 두 경로를 확인했다:
+    정상(`csharp`)·폴백(`text`) 모두 `<pre class="shiki vitesse-dark"
+    style="background-color:var(--bg);color:#dbd7caee">`
+- **산출물:** PR #NN (아래 비고)
+- **비고:**
+  - **배경을 `.shiki` CSS 가 아니라 Shiki 의 `colorReplacements` 로 처리했다.**
+    이슈는 "필요하면 `.shiki` 에 `background` 를 지정한다"고 적었지만, Shiki 는 테마 배경을
+    `<pre>` **인라인 style** 로 넣으므로 클래스 규칙이 이기지 못하고 `!important` 가 필요해진다.
+    `colorReplacements: { "#121212": "var(--bg)" }` 로 치환하면 **하드코딩 없이 토큰이 유지된다** —
+    Shiki 가 값을 문자열로 그대로 넣기 때문에 CSS 변수가 통한다 (shiki 4.3.1 에서 확인)
+  - vitesse-dark 의 배경은 `#121212`(중성 회색)이고 우리 판넬은 청색 계열이라 색조가 어긋난다.
+    지면색(`--bg`)으로 바꿔 코드가 판보다 가라앉게 했다. 헤더 바는 `--surface-hover` 로 떠 있어
+    "라벨 붙은 홈" 으로 읽힌다
+  - `.shiki` 주석에 **배경을 여기서 지정하지 않는 이유**를 적었다. 다음 사람이 CSS 로
+    덮으려 시도하는 것을 막기 위한 것이다
+  - vitesse-dark 의 기본 글자색은 `#dbd7caee`(따뜻한 오프화이트)이고 `--ink` 는
+    `#dde8ec`(차가운 색)이다. **색조가 다르지만 바꾸지 않았다** — 코드 테마는 자기 팔레트를
+    갖는 것이 정상이고, 기본 글자색까지 치환하면 테마를 재설계하는 일이 된다
+  - 남은 후보: #176 #179. **둘을 처리하면 2단계가 끝나고 3단계는 전부 `needs-human` 이다**
+
 ### 2026-08-05 18:20 — PR 생성
 
 - **회수:** `loop-reclaim.sh --apply`: 브랜치 `fix/178-admin-accent-buttons` 회수 (PR #195 MERGED) /

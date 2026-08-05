@@ -117,7 +117,7 @@ export default async function Home() {
               >
                 <div className="flex flex-wrap items-center gap-3">
                   {latest.category && (
-                    <span className="inline-flex items-center rounded-full bg-ink px-3 py-1 text-[11px] font-semibold text-white">
+                    <span className="inline-flex items-center rounded-full bg-page px-3 py-1 text-[11px] font-semibold text-ink">
                       {latest.category}
                     </span>
                   )}
@@ -141,7 +141,7 @@ export default async function Home() {
                     {latest.tags.map((t) => (
                       <span
                         key={t}
-                        className="inline-flex items-center rounded-full bg-white/45 px-2.5 py-0.5 text-xs font-medium"
+                        className="inline-flex items-center rounded-full bg-black/10 px-2.5 py-0.5 text-xs font-medium"
                         style={{ color: "var(--lime-ink)" }}
                       >
                         {t}
@@ -150,7 +150,7 @@ export default async function Home() {
                   </div>
                   <span
                     aria-hidden
-                    className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ink text-white transition-colors group-hover:bg-[#2A2B22]"
+                    className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-page text-ink transition-colors group-hover:bg-surface-hover"
                   >
                     ⟶
                   </span>
@@ -211,7 +211,7 @@ export default async function Home() {
                 <span aria-hidden className="text-lime">●</span>
                 Now
               </p>
-              <p className="mt-3 text-[14.5px] font-semibold text-white">{now.name}</p>
+              <p className="mt-3 text-[14.5px] font-semibold text-ink">{now.name}</p>
               {now.summary && (
                 <p className="mt-1.5 text-[13px] leading-relaxed">{now.summary}</p>
               )}

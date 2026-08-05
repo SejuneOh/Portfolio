@@ -50,7 +50,7 @@ export default function About() {
         </div>
       </header>
 
-      {/* 타임라인 — 전폭. 가장 위(현재 재직)만 검정 카드 */}
+      {/* 타임라인 — 전폭. 가장 위(현재 재직)만 한 단 올라온 판 */}
       <section className="mt-12 flex flex-col gap-4">
         {timeline.map((t, i) => {
           const ink = i === 0
@@ -63,12 +63,11 @@ export default function About() {
                   : "card grid gap-[22px] rounded-[22px] px-6 py-[22px] sm:grid-cols-[132px_minmax(0,1fr)]"
               }
             >
-              {/* 기간은 고정폭. 검정 카드 안에서는 라임으로 */}
+              {/* 기간은 고정폭. 올라온 판 안에서는 라임으로 */}
               <p className={`eyebrow ${ink ? "text-lime" : "text-muted"}`}>{t.period ?? "—"}</p>
               <div className="min-w-0">
-                <p className={`text-[17px] font-bold ${ink ? "text-white" : "text-ink"}`}>
-                  {t.org}
-                </p>
+                {/* 어두운 지면에서는 판이 올라가도 글자색이 같다 — ink 분기가 필요 없다 */}
+                <p className="text-[17px] font-bold text-ink">{t.org}</p>
                 <p
                   className={`mt-2 text-[14.5px] leading-[1.8] ${
                     ink ? "" : "text-[color:var(--text-body)]"
@@ -98,7 +97,7 @@ export default function About() {
           <div className="mt-auto flex flex-wrap items-center gap-3 pt-5">
             <Link
               href="/about/resume"
-              className="inline-flex items-center gap-1.5 rounded-full bg-ink px-4 py-2 text-[13.5px] font-semibold text-white transition-colors hover:bg-[#2A2B22]"
+              className="inline-flex items-center gap-1.5 rounded-full bg-page px-4 py-2 text-[13.5px] font-semibold text-ink transition-colors hover:bg-surface-hover"
             >
               이력서 열기 →
             </Link>
@@ -122,7 +121,7 @@ export default function About() {
           </dl>
         </div>
 
-        {/* 세이지 Contact 카드 — 고정폭 3줄 */}
+        {/* 지면색 Contact 카드 — 고정폭 3줄 */}
         <div className="rounded-[22px] bg-page p-6">
           <p className="eyebrow text-muted">Contact</p>
           <div className="mt-3 space-y-1.5 font-[family-name:var(--font-jbmono)] text-[13px] leading-relaxed text-ink">

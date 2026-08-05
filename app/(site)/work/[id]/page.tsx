@@ -132,7 +132,10 @@ export default async function CaseDetail({ params }: { params: Promise<{ id: str
         {group.experiences.map((e, i) => (
           <section key={e.id} className="mt-10 border-t border-line pt-[26px]">
             {group.count > 1 && (
-              <span className="inline-flex items-center rounded-full bg-ink px-3 py-1 text-[11px] font-semibold text-white">
+              <span
+                className="inline-flex items-center rounded-full bg-lime px-3 py-1 text-[11px] font-semibold"
+                style={{ color: "var(--lime-ink)" }}
+              >
                 경험 {i + 1}
               </span>
             )}
@@ -176,7 +179,7 @@ export default async function CaseDetail({ params }: { params: Promise<{ id: str
 
       {/* 사이드 */}
       <aside className="flex flex-col gap-4 lg:sticky lg:top-6 lg:self-start">
-        {/* 세이지 메타 카드 */}
+        {/* 지면색 메타 카드 */}
         <div className="rounded-[26px] bg-page p-6">
           <dl className="space-y-4">
             {groupPeriod && (
@@ -218,9 +221,9 @@ export default async function CaseDetail({ params }: { params: Promise<{ id: str
           아니라 추측이다. 연결 데이터가 생기면 여기에 카드를 넣는다.
         */}
 
-        {/* 검정 CTA 카드 */}
+        {/* 한 단 올라온 CTA 판 */}
         <div className="card-ink p-6">
-          <p className="text-[14.5px] font-semibold leading-relaxed text-white">
+          <p className="text-[14.5px] font-semibold leading-relaxed text-ink">
             비슷한 문제를 겪고 있다면
           </p>
           <p className="mt-2 text-[13px] leading-relaxed">

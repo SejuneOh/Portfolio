@@ -67,7 +67,7 @@
     **컴파일된 서버 번들**(`.next/server/app/admin/**/page.js`)에서 라임 버튼 문자열을 확인하고,
     **생성된 CSS** 에서 `.bg-lime` · `text-[color:var(--lime-ink)]` · `#CDEA55` 유틸이 실제로
     나오는지 확인했다
-- **산출물:** PR #NN (아래 비고)
+- **산출물:** PR #195 (`fix/178-admin-accent-buttons`)
 - **비고:**
   - **`#194` 의 `backlog` 를 해제했다.** 선행 조건이 "#177 머지 후"였고 충족됐다
   - **착수 전에 이슈 본문을 넓혔다 — 3곳 → 6곳.** 같은 `bg-accent text-white` 결함이

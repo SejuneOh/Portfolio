@@ -6,7 +6,6 @@ module.exports = {
     "./components/**/*.{js,ts,jsx,tsx}",
     "./app/**/*.{js,ts,jsx,tsx}",
   ],
-  darkMode: "class",
   theme: {
     extend: {
       colors: {
@@ -14,13 +13,16 @@ module.exports = {
         page: "var(--bg)",
         surface: "var(--surface)",
         "surface-hover": "var(--surface-hover)",
-        fg: "var(--text)",
+        fg: "var(--ink)",
         muted: "var(--text-muted)",
         line: "var(--border)",
         accent: {
           DEFAULT: "var(--accent)",
           hover: "var(--accent-hover)",
         },
+        ink: "var(--ink)",
+        lime: "var(--lime)",
+        track: "var(--track)",
       },
       fontFamily: {
         sans: [
@@ -41,6 +43,8 @@ module.exports = {
           "Malgun Gothic",
           "sans-serif",
         ],
+        // 로고 워드마크 전용(라틴). app/layout.tsx 가 --font-logo 로 노출한다.
+        logo: ["var(--font-logo)", "ui-sans-serif", "sans-serif"],
       },
       maxWidth: {
         content: "1080px",

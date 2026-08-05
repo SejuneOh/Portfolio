@@ -2,7 +2,7 @@ import type {
   Experience,
   ProjectGroup,
   ProjectTag,
-} from "../components/projects/projectItem"
+} from "../components/projects/caseRow"
 import type { Block } from "./posts"
 import { TOKEN, DATABASE_ID } from "../config"
 import { PROJECT_PROPS } from "./notionWrite"
@@ -30,6 +30,12 @@ interface NotionProperties {
   liveUrl?: { url?: string }
   group?: { select?: { name?: string } }
   groupSummary?: { rich_text?: NotionText[] }
+  // 개선 전·후 수치와 문제·접근. Notion 에서 모두 텍스트(rich text) 속성이다.
+  metricBefore?: { rich_text?: NotionText[] }
+  metricAfter?: { rich_text?: NotionText[] }
+  metricLabel?: { rich_text?: NotionText[] }
+  problem?: { rich_text?: NotionText[] }
+  approach?: { rich_text?: NotionText[] }
 }
 interface NotionPage {
   id: string
@@ -58,6 +64,19 @@ function mapExperience(data: NotionPage): Experience {
     liveUrl: p.liveUrl?.url || "",
     group: p.group?.select?.name ?? "",
     groupSummary: p.groupSummary?.rich_text?.[0]?.plain_text ?? "",
+    /*
+      개선 전·후 수치와 문제·접근. 값이 없는 행이 정상이므로 빈 문자열로 둔다 —
+      이 값을 쓰는 네 자리가 모두 truthy 검사로 걸러내고, 기존 impact·role 등도
+      같은 방식이다.
+
+      수치는 셋이 세트다. 하나라도 비면 `91s → ` 처럼 화살표만 남으므로 화면 쪽에서
+      세 값이 모두 있을 때만 렌더한다.
+    */
+    metricBefore: p.metricBefore?.rich_text?.[0]?.plain_text ?? "",
+    metricAfter: p.metricAfter?.rich_text?.[0]?.plain_text ?? "",
+    metricLabel: p.metricLabel?.rich_text?.[0]?.plain_text ?? "",
+    problem: p.problem?.rich_text?.[0]?.plain_text ?? "",
+    approach: p.approach?.rich_text?.[0]?.plain_text ?? "",
   }
 }
 

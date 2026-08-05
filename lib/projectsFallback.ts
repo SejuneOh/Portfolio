@@ -1,4 +1,4 @@
-import type { Experience } from "../components/projects/projectItem"
+import type { Experience } from "../components/projects/caseRow"
 
 // Notion 연동이 비어 있을 때 사용하는 큐레이션된 대체 경험 목록.
 // site/resume에 이미 존재하는 사실만 사용하고, 새로운 지표는 만들지 않는다.

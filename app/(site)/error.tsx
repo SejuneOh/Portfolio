@@ -28,7 +28,8 @@ export default function SiteError({
         <button
           type="button"
           onClick={reset}
-          className="inline-flex items-center rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-accent/40"
+          className="inline-flex items-center rounded-lg bg-lime px-4 py-2 text-sm font-medium transition-colors hover:bg-[#CDEA55] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-lime"
+          style={{ color: "var(--lime-ink)" }}
         >
           다시 시도
         </button>

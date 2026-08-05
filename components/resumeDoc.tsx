@@ -269,7 +269,11 @@ export default function ResumeDoc() {
 
       <style jsx global>{`
         .resume-page {
-          /* 사이트(Notion) 팔레트에 매핑 — --accent 는 사이트 :root/.dark 값을 그대로 상속(라이트/다크 자동) */
+          /*
+            사이트 팔레트에 매핑한다. --accent·--ink 는 선언하지 않고 사이트 :root 값을 상속한다.
+            사이트는 단일 다크 테마이므로 화면에서는 이력서도 함께 어두워진다.
+            인쇄는 아래 @media print 가 흰 종이 + 먹색으로 덮는다.
+          */
           --paper: var(--bg);
           --paper-2: var(--surface);
           --ink-soft: var(--text-muted);
@@ -560,18 +564,20 @@ export default function ResumeDoc() {
         @media print {
           @page { size: A4; margin: 14mm 13mm; }
           html, body { background: #fff; }
-          /* 다크 모드에서 인쇄해도 항상 라이트(흰 종이 + 먹색) 고정 */
-          .resume-page,
-          .dark .resume-page {
+          /*
+            화면이 어두워도 인쇄는 항상 흰 종이 + 먹색으로 고정한다.
+            강조색도 먹색 계열로 덮는다 — 사이트 강조색인 라임(#d8f26a)은 흰 종이에서 읽히지 않는다.
+          */
+          .resume-page {
             --paper: #ffffff;
             --paper-2: #f7f6f3;
             --ink: #1c1b18;
             --ink-soft: #4a4740;
             --ink-faint: #8a857a;
             --rule: #e2e0db;
-            --accent: #4f46e5;
-            --accent-deep: #4338ca;
-            --accent-wash: #eef2ff;
+            --accent: #1c1b18;
+            --accent-deep: #000000;
+            --accent-wash: #f2f1ee;
           }
           .resume-page {
             padding: 0;

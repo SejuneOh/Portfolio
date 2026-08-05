@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og"
 
 // iOS 홈스크린/터치 아이콘. 상단 내비 워드마크와 같은 모노그램.
-// app/icon.svg(파비콘)와 색을 맞춘다 — 둘이 어긋나면 탭과 홈스크린에서 다른 브랜드로 보인다.
+// 주의: app/icon.svg(파비콘)는 아직 인디고 #4f46e5 다. 둘이 어긋난 상태이며 #194 에서 맞춘다.
 export const size = { width: 180, height: 180 }
 export const contentType = "image/png"
 

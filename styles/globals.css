@@ -156,7 +156,11 @@
 }
 
 @layer utilities {
-  /* Shiki 코드 하이라이트 — 라이트 단일 테마 */
+  /*
+    Shiki 코드 하이라이트 — 다크 단일 테마(vitesse-dark).
+    배경색은 여기서 지정하지 않는다. Shiki 가 <pre> 인라인 style 로 넣으므로 클래스 규칙이
+    이기지 못한다. components/blog/codeBlock.tsx 가 colorReplacements 로 --bg 를 넣는다.
+  */
   .shiki {
     margin: 0;
     padding: 1rem;

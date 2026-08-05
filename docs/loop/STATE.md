@@ -51,6 +51,47 @@
 
 ## 실행 기록
 
+### 2026-08-05 19:18 — PR 생성
+
+- **회수:** `loop-reclaim.sh --apply`: 브랜치 `refactor/179-resume-dead-selectors` 회수
+  (PR #198 MERGED) / `loop-guard.sh --reap`: 락 걸린 이슈 없음
+- **게이트:** 통과 — 병합 대기 중인 `agent-loop` PR 없음
+- **후보:** #176 (유일). **2단계의 마지막 이슈다**
+- **선택:** #176 — 후보가 하나뿐
+  - 관문 1 제외: `backlog` #102 #128 #191 / `needs-human` #54 #85 #180~#186 #192 — **코멘트 없음**
+- **결과:** PR 생성 — `feat/176-ibm-plex-fonts`
+- **검증:** lint ✅ (경고 0) build ✅ (`Compiled successfully`)
+  - **한글 글리프가 실리는지가 이 이슈의 성패였다.** `next/font` 의 font-data 에
+    `IBM Plex Sans KR` 의 subsets 가 `["latin","latin-ext"]` 뿐이고 **`korean` 이 없다.**
+    그래서 "한글이 안 실릴 수 있다" 를 먼저 의심했다.
+    **결과: 실린다.** Google CSS 에 한글 unicode-range 블록이 함께 들어오고 next/font 가
+    그것을 전부 내보낸다 — 생성 CSS 에 `U+AC00` 포함 `@font-face` 6개 확인
+  - **대신 preload 가 폭증했다.** 첫 빌드에서 홈 HTML 의 폰트 preload 링크가 **378개**였다.
+    woff2 조각이 583개(7.4MB)로 쪼개지고 preload 기본값이 그 전부에 붙기 때문이다.
+    `preload: false` 를 한글 서체 둘에 걸어 **378 → 3** 으로 줄였고, 한글 범위는 6개 그대로다.
+    `lint`·`build` 는 양쪽 모두 통과하므로 **게이트로는 잡히지 않는 종류의 결함이었다**
+  - 생성 CSS 확인: `--font-display:"IBM Plex Sans KR"` · `--font-jbmono:"IBM Plex Mono"` ·
+    `--font-serif:"Gowun Batang"` · `.font-logo{font-family:var(--font-jbmono)…}` ·
+    헤딩 규칙이 `var(--font-display)` + `letter-spacing:-.01em`
+  - 빌드 CSS 에 `Fraunces`·`Space Grotesk`·`JetBrains` 0건
+- **산출물:** PR #200 (`feat/176-ibm-plex-fonts`)
+- **비고:**
+  - **`#179` 를 수동으로 닫았다** — `dev` 대상 `Closes` 미작동(#192). **5회째다**
+  - `--font-logo` 를 없애고 `tailwind.config.js` 의 `logo` 를 `--font-jbmono` 로 돌렸다.
+    변수를 지우기만 하면 `font-logo` 가 `ui-sans-serif` 로 조용히 폴백돼 워드마크가
+    정체성을 잃는다 — 사용처는 `topNav.tsx:34` · `mobileHeader.tsx:77` 두 곳이다
+  - `fontFamily.sans` 도 `--font-display` 를 먼저 두도록 바꿨다. Plex Sans KR 이 한글을
+    포함하므로 기존의 긴 한글 대체 목록(`Apple SD Gothic Neo`·`Pretendard`·`Malgun Gothic`)이
+    필요 없어졌다. `serif` 항목을 신설해 `--font-serif` 를 이었다
+  - **범위 밖에서 거짓이 된 서술 2곳을 발견해 #199 로 넘겼다** —
+    `mobileHeader.tsx:63` 와 `resumeDoc.tsx:381` 이 아직 "JetBrains Mono" 라고 적고 있다.
+    코드는 정상이고(변수 이름 유지) 서체 이름만 틀렸다
+  - **이력서 제목이 세리프에서 고딕으로 바뀌었다.** `resumeDoc.tsx` 가 4곳에서
+    `var(--font-display), serif` 를 쓰는데 그 변수가 이제 고딕이다. 사이트를 따르는 것이
+    #186 결정과 일관되지만 인쇄물이라 세리프가 맞다는 판단도 가능하다 — **#199 에서 사람이 정한다**
+  - **2단계 완료.** 다음 실행부터 후보는 0개가 되고 3단계(#180~#185)는 전부 `needs-human` 이다.
+    루프는 "처리 대상 없음" 으로 정상 종료하게 된다
+
 ### 2026-08-05 18:52 — PR 생성
 
 - **회수:** `loop-reclaim.sh --apply`: 브랜치 `fix/175-shiki-dark-theme` 회수 (PR #197 MERGED) /

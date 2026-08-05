@@ -74,7 +74,7 @@
     `--font-serif:"Gowun Batang"` · `.font-logo{font-family:var(--font-jbmono)…}` ·
     헤딩 규칙이 `var(--font-display)` + `letter-spacing:-.01em`
   - 빌드 CSS 에 `Fraunces`·`Space Grotesk`·`JetBrains` 0건
-- **산출물:** PR #NN (아래 비고)
+- **산출물:** PR #200 (`feat/176-ibm-plex-fonts`)
 - **비고:**
   - **`#179` 를 수동으로 닫았다** — `dev` 대상 `Closes` 미작동(#192). **5회째다**
   - `--font-logo` 를 없애고 `tailwind.config.js` 의 `logo` 를 `--font-jbmono` 로 돌렸다.

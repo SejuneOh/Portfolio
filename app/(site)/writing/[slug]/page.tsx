@@ -96,12 +96,16 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
       />
 
       {/*
-        Toc 는 한 번만 마운트한다. 컴포넌트가 안에서 모바일(접힘)·데스크톱(sticky)을
+        Toc 는 한 번만 마운트한다 — 컴포넌트가 안에서 모바일(접힘)·데스크톱(sticky)을
         모두 처리하므로 두 자리에 놓으면 같은 헤딩에 IntersectionObserver 가 두 번 붙는다.
-        모바일에서는 목차가 본문 앞에 와야 쓸모가 있어 order 로 순서만 바꾼다.
+
+        배치는 order 가 아니라 명시적 행/열로 한다. 머리말·목차·본문을 같은 레벨의
+        그리드 아이템으로 두면 DOM 순서가 곧 모바일 순서(머리말 → 목차 → 본문)가 되고,
+        데스크톱에서는 목차만 우측 열로 보내면 된다. 시각 순서와 DOM·포커스 순서가
+        어긋나지 않는다.
       */}
-      <div className="grid gap-11 lg:grid-cols-[minmax(0,1fr)_220px]">
-        <article className="order-2 min-w-0 max-w-[700px] lg:order-1">
+      <article className="grid gap-x-11 gap-y-8 lg:grid-cols-[minmax(0,1fr)_220px]">
+        <header className="min-w-0 max-w-[700px] lg:col-start-1 lg:row-start-1">
           <Link
             href="/writing"
             className="font-[family-name:var(--font-jbmono)] text-xs text-ink transition-colors hover:text-muted"
@@ -140,9 +144,19 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
             </div>
           )}
 
-          <div className="mt-8">
-            <PostBody blocks={post.body} />
-          </div>
+        </header>
+
+        {/* 목차 — 모바일에서는 여기(머리말 뒤·본문 앞), 데스크톱에서는 우측 열 */}
+        <div className="lg:col-start-2 lg:row-start-1 lg:row-span-2">
+          <Toc items={toc} />
+          {/*
+            "관련 케이스" 링크는 만들지 않았다. 글과 케이스를 잇는 데이터가 없다.
+            태그가 겹치는 케이스를 끌어오는 규칙은 연결이 아니라 추측이다.
+          */}
+        </div>
+
+        <div className="min-w-0 max-w-[700px] lg:col-start-1 lg:row-start-2">
+          <PostBody blocks={post.body} />
 
           {/*
             계측 타일 3개는 만들지 않았다. 글 단위 수치 데이터가 없고, 본문에서
@@ -170,17 +184,8 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
               </div>
             </section>
           )}
-        </article>
-
-        {/* 사이드 220px. 모바일에서는 order 로 본문 앞에 온다 */}
-        <div className="order-1 lg:order-2">
-          <Toc items={toc} />
-          {/*
-            "관련 케이스" 링크는 만들지 않았다. 글과 케이스를 잇는 데이터가 없다.
-            태그가 겹치는 케이스를 끌어오는 규칙은 연결이 아니라 추측이다.
-          */}
         </div>
-      </div>
+      </article>
     </>
   )
 }

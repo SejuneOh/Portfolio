@@ -72,7 +72,7 @@
     `--accent:#1c1b18;--accent-deep:#000000;--accent-wash:#f2f1ee`,
     `.dark` 0건, 인디고(`4f46e5`·`4338ca`·`eef2ff`) 0건,
     `html,body{background:#fff}` 와 `print-color-adjust:exact` 유지
-- **산출물:** PR #NN (아래 비고)
+- **산출물:** PR #198 (`refactor/179-resume-dead-selectors`)
 - **비고:**
   - **`#175` 를 수동으로 닫았다** — `dev` 대상 `Closes` 미작동(#192). 이번이 4회째다
   - 인쇄용 강조색을 먹색으로 덮기 전에 `var(--accent*)` 사용처 14곳을 확인했다.

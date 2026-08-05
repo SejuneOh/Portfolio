@@ -6,7 +6,7 @@ import { getProjectGroups, getProjectGroup } from "../../../../lib/notion"
 import type { Experience } from "../../../../components/projects/projectItem"
 import PostBody from "../../../../components/postBody"
 import { SITE_URL } from "../../../../lib/site"
-import { fmtMonth, periodLabel } from "../../../../lib/date"
+import { periodLabel } from "../../../../lib/date"
 
 export const revalidate = 3600
 
@@ -38,145 +38,169 @@ function periodOf(e: Experience) {
   return periodLabel(e.startDate, e.endDate, !e.status)
 }
 
-const CTA_LIVE =
-  "inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-accent/40"
-const CTA_REPO =
-  "inline-flex items-center gap-1.5 rounded-lg border border-line px-4 py-2 text-sm font-medium text-fg transition-colors hover:border-accent hover:text-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-accent/30"
-
-function Cta({ e }: { e: Experience }) {
-  if (!e.url && !e.liveUrl) return null
+/*
+  계측 라인 — 라임 3px 좌측 보더. 세 값이 모두 있을 때만 낸다. 하나라도 비면
+  `91s → ` 처럼 화살표만 남는다. 값은 Notion 매핑이 들어와야 채워진다.
+*/
+function MetricLine({ e }: { e: Experience }) {
+  if (!e.metricLabel || !e.metricBefore || !e.metricAfter) return null
   return (
-    <div className="mt-4 flex flex-wrap gap-3">
-      {e.liveUrl && (
-        <a href={e.liveUrl} target="_blank" rel="noopener noreferrer" className={CTA_LIVE}>
-          라이브 데모 ↗
-        </a>
-      )}
-      {e.url && (
-        <a href={e.url} target="_blank" rel="noopener noreferrer" className={CTA_REPO}>
-          Repository ↗
-        </a>
-      )}
-    </div>
+    <p
+      className="mt-5 border-l-[3px] border-lime py-1 pl-4 font-[family-name:var(--font-jbmono)] text-[15px] leading-relaxed text-ink"
+      style={{ borderLeftWidth: 3 }}
+    >
+      <span className="text-muted">{e.metricLabel} </span>
+      {e.metricBefore} → {e.metricAfter}
+    </p>
   )
 }
 
-// 경험 단위 메타(역할·팀·기간·스택) 카드.
-function ExperienceMeta({ e }: { e: Experience }) {
-  const period = periodOf(e)
-  const rows = [
-    e.role?.trim() && { label: "역할", value: e.role.trim() },
-    e.teamSize?.trim() && { label: "팀", value: e.teamSize.trim() },
-    period && { label: "기간", value: period },
-  ].filter(Boolean) as { label: string; value: string }[]
-  if (rows.length === 0 && e.tags.length === 0) return null
-  return (
-    <dl className="mt-6 grid grid-cols-1 gap-x-8 gap-y-4 rounded-xl border border-line bg-surface p-5 sm:grid-cols-2">
-      {rows.map((r) => (
-        <div key={r.label} className="flex flex-col gap-0.5">
-          <dt className="font-mono text-[11px] uppercase tracking-widest text-muted">{r.label}</dt>
-          <dd className="text-sm text-fg">{r.value}</dd>
-        </div>
-      ))}
-      {e.tags.length > 0 && (
-        <div className="flex flex-col gap-1.5 sm:col-span-2">
-          <dt className="font-mono text-[11px] uppercase tracking-widest text-muted">스택</dt>
-          <dd className="flex flex-wrap gap-1.5">
-            {e.tags.map((t) => (
-              <span key={t.id} className="chip">
-                {t.name}
-              </span>
-            ))}
-          </dd>
-        </div>
-      )}
-    </dl>
-  )
-}
-
-export default async function ProjectDetail({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
+export default async function CaseDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const group = await getProjectGroup(id)
   if (!group) notFound()
 
-  const multi = group.count > 1
   const lead = group.experiences[0]
-  const groupPeriod = [fmtMonth(group.startDate), group.inProgress ? "현재" : fmtMonth(group.endDate)]
-    .filter(Boolean)
-    .join(" — ")
+  const groupPeriod = periodLabel(group.startDate, group.endDate, group.inProgress)
 
-  // 단일 경험: 히어로 리드 = 경험 임팩트(없으면 개요), 서브 = 설명.
-  const heroLead = multi ? group.summary : lead?.impact?.trim() || group.summary
-  const heroSub = multi ? "" : lead?.description?.trim()
+  // 리드 문장 — 그룹 요약이 우선, 없으면 첫 경험의 성과 문장.
+  const heroLead = group.summary?.trim() || lead?.impact?.trim() || ""
+
+  /*
+    문제 / 접근 / 결과 3타일.
+
+    "문제"와 "접근" 데이터가 아직 없다. 두 값이 모두 없으면 타일 전체를 렌더하지
+    않는다 — 결과 하나만 남으면 3열 그리드가 의미를 잃는다. 본문에서 추측해
+    채우거나 임시 문구를 넣지 않는다. 값이 들어오면 그대로 나타난다.
+  */
+  const problem = lead?.problem?.trim()
+  const approach = lead?.approach?.trim()
+  const outcome = lead?.impact?.trim()
+  const showTiles = Boolean(problem || approach)
 
   return (
-    <article className="max-w-[760px]">
-      <Link href="/work" className="font-mono text-xs text-muted hover:text-accent">
-        ← Projects
-      </Link>
-
-      {/* Hero cover (선택) */}
-      {group.cover && (
-        <div className="relative mt-6 aspect-2/1 w-full overflow-hidden rounded-xl border border-line">
-          <Image
-            src={group.cover}
-            alt=""
-            fill
-            sizes="760px"
-            unoptimized
-            className="object-cover"
-            priority
-          />
-        </div>
-      )}
-
-      {/* Group hero */}
-      <header className="mt-6">
-        <span
-          className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-mono text-[11px] uppercase tracking-widest ${
-            group.inProgress ? "border-accent/40 text-accent" : "border-line text-muted"
-          }`}
+    <div className="grid gap-11 lg:grid-cols-[minmax(0,1fr)_300px]">
+      {/* 본문 */}
+      <article className="min-w-0 max-w-[720px]">
+        <Link
+          href="/work"
+          className="font-[family-name:var(--font-jbmono)] text-xs text-ink transition-colors hover:text-muted"
         >
-          <span aria-hidden>{group.inProgress ? "●" : "○"}</span>
-          {group.inProgress ? "진행 중" : "완료"}
-        </span>
+          ← Work
+        </Link>
 
-        <h1 className="mt-4 text-3xl font-bold leading-tight tracking-tight text-fg sm:text-4xl">
+        {/*
+          커버는 이 이슈의 규격에 없지만 기존 화면에 있던 콘텐츠라 유지한다.
+          빼는 것은 사람 판단이라 임의로 지우지 않았다.
+        */}
+        {group.cover && (
+          <div className="relative mt-6 aspect-2/1 w-full overflow-hidden rounded-[18px] border border-line">
+            <Image src={group.cover} alt="" fill sizes="720px" unoptimized className="object-cover" priority />
+          </div>
+        )}
+
+        <h1 className="mt-6 text-[46px] font-bold leading-[1.08] tracking-[-0.03em] text-ink">
           {group.name}
         </h1>
 
         {heroLead && (
-          <p className="mt-4 text-lg font-medium leading-relaxed text-fg">{heroLead}</p>
-        )}
-        {heroSub && heroSub !== heroLead && (
-          <p className="mt-2 text-[15px] leading-relaxed text-muted">{heroSub}</p>
+          <p className="mt-4 text-[18px] font-medium leading-[1.7] text-ink">{heroLead}</p>
         )}
 
-        {!multi && lead && <Cta e={lead} />}
-      </header>
+        {showTiles && (
+          <div className="mt-8 grid grid-cols-1 gap-[14px] sm:grid-cols-3">
+            {[
+              { label: "문제", body: problem, lime: false },
+              { label: "접근", body: approach, lime: false },
+              { label: "결과", body: outcome, lime: true },
+            ].map((t) => (
+              <div
+                key={t.label}
+                className={`rounded-[18px] p-[18px] ${t.lime ? "bg-lime" : "bg-page"}`}
+                style={t.lime ? { color: "var(--lime-body)" } : undefined}
+              >
+                <p className="eyebrow" style={t.lime ? { color: "var(--lime-ink)" } : undefined}>
+                  {t.label}
+                </p>
+                {t.body && <p className="mt-2 text-[14px] leading-[1.7]">{t.body}</p>}
+              </div>
+            ))}
+          </div>
+        )}
 
-      {multi ? (
-        <>
-          {/* 대분류 종합 메타 */}
-          <dl className="mt-8 grid grid-cols-1 gap-x-8 gap-y-4 rounded-xl border border-line bg-surface p-5 sm:grid-cols-2">
-            {groupPeriod && (
-              <div className="flex flex-col gap-0.5">
-                <dt className="font-mono text-[11px] uppercase tracking-widest text-muted">기간</dt>
-                <dd className="text-sm text-fg">{groupPeriod}</dd>
+        {/* 경험 블록 */}
+        {group.experiences.map((e, i) => (
+          <section key={e.id} className="mt-10 border-t border-line pt-[26px]">
+            {group.count > 1 && (
+              <span className="inline-flex items-center rounded-full bg-ink px-3 py-1 text-[11px] font-semibold text-white">
+                경험 {i + 1}
+              </span>
+            )}
+
+            <h2 className="mt-3 text-[26px] font-bold leading-[1.25] tracking-[-0.02em] text-ink">
+              {e.projectName}
+            </h2>
+
+            {e.impact?.trim() && (
+              <p className="mt-3 text-[15.5px] leading-[1.8] text-ink">{e.impact.trim()}</p>
+            )}
+            {e.description?.trim() && e.description.trim() !== e.impact?.trim() && (
+              <p className="mt-2 text-[15px] leading-[1.8] text-muted">{e.description.trim()}</p>
+            )}
+
+            <MetricLine e={e} />
+
+            {(e.liveUrl || e.url) && (
+              <div className="mt-5 flex flex-wrap gap-2">
+                {e.liveUrl && (
+                  <a href={e.liveUrl} target="_blank" rel="noopener noreferrer" className="btn-pill">
+                    라이브 데모 ↗
+                  </a>
+                )}
+                {e.url && (
+                  <a href={e.url} target="_blank" rel="noopener noreferrer" className="btn-pill">
+                    Repository ↗
+                  </a>
+                )}
               </div>
             )}
-            <div className="flex flex-col gap-0.5">
-              <dt className="font-mono text-[11px] uppercase tracking-widest text-muted">경험</dt>
-              <dd className="text-sm text-fg">{group.count}건</dd>
-            </div>
+
+            {e.body && e.body.length > 0 && (
+              <div className="mt-6">
+                <PostBody blocks={e.body} />
+              </div>
+            )}
+          </section>
+        ))}
+      </article>
+
+      {/* 사이드 */}
+      <aside className="flex flex-col gap-4 lg:sticky lg:top-6 lg:self-start">
+        {/* 세이지 메타 카드 */}
+        <div className="rounded-[26px] bg-page p-6">
+          <dl className="space-y-4">
+            {groupPeriod && (
+              <div>
+                <dt className="eyebrow text-muted">기간</dt>
+                <dd className="mt-1 text-sm text-ink">{groupPeriod}</dd>
+              </div>
+            )}
+            {lead?.role?.trim() && (
+              <div>
+                <dt className="eyebrow text-muted">역할</dt>
+                <dd className="mt-1 text-sm text-ink">{lead.role.trim()}</dd>
+              </div>
+            )}
+            {lead?.teamSize?.trim() && (
+              <div>
+                <dt className="eyebrow text-muted">팀</dt>
+                <dd className="mt-1 text-sm text-ink">{lead.teamSize.trim()}</dd>
+              </div>
+            )}
             {group.tags.length > 0 && (
-              <div className="flex flex-col gap-1.5 sm:col-span-2">
-                <dt className="font-mono text-[11px] uppercase tracking-widest text-muted">스택</dt>
-                <dd className="flex flex-wrap gap-1.5">
+              <div>
+                <dt className="eyebrow text-muted">스택</dt>
+                <dd className="mt-2 flex flex-wrap gap-1.5">
                   {group.tags.map((t) => (
                     <span key={t.id} className="chip">
                       {t.name}
@@ -186,54 +210,27 @@ export default async function ProjectDetail({
               </div>
             )}
           </dl>
+        </div>
 
-          {/* 경험 스택 */}
-          {group.experiences.map((e, i) => (
-            <section key={e.id} className="mt-12 border-t border-line pt-8">
-              <p className="font-mono text-xs uppercase tracking-widest text-accent">
-                경험 {i + 1}
-              </p>
-              <h2 className="mt-2 text-2xl font-bold tracking-tight text-fg">{e.projectName}</h2>
-              {e.impact?.trim() && (
-                <p className="mt-3 text-[15px] font-medium leading-relaxed text-fg">
-                  {e.impact.trim()}
-                </p>
-              )}
-              {e.description?.trim() && e.description.trim() !== e.impact?.trim() && (
-                <p className="mt-2 text-sm leading-relaxed text-muted">{e.description.trim()}</p>
-              )}
-              <ExperienceMeta e={e} />
-              <Cta e={e} />
-              {e.body && e.body.length > 0 && (
-                <div className="mt-8">
-                  <PostBody blocks={e.body} />
-                </div>
-              )}
-            </section>
-          ))}
-        </>
-      ) : (
-        lead && (
-          <>
-            <ExperienceMeta e={lead} />
-            {lead.body && lead.body.length > 0 && (
-              <div className="mt-10 border-t border-line pt-2">
-                <PostBody blocks={lead.body} />
-              </div>
-            )}
-          </>
-        )
-      )}
+        {/*
+          "이 케이스에서 나온 글" 카드는 만들지 않았다. 케이스와 글을 잇는 데이터가
+          없고, 태그가 겹치는 글을 끌어오는 식의 규칙을 지어내면 그것은 연결이
+          아니라 추측이다. 연결 데이터가 생기면 여기에 카드를 넣는다.
+        */}
 
-      {/* Footer nav */}
-      <nav className="mt-14 flex items-center justify-between border-t border-line pt-6 text-sm">
-        <Link href="/work" className="text-muted transition-colors hover:text-accent">
-          ← 전체 프로젝트
-        </Link>
-        <Link href="/contact" className="text-accent transition-colors hover:text-accent-hover">
-          함께 일하기 →
-        </Link>
-      </nav>
-    </article>
+        {/* 검정 CTA 카드 */}
+        <div className="card-ink p-6">
+          <p className="text-[14.5px] font-semibold leading-relaxed text-white">
+            비슷한 문제를 겪고 있다면
+          </p>
+          <p className="mt-2 text-[13px] leading-relaxed">
+            어떤 상황인지 한 줄만 적어주셔도 됩니다.
+          </p>
+          <Link href="/contact" className="btn-lime mt-4">
+            문의 →
+          </Link>
+        </div>
+      </aside>
+    </div>
   )
 }

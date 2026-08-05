@@ -33,6 +33,13 @@ export interface Experience {
   metricBefore?: string;
   metricAfter?: string;
   metricLabel?: string;
+  /*
+    케이스 상세의 문제·접근 타일용. metric 3종과 같은 자리에서 들어오는 값이고
+    마찬가지로 아직 매핑이 없어 항상 undefined 다. 케이스 상세가 두 값이 모두
+    없으면 타일 전체를 렌더하지 않는다.
+  */
+  problem?: string;
+  approach?: string;
   // 대분류(프로젝트) 그룹핑. group 미설정 시 이 경험이 독립 프로젝트가 된다.
   group?: string;
   groupSummary?: string;

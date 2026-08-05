@@ -68,7 +68,7 @@
   - 대신 컴포넌트가 실제로 쓰는 인자로 `codeToHtml` 을 직접 호출해 두 경로를 확인했다:
     정상(`csharp`)·폴백(`text`) 모두 `<pre class="shiki vitesse-dark"
     style="background-color:var(--bg);color:#dbd7caee">`
-- **산출물:** PR #NN (아래 비고)
+- **산출물:** PR #197 (`fix/175-shiki-dark-theme`)
 - **비고:**
   - **배경을 `.shiki` CSS 가 아니라 Shiki 의 `colorReplacements` 로 처리했다.**
     이슈는 "필요하면 `.shiki` 에 `background` 를 지정한다"고 적었지만, Shiki 는 테마 배경을

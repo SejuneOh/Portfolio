@@ -7,7 +7,7 @@ import { SITE_URL, SITE_NAME } from "../../../../lib/site"
 // (Google Fonts CSS 의 text= 파라미터 → woff2 서브셋). 실패 시 폰트 없이 폴백.
 export const size = { width: 1200, height: 630 }
 export const contentType = "image/png"
-export const alt = "Sejune Oh — Blog"
+export const alt = "Sejune Oh — Writing"
 export const runtime = "edge"
 
 async function loadKoreanFont(text: string): Promise<ArrayBuffer | null> {

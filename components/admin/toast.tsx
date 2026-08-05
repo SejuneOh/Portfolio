@@ -21,7 +21,7 @@ export function useToast() {
       role="status"
       aria-live="polite"
       className={`fixed bottom-6 left-1/2 z-50 max-w-[90vw] -translate-x-1/2 rounded-md px-4 py-2.5 text-sm shadow-lg ${
-        toast.type === "success" ? "bg-accent text-white" : "bg-red-600 text-white"
+        toast.type === "success" ? "bg-lime text-[color:var(--lime-ink)]" : "bg-red-600 text-white"
       }`}
     >
       {toast.msg}

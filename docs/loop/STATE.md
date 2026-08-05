@@ -51,6 +51,37 @@
 
 ## 실행 기록
 
+### 2026-08-05 18:06 — PR 생성
+
+- **회수:** `loop-reclaim.sh --apply`: 브랜치 `fix/177-og-console-palette` 회수 (PR #193 MERGED) /
+  `loop-guard.sh --reap`: 락 걸린 이슈 없음
+- **게이트:** 통과 — 병합 대기 중인 `agent-loop` PR 없음
+- **후보:** #175 #176 #178 #179 (+ `backlog` 해제한 #194)
+- **선택:** #178 — `fix`(100) 3개(#175 #178 #194) → 단일 디렉터리 2개(#178 `components/`,
+  #194 `app/`) → 번호 최소. **#194 를 풀어도 선택은 바뀌지 않았다**
+- **탈락:** #175 (2개 디렉터리) · #194 (동점, 번호 큼) · #179 (`refactor` 40) · #176 (`feat` 20)
+  - 관문 1 제외: `backlog` #102 #128 #191 / `needs-human` #54 #85 #180~#186 #192 — **코멘트 없음**
+- **결과:** PR 생성 — `fix/178-admin-accent-buttons`
+- **검증:** lint ✅ (경고 0) build ✅ (`Compiled successfully`)
+  - 관리자 라우트는 전부 `ƒ`(인증 필요 동적)라 프리렌더 HTML 이 없다. 대신
+    **컴파일된 서버 번들**(`.next/server/app/admin/**/page.js`)에서 라임 버튼 문자열을 확인하고,
+    **생성된 CSS** 에서 `.bg-lime` · `text-[color:var(--lime-ink)]` · `#CDEA55` 유틸이 실제로
+    나오는지 확인했다
+- **산출물:** PR #NN (아래 비고)
+- **비고:**
+  - **`#194` 의 `backlog` 를 해제했다.** 선행 조건이 "#177 머지 후"였고 충족됐다
+  - **착수 전에 이슈 본문을 넓혔다 — 3곳 → 6곳.** 같은 `bg-accent text-white` 결함이
+    `app/admin/error.tsx:16` · `app/admin/projects/page.tsx:27` · `app/admin/blog/page.tsx:27`
+    에도 있었다. 절반만 고치면 관리자 화면에 **글자가 안 보이는 버튼이 남는다.**
+    `app/` + `components/` 두 디렉터리로 TRIAGE 상한 안이다.
+    **#177 에서 범위 초과로 반려된 경험 때문에, 고치기 전에 본문과 코멘트로 기록을 먼저 맞췄다**
+  - `--accent` 를 쓰지만 **깨지지 않은 3곳은 건드리지 않았다** —
+    `inquiryStatus.tsx:43`(선택 틴트) · `formFields.tsx:45`(성공 틴트) ·
+    `admin/blog/page.tsx:45`(공개 여부 점). 어두운 지면에서 밝은 잉크로 읽히고,
+    라임으로 바꾸는 것은 색 결정이라 이 이슈의 일이 아니다. 이슈 본문에 명시했다
+  - 오류 토스트 `bg-red-600 text-white` 는 유지했다 — 오류는 라임이 아니라 빨강이어야 한다
+  - 남은 후보: #175 #176 #179 #194
+
 ### 2026-08-05 17:30 — PR 생성
 
 - **회수:** `loop-reclaim.sh --apply`: 브랜치 `fix/174-invert-surfaces-components` 회수

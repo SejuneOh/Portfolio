@@ -69,7 +69,7 @@ function representativeMetric(g: ProjectGroup) {
   한 줄에 하나씩 놓고 좌우로 정보를 나누는 편이 읽기 쉽다.
 
   카드의 얼굴은 커버 이미지가 아니라 수치다. 그래서 커버를 쓰지 않는다.
-  다만 그 수치가 아직 데이터에 없으므로 우측은 지금 CTA 만 남는다.
+  수치는 Notion 매핑(#146)으로 들어온다. 세 값이 다 차 있지 않으면 우측은 CTA 만 남는다.
 */
 export default function CaseRow({ data }: { data: ProjectGroup }) {
   const metric = representativeMetric(data)
@@ -82,7 +82,7 @@ export default function CaseRow({ data }: { data: ProjectGroup }) {
       href={`/work/${data.slug}`}
       className={
         ink
-          ? "card-ink group grid gap-6 rounded-[26px] px-7 py-[26px] transition-colors hover:bg-[#2A2B22] lg:grid-cols-[minmax(0,1fr)_300px]"
+          ? "card-ink group grid gap-6 rounded-[26px] px-7 py-[26px] transition-colors hover:bg-[color:var(--border)] lg:grid-cols-[minmax(0,1fr)_300px]"
           : "card group grid gap-6 rounded-[26px] px-7 py-[26px] transition-colors hover:bg-surface-hover lg:grid-cols-[minmax(0,1fr)_300px]"
       }
     >
@@ -101,62 +101,37 @@ export default function CaseRow({ data }: { data: ProjectGroup }) {
           </span>
         )}
 
-        {meta && (
-          <p className="eyebrow mt-3" style={ink ? { color: "var(--on-ink-muted)" } : undefined}>
-            {meta}
-          </p>
-        )}
+        {meta && <p className="eyebrow mt-3 text-muted">{meta}</p>}
 
-        <h2
-          className={`mt-2 text-[28px] font-bold leading-[1.2] tracking-[-0.02em] ${
-            ink ? "text-white" : "text-ink"
-          }`}
-        >
+        <h2 className="mt-2 text-[28px] font-bold leading-[1.2] tracking-[-0.02em] text-ink">
           {data.name}
         </h2>
 
         {data.summary && (
-          <p
-            className={`mt-2 max-w-[60ch] text-[14px] leading-[1.8] ${ink ? "" : "text-muted"}`}
-          >
-            {data.summary}
-          </p>
+          <p className="mt-2 max-w-[60ch] text-[14px] leading-[1.8] text-muted">{data.summary}</p>
         )}
 
         {data.tags.length > 0 && (
           <div className="mt-4 flex flex-wrap gap-1.5">
-            {data.tags.slice(0, 3).map((t) =>
-              ink ? (
-                <span
-                  key={t.id}
-                  className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
-                  style={{ border: "1px solid var(--on-ink-border)", color: "var(--on-ink-body)" }}
-                >
-                  {t.name}
-                </span>
-              ) : (
-                <span key={t.id} className="chip">
-                  {t.name}
-                </span>
-              )
-            )}
+            {data.tags.slice(0, 3).map((t) => (
+              <span key={t.id} className="chip">
+                {t.name}
+              </span>
+            ))}
           </div>
         )}
       </div>
 
       {/*
-        우 — 대표 수치와 CTA. 수치 값이 아직 데이터에 없으므로 지금은 CTA 만 남는다.
-        임시 값을 넣지 않는다. 매핑이 들어오면 수치와 라벨이 그대로 나타난다.
+        우 — 대표 수치와 CTA. 세 값(metricLabel·metricBefore·metricAfter)이 모두 있는
+        첫 경험의 수치를 낸다. 하나라도 비면 이 블록이 빠지고 CTA 만 남는다.
       */}
-      <div
-        className="flex flex-col justify-between gap-4 lg:border-l lg:pl-[26px]"
-        style={ink ? { borderColor: "var(--on-ink-border)" } : { borderColor: "var(--border)" }}
-      >
+      <div className="flex flex-col justify-between gap-4 lg:border-l lg:border-line lg:pl-[26px]">
         {metric && (
           <div>
             <p className="font-[family-name:var(--font-jbmono)] text-[25px] leading-none">
-              <span className={ink ? "" : "text-ink"}>{metric.metricBefore}</span>
-              <span className={ink ? "" : "text-muted"}> → </span>
+              <span className="text-ink">{metric.metricBefore}</span>
+              <span className="text-muted"> → </span>
               <span
                 className="rounded-[5px] bg-lime px-[5px]"
                 style={{ color: "var(--lime-ink)" }}
@@ -164,12 +139,7 @@ export default function CaseRow({ data }: { data: ProjectGroup }) {
                 {metric.metricAfter}
               </span>
             </p>
-            <p
-              className="eyebrow mt-3 leading-[1.6]"
-              style={ink ? { color: "var(--on-ink-muted)" } : undefined}
-            >
-              {metric.metricLabel}
-            </p>
+            <p className="eyebrow mt-3 leading-[1.6] text-muted">{metric.metricLabel}</p>
           </div>
         )}
 

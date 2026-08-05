@@ -103,7 +103,7 @@ export default function ContactForm() {
         <button
           type="submit"
           disabled={pending}
-          className="inline-flex items-center gap-1.5 rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#2A2B22] disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-full bg-lime px-5 py-2.5 text-sm font-semibold text-[color:var(--lime-ink)] transition-colors hover:bg-[#CDEA55] disabled:opacity-50"
         >
           {pending ? "보내는 중…" : "문의 보내기 →"}
         </button>

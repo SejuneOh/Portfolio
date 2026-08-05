@@ -49,7 +49,7 @@ export default function BlogIndex({
       </header>
 
       {/*
-        Topics — 필터 칩 행. 활성 칩만 검정.
+        Topics — 필터 칩 행. 활성 칩만 라임.
         카테고리가 `All` 하나뿐이면(글이 없거나 전부 분류 미지정) 고를 것이 없어
         `All 0` 칩과 보더만 남으므로 행 자체를 렌더하지 않는다.
       */}
@@ -65,7 +65,7 @@ export default function BlogIndex({
               aria-pressed={on}
               className={
                 on
-                  ? "inline-flex items-center gap-1.5 rounded-full bg-ink px-4 py-1.5 text-[13.5px] font-semibold text-white transition-colors hover:bg-[#2A2B22]"
+                  ? "inline-flex items-center gap-1.5 rounded-full bg-lime px-4 py-1.5 text-[13.5px] font-semibold text-[color:var(--lime-ink)] transition-colors hover:bg-[#CDEA55]"
                   : "inline-flex items-center gap-1.5 rounded-full border border-line px-4 py-1.5 text-[13.5px] text-ink transition-colors hover:bg-surface-hover"
               }
             >
@@ -89,7 +89,7 @@ export default function BlogIndex({
               style={{ color: "var(--lime-body)" }}
             >
               <div className="flex flex-wrap items-center gap-3">
-                <span className="inline-flex items-center rounded-full bg-ink px-3 py-1 text-[11px] font-semibold text-white">
+                <span className="inline-flex items-center rounded-full bg-page px-3 py-1 text-[11px] font-semibold text-ink">
                   Pinned
                 </span>
                 <span className="eyebrow" style={{ color: "var(--lime-ink)" }}>
@@ -112,7 +112,7 @@ export default function BlogIndex({
                   {pinned.tags.map((t) => (
                     <span
                       key={t}
-                      className="inline-flex items-center rounded-full bg-white/45 px-2.5 py-0.5 text-xs font-medium"
+                      className="inline-flex items-center rounded-full bg-black/10 px-2.5 py-0.5 text-xs font-medium"
                       style={{ color: "var(--lime-ink)" }}
                     >
                       {t}
@@ -121,7 +121,7 @@ export default function BlogIndex({
                 </div>
                 <span
                   aria-hidden
-                  className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ink text-white transition-colors group-hover:bg-[#2A2B22]"
+                  className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-page text-ink transition-colors group-hover:bg-surface-hover"
                 >
                   ⟶
                 </span>
@@ -168,17 +168,15 @@ export default function BlogIndex({
       )}
 
       {/*
-        검정 RSS 카드 — 목록 하단. 다 훑은 뒤 구독을 권한다.
+        RSS 판 — 목록 하단. 다 훑은 뒤 구독을 권한다.
         빈 상태 분기 밖에 둔다. getPosts() 는 Notion 미설정·실패 시 빈 배열을
         반환하므로 글 0편은 운영 중 도달하는 경로이고, 그때 구독 경로까지
         사라지면 화면에 남는 것이 안내 문구 하나뿐이다.
       */}
       <div className="card-ink mt-8 flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <p className="eyebrow" style={{ color: "var(--on-ink-muted)" }}>
-            Subscribe
-          </p>
-          <p className="mt-2 text-[14.5px] font-semibold text-white">새 글을 리더로 받아보세요</p>
+          <p className="eyebrow text-muted">Subscribe</p>
+          <p className="mt-2 text-[14.5px] font-semibold text-ink">새 글을 리더로 받아보세요</p>
         </div>
         <a href="/feed.xml" className="btn-lime shrink-0">
           /feed.xml →

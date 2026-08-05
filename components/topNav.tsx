@@ -47,7 +47,7 @@ export default function TopNav() {
                 aria-current={active ? "page" : undefined}
                 className={
                   active
-                    ? "pill-nav-item bg-ink font-semibold text-white hover:bg-[#2A2B22]"
+                    ? "pill-nav-item bg-lime font-semibold text-[color:var(--lime-ink)] hover:bg-[#CDEA55]"
                     : "pill-nav-item text-fg hover:bg-surface-hover"
                 }
               >
@@ -76,7 +76,7 @@ export default function TopNav() {
         {!onContact && (
           <Link
             href={CONTACT.href}
-            className="pill-nav-item bg-ink font-semibold text-white hover:bg-[#2A2B22]"
+            className="pill-nav-item bg-lime font-semibold text-[color:var(--lime-ink)] hover:bg-[#CDEA55]"
           >
             {CONTACT.label}
           </Link>

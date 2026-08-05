@@ -89,7 +89,7 @@ export default function BlogPostForm({ initial = {} }: { initial?: BlogFormIniti
           <button
             type="submit"
             disabled={saving}
-            className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover disabled:opacity-50"
+            className="rounded-md bg-lime px-4 py-2 text-sm font-medium text-[color:var(--lime-ink)] transition-colors hover:bg-[#CDEA55] disabled:opacity-50"
           >
             {saving ? "저장 중…" : isEdit ? "변경 저장" : "글 등록"}
           </button>

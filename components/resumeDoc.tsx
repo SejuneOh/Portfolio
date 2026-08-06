@@ -523,7 +523,7 @@ export default function ResumeDoc() {
           color: var(--paper);
           border: none;
           padding: 13px 20px;
-          border-radius: 100px;
+          border-radius: 3px;
           cursor: pointer;
           display: flex;
           align-items: center;

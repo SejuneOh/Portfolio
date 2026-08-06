@@ -17,7 +17,7 @@ function renderMatch(kind: Kind, m: RegExpMatchArray, key: number): React.ReactN
     return (
       <code
         key={key}
-        className="rounded-[4px] bg-page px-[5px] py-px font-[family-name:var(--font-jbmono)] text-[0.88em] text-ink"
+        className="rounded-[3px] bg-page px-[5px] py-px font-[family-name:var(--font-jbmono)] text-[0.88em] text-ink"
       >
         {m[1]}
       </code>

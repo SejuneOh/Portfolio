@@ -62,7 +62,7 @@ export default function Toc({ items }: { items: TocItem[] }) {
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
-          className="flex w-full items-center justify-between gap-3 rounded-[12px] border border-line px-4 py-2.5 text-left"
+          className="flex w-full items-center justify-between gap-3 rounded-[3px] border border-line px-4 py-2.5 text-left"
         >
           <span className="eyebrow text-muted">목차 {items.length}개</span>
           <span className="eyebrow text-muted">{open ? "접기 ▴" : "펼치기 ▾"}</span>

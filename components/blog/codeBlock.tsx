@@ -41,7 +41,7 @@ export default async function CodeBlock({ code, lang }: { code: string; lang?: s
   const label = shikiLang === "text" ? "" : shikiLang
 
   return (
-    <div className="group relative mt-5 overflow-hidden rounded-[12px] border border-line">
+    <div className="group relative mt-5 overflow-hidden rounded-[3px] border border-line">
       <div className="flex items-center justify-between gap-3 border-b border-line bg-surface-hover px-4 py-2">
         <span className="eyebrow text-muted">{label}</span>
         <CopyButton code={code} />

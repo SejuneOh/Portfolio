@@ -26,8 +26,8 @@ export default function CaseFilter({ groups }: { groups: ProjectGroup[] }) {
 
   const chip = (on: boolean) =>
     on
-      ? "inline-flex items-center gap-1.5 rounded-full bg-lime px-4 py-1.5 text-[13.5px] font-semibold text-[color:var(--lime-ink)] transition-colors hover:bg-[#CDEA55]"
-      : "inline-flex items-center gap-1.5 rounded-full border border-line px-4 py-1.5 text-[13.5px] text-ink transition-colors hover:bg-surface-hover"
+      ? "inline-flex items-center gap-1.5 rounded-[3px] bg-lime px-4 py-1.5 text-[13.5px] font-semibold text-[color:var(--lime-ink)] transition-colors hover:bg-[#CDEA55]"
+      : "inline-flex items-center gap-1.5 rounded-[3px] border border-line px-4 py-1.5 text-[13.5px] text-ink transition-colors hover:bg-surface-hover"
 
   return (
     <>

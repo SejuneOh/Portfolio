@@ -65,8 +65,8 @@ export default function BlogIndex({
               aria-pressed={on}
               className={
                 on
-                  ? "inline-flex items-center gap-1.5 rounded-full bg-lime px-4 py-1.5 text-[13.5px] font-semibold text-[color:var(--lime-ink)] transition-colors hover:bg-[#CDEA55]"
-                  : "inline-flex items-center gap-1.5 rounded-full border border-line px-4 py-1.5 text-[13.5px] text-ink transition-colors hover:bg-surface-hover"
+                  ? "inline-flex items-center gap-1.5 rounded-[3px] bg-lime px-4 py-1.5 text-[13.5px] font-semibold text-[color:var(--lime-ink)] transition-colors hover:bg-[#CDEA55]"
+                  : "inline-flex items-center gap-1.5 rounded-[3px] border border-line px-4 py-1.5 text-[13.5px] text-ink transition-colors hover:bg-surface-hover"
               }
             >
               {c}
@@ -85,11 +85,11 @@ export default function BlogIndex({
           {pinned && (
             <Link
               href={`/writing/${pinned.slug}`}
-              className="group mt-6 block rounded-[26px] bg-lime p-[26px] transition-colors hover:bg-[#CDEA55]"
+              className="group mt-6 block rounded-[3px] bg-lime p-[26px] transition-colors hover:bg-[#CDEA55]"
               style={{ color: "var(--lime-body)" }}
             >
               <div className="flex flex-wrap items-center gap-3">
-                <span className="inline-flex items-center rounded-full bg-page px-3 py-1 text-[11px] font-semibold text-ink">
+                <span className="inline-flex items-center rounded-[3px] bg-page px-3 py-1 text-[11px] font-semibold text-ink">
                   Pinned
                 </span>
                 <span className="eyebrow" style={{ color: "var(--lime-ink)" }}>
@@ -112,7 +112,7 @@ export default function BlogIndex({
                   {pinned.tags.map((t) => (
                     <span
                       key={t}
-                      className="inline-flex items-center rounded-full bg-black/10 px-2.5 py-0.5 text-xs font-medium"
+                      className="inline-flex items-center rounded-[3px] bg-black/10 px-2.5 py-0.5 text-xs font-medium"
                       style={{ color: "var(--lime-ink)" }}
                     >
                       {t}

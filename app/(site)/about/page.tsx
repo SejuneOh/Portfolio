@@ -59,8 +59,8 @@ export default function About() {
               key={t.org}
               className={
                 ink
-                  ? "card-ink grid gap-[22px] rounded-[22px] px-6 py-[22px] sm:grid-cols-[132px_minmax(0,1fr)]"
-                  : "card grid gap-[22px] rounded-[22px] px-6 py-[22px] sm:grid-cols-[132px_minmax(0,1fr)]"
+                  ? "card-ink grid gap-[22px] rounded-[3px] px-6 py-[22px] sm:grid-cols-[132px_minmax(0,1fr)]"
+                  : "card grid gap-[22px] rounded-[3px] px-6 py-[22px] sm:grid-cols-[132px_minmax(0,1fr)]"
               }
             >
               {/* 기간은 고정폭. 올라온 판 안에서는 라임으로 */}
@@ -85,7 +85,7 @@ export default function About() {
       <section className="mt-12 grid gap-4 lg:grid-cols-3">
         {/* 라임 Resume 카드 */}
         <div
-          className="flex flex-col rounded-[22px] bg-lime p-6"
+          className="flex flex-col rounded-[3px] bg-lime p-6"
           style={{ color: "var(--lime-body)" }}
         >
           <p className="eyebrow" style={{ color: "var(--lime-ink)" }}>
@@ -97,7 +97,7 @@ export default function About() {
           <div className="mt-auto flex flex-wrap items-center gap-3 pt-5">
             <Link
               href="/about/resume"
-              className="inline-flex items-center gap-1.5 rounded-full bg-page px-4 py-2 text-[13.5px] font-semibold text-ink transition-colors hover:bg-surface-hover"
+              className="inline-flex items-center gap-1.5 rounded-[3px] bg-page px-4 py-2 text-[13.5px] font-semibold text-ink transition-colors hover:bg-surface-hover"
             >
               이력서 열기 →
             </Link>
@@ -122,7 +122,7 @@ export default function About() {
         </div>
 
         {/* 지면색 Contact 카드 — 고정폭 3줄 */}
-        <div className="rounded-[22px] bg-page p-6">
+        <div className="rounded-[3px] bg-page p-6">
           <p className="eyebrow text-muted">Contact</p>
           <div className="mt-3 space-y-1.5 font-[family-name:var(--font-jbmono)] text-[13px] leading-relaxed text-ink">
             <p>etry0715@gmail.com</p>

@@ -23,7 +23,7 @@ export default function CopyButton({ code }: { code: string }) {
       type="button"
       onClick={copy}
       aria-label="코드 복사"
-      className="shrink-0 rounded-full border border-line bg-surface px-3 py-1 font-[family-name:var(--font-jbmono)] text-[11px] text-ink transition-colors hover:bg-page"
+      className="shrink-0 rounded-[3px] border border-line bg-surface px-3 py-1 font-[family-name:var(--font-jbmono)] text-[11px] text-ink transition-colors hover:bg-page"
     >
       {copied ? "복사됨 ✓" : "복사"}
     </button>

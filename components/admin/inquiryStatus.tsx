@@ -38,7 +38,7 @@ export default function InquiryStatus({ id, status }: { id: string; status: stri
             disabled={busy}
             aria-pressed={active}
             onClick={() => change(s)}
-            className={`rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors disabled:opacity-50 ${
+            className={`rounded-[3px] border px-2.5 py-0.5 text-xs font-medium transition-colors disabled:opacity-50 ${
               active
                 ? "border-accent bg-accent/10 text-accent"
                 : "border-line text-muted hover:border-accent hover:text-accent"

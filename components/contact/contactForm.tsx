@@ -21,7 +21,7 @@ const TYPES = ["면접 요청", "이메일 요청"] as const
 const DEFAULT_TYPE: (typeof TYPES)[number] = "면접 요청"
 
 const fieldCls =
-  "mt-2 w-full rounded-[12px] border border-line bg-transparent px-[14px] py-3 text-sm text-ink placeholder:text-muted"
+  "mt-2 w-full rounded-[3px] border border-line bg-transparent px-[14px] py-3 text-sm text-ink placeholder:text-muted"
 
 /*
   라벨은 규격이 10.5px 다. eyebrow 유틸(고정폭·대문자·자간)을 쓰되 크기만 덮는다 —
@@ -73,7 +73,7 @@ export default function ContactForm() {
                 defaultChecked={t === DEFAULT_TYPE}
                 className="peer sr-only"
               />
-              <span className="inline-flex items-center rounded-full border border-line px-4 py-1.5 text-[13.5px] text-ink transition-colors peer-checked:border-lime peer-checked:bg-lime peer-checked:font-semibold peer-checked:text-[color:var(--lime-ink)] peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ink">
+              <span className="inline-flex items-center rounded-[3px] border border-line px-4 py-1.5 text-[13.5px] text-ink transition-colors peer-checked:border-lime peer-checked:bg-lime peer-checked:font-semibold peer-checked:text-[color:var(--lime-ink)] peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ink">
                 {t}
               </span>
             </label>
@@ -103,7 +103,7 @@ export default function ContactForm() {
         <button
           type="submit"
           disabled={pending}
-          className="inline-flex items-center gap-1.5 rounded-full bg-lime px-5 py-2.5 text-sm font-semibold text-[color:var(--lime-ink)] transition-colors hover:bg-[#CDEA55] disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-[3px] bg-lime px-5 py-2.5 text-sm font-semibold text-[color:var(--lime-ink)] transition-colors hover:bg-[#CDEA55] disabled:opacity-50"
         >
           {pending ? "보내는 중…" : "문의 보내기 →"}
         </button>
@@ -112,7 +112,7 @@ export default function ContactForm() {
 
       {state.message && (
         <p
-          className={`rounded-[12px] border px-[14px] py-3 text-sm ${
+          className={`rounded-[3px] border px-[14px] py-3 text-sm ${
             state.ok ? "border-lime text-ink" : "border-line text-muted"
           }`}
           role="status"

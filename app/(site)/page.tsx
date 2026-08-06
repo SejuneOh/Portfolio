@@ -185,7 +185,7 @@ export default async function Home() {
               key={t}
               className={
                 i === 0
-                  ? "inline-flex items-center gap-1.5 rounded-full bg-lime px-2.5 py-0.5 text-xs font-semibold"
+                  ? "inline-flex items-center gap-1.5 rounded-[3px] bg-lime px-2.5 py-0.5 text-xs font-semibold"
                   : "chip gap-1.5"
               }
               style={i === 0 ? { color: "var(--lime-ink)" } : undefined}
@@ -284,7 +284,7 @@ export default async function Home() {
                       <span className="text-muted">{e.metric.before}</span>
                       <span className="text-muted"> → </span>
                       <span
-                        className="rounded-[5px] bg-lime px-[5px]"
+                        className="rounded-[3px] bg-lime px-[5px]"
                         style={{ color: "var(--lime-ink)" }}
                       >
                         {e.metric.after}

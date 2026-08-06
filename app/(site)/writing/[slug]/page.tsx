@@ -118,7 +118,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
             {meta[0] && <span>{meta[0]}</span>}
             {post.category && (
               <span
-                className="rounded-full bg-lime px-2.5 py-0.5 font-semibold"
+                className="rounded-[3px] bg-lime px-2.5 py-0.5 font-semibold"
                 style={{ color: "var(--lime-ink)" }}
               >
                 {post.category}
@@ -136,7 +136,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
             본문 첫 문단을 자른 것이 아니다. 비어 있으면 박스를 내지 않는다.
           */}
           {post.summary && (
-            <div className="mt-6 flex flex-col gap-2 rounded-[16px] bg-page px-5 py-[18px] sm:flex-row sm:gap-5">
+            <div className="mt-6 flex flex-col gap-2 rounded-[3px] bg-page px-5 py-[18px] sm:flex-row sm:gap-5">
               <span className="eyebrow shrink-0 text-muted sm:pt-1">TL;DR</span>
               <p className="text-[14px] leading-[1.8] text-[color:var(--text-body)]">
                 {post.summary}
@@ -173,7 +173,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
                   <Link
                     key={r.slug}
                     href={`/writing/${r.slug}`}
-                    className="group rounded-[16px] bg-page p-5 transition-colors hover:bg-surface-hover"
+                    className="group rounded-[3px] bg-page p-5 transition-colors hover:bg-surface-hover"
                   >
                     <p className="eyebrow text-muted">같은 태그 · {shared.slice(0, 2).join(" · ")}</p>
                     <p className="mt-2 text-[15px] font-semibold leading-snug text-ink underline-offset-4 group-hover:underline group-hover:decoration-lime group-hover:decoration-2">

@@ -39,19 +39,26 @@ function periodOf(e: Experience) {
 }
 
 /*
-  계측 라인 — 라임 3px 좌측 보더. 세 값이 모두 있을 때만 낸다. 하나라도 비면
-  `91s → ` 처럼 화살표만 남는다. 값은 Notion 매핑이 들어와야 채워진다.
+  계측 리드아웃 — 라임 좌측 눈금. 세 값이 모두 있을 때만 낸다. 하나라도 비면
+  `91s → ` 처럼 화살표만 남으므로 통째로 빠뜨린다. 값은 Notion 매핑(#146)으로 들어온다.
+
+  목록(components/projects/caseRow.tsx)의 리드아웃과 같은 규격이다 — 라벨이 위,
+  수치가 아래, 개선 후 값에만 라임 배경. 같은 값이 화면마다 다르게 보이면 안 된다.
+  비례 막대를 그리지 않는 이유도 그쪽 주석에 적어 두었다.
 */
 function MetricLine({ e }: { e: Experience }) {
   if (!e.metricLabel || !e.metricBefore || !e.metricAfter) return null
   return (
-    <p
-      className="mt-5 border-l-[3px] border-lime py-1 pl-4 font-[family-name:var(--font-jbmono)] text-[15px] leading-relaxed text-ink"
-      style={{ borderLeftWidth: 3 }}
-    >
-      <span className="text-muted">{e.metricLabel} </span>
-      {e.metricBefore} → {e.metricAfter}
-    </p>
+    <div className="mt-5 border-l-2 border-lime pl-4">
+      <p className="eyebrow leading-[1.6] text-muted">{e.metricLabel}</p>
+      <p className="mt-2 font-[family-name:var(--font-jbmono)] text-[22px] leading-none">
+        <span className="text-muted">{e.metricBefore}</span>
+        <span className="text-muted"> → </span>
+        <span className="rounded-[3px] bg-lime px-[5px]" style={{ color: "var(--lime-ink)" }}>
+          {e.metricAfter}
+        </span>
+      </p>
+    </div>
   )
 }
 
@@ -67,9 +74,9 @@ export default async function CaseDetail({ params }: { params: Promise<{ id: str
   const heroLead = group.summary?.trim() || lead?.impact?.trim() || ""
 
   /*
-    문제 / 접근 / 결과 3타일.
+    문제 / 접근 / 결과 3열 스코프박스.
 
-    "문제"와 "접근" 데이터가 아직 없다. 두 값이 모두 없으면 타일 전체를 렌더하지
+    두 값이 모두 없으면 이 블록 전체를 렌더하지
     않는다 — 결과 하나만 남으면 3열 그리드가 의미를 잃는다. 본문에서 추측해
     채우거나 임시 문구를 넣지 않는다. 값이 들어오면 그대로 나타난다.
   */
@@ -94,12 +101,17 @@ export default async function CaseDetail({ params }: { params: Promise<{ id: str
           빼는 것은 사람 판단이라 임의로 지우지 않았다.
         */}
         {group.cover && (
-          <div className="relative mt-6 aspect-2/1 w-full overflow-hidden rounded-[18px] border border-line">
+          <div className="relative mt-6 aspect-2/1 w-full overflow-hidden rounded-[3px] border border-line">
             <Image src={group.cover} alt="" fill sizes="720px" unoptimized className="object-cover" priority />
           </div>
         )}
 
-        <h1 className="mt-6 text-[46px] font-bold leading-[1.08] tracking-[-0.03em] text-ink">
+        {/*
+          케이스 이름에는 `CloudHospital.Api` 처럼 끊기지 않는 긴 토큰이 들어온다.
+          46px 고정이면 360px 화면에서 제목 하나가 375px 를 차지해 문서가 가로로 스크롤된다.
+          뷰포트에 따라 줄여 그 상황을 없앤다.
+        */}
+        <h1 className="mt-6 text-[clamp(28px,8vw,46px)] font-bold leading-[1.08] tracking-[-0.03em] text-ink">
           {group.name}
         </h1>
 
@@ -108,21 +120,28 @@ export default async function CaseDetail({ params }: { params: Promise<{ id: str
         )}
 
         {showTiles && (
+          /*
+            문제·접근·결과 스코프박스. 각진 테두리에 라벨을 붙여 계기판의 관측 창처럼 읽히게 한다.
+            결과만 라임 좌측 눈금으로 강조한다 — 이 화면에서 가장 중요한 칸이다.
+          */
           <div className="mt-8 grid grid-cols-1 gap-[14px] sm:grid-cols-3">
             {[
-              { label: "문제", body: problem, lime: false },
-              { label: "접근", body: approach, lime: false },
-              { label: "결과", body: outcome, lime: true },
+              { label: "문제", body: problem, lit: false },
+              { label: "접근", body: approach, lit: false },
+              { label: "결과", body: outcome, lit: true },
             ].map((t) => (
               <div
                 key={t.label}
-                className={`rounded-[18px] p-[18px] ${t.lime ? "bg-lime" : "bg-page"}`}
-                style={t.lime ? { color: "var(--lime-body)" } : undefined}
+                className={`rounded-[3px] border border-line bg-surface p-[18px] ${
+                  t.lit ? "border-l-2 border-l-lime" : ""
+                }`}
               >
-                <p className="eyebrow" style={t.lime ? { color: "var(--lime-ink)" } : undefined}>
-                  {t.label}
-                </p>
-                {t.body && <p className="mt-2 text-[14px] leading-[1.7]">{t.body}</p>}
+                <p className={`eyebrow ${t.lit ? "text-lime" : "text-muted"}`}>{t.label}</p>
+                {t.body && (
+                  <p className="mt-2 text-[14px] leading-[1.7] text-[color:var(--text-body)]">
+                    {t.body}
+                  </p>
+                )}
               </div>
             ))}
           </div>
@@ -179,8 +198,8 @@ export default async function CaseDetail({ params }: { params: Promise<{ id: str
 
       {/* 사이드 */}
       <aside className="flex flex-col gap-4 lg:sticky lg:top-6 lg:self-start">
-        {/* 지면색 메타 카드 */}
-        <div className="rounded-[26px] bg-page p-6">
+        {/* 메타 판 — 각진 테두리 */}
+        <div className="rounded-[3px] border border-line bg-surface p-6">
           <dl className="space-y-4">
             {groupPeriod && (
               <div>

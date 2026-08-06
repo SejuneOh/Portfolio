@@ -24,10 +24,10 @@ export default function Contact() {
 
       {/* 사이드 320px */}
       <aside className="flex flex-col gap-4">
-        {/* 검정 카드 — 어떤 연락을 기다리는지 */}
         {/*
-          --on-ink-* 는 밝은 지면에 얹던 검정 카드의 반전 색이었다. 어두운 지면에서는
-          값이 본문 토큰과 같아져 이름만 남았으므로 본문 토큰을 직접 쓴다. 변수 삭제는 #191.
+          한 단 올라온 판 — 어떤 연락을 기다리는지.
+          「검정 카드」는 밝은 지면 시절의 이름이다. 어두운 지면에서는 반전이 성립하지 않아
+          card-ink 가 --surface-hover 를 쓴다(globals.css 의 유틸 주석 참조).
         */}
         <div className="card-ink p-6">
           <p className="eyebrow text-muted">이런 제안을 기다립니다</p>

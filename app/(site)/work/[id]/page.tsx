@@ -76,9 +76,9 @@ export default async function CaseDetail({ params }: { params: Promise<{ id: str
   /*
     문제 / 접근 / 결과 3열 스코프박스.
 
-    두 값이 모두 없으면 이 블록 전체를 렌더하지
-    않는다 — 결과 하나만 남으면 3열 그리드가 의미를 잃는다. 본문에서 추측해
-    채우거나 임시 문구를 넣지 않는다. 값이 들어오면 그대로 나타난다.
+    problem 과 approach 가 **둘 다** 비면 이 블록 전체를 렌더하지 않는다 —
+    결과 하나만 남으면 3열 그리드가 의미를 잃는다. 본문에서 추측해 채우거나
+    임시 문구를 넣지 않는다. 값이 들어오면 그대로 나타난다.
   */
   const problem = lead?.problem?.trim()
   const approach = lead?.approach?.trim()
@@ -107,11 +107,11 @@ export default async function CaseDetail({ params }: { params: Promise<{ id: str
         )}
 
         {/*
-          케이스 이름에는 `CloudHospital.Api` 처럼 끊기지 않는 긴 토큰이 들어온다.
-          46px 고정이면 360px 화면에서 제목 하나가 375px 를 차지해 문서가 가로로 스크롤된다.
-          뷰포트에 따라 줄여 그 상황을 없앤다.
+          케이스 이름에는 `CloudHospital.Api.Gateway` 처럼 끊기지 않는 긴 토큰이 들어온다.
+          근본 원인은 글자 크기가 아니라 토큰이 안 끊긴다는 것이므로 break-words 로 끊는다.
+          clamp 는 큰 화면의 인상을 유지하면서 좁은 화면에서 줄이는 보조 장치다.
         */}
-        <h1 className="mt-6 text-[clamp(28px,8vw,46px)] font-bold leading-[1.08] tracking-[-0.03em] text-ink">
+        <h1 className="mt-6 break-words text-[clamp(28px,8vw,46px)] font-bold leading-[1.08] tracking-[-0.03em] text-ink">
           {group.name}
         </h1>
 
@@ -138,7 +138,7 @@ export default async function CaseDetail({ params }: { params: Promise<{ id: str
               >
                 <p className={`eyebrow ${t.lit ? "text-lime" : "text-muted"}`}>{t.label}</p>
                 {t.body && (
-                  <p className="mt-2 text-[14px] leading-[1.7] text-[color:var(--text-body)]">
+                  <p className="mt-2 break-words text-[14px] leading-[1.7] text-[color:var(--text-body)]">
                     {t.body}
                   </p>
                 )}
@@ -241,7 +241,7 @@ export default async function CaseDetail({ params }: { params: Promise<{ id: str
         */}
 
         {/* 한 단 올라온 CTA 판 */}
-        <div className="card-ink p-6">
+        <div className="rounded-[3px] border border-line bg-surface-hover p-6">
           <p className="text-[14.5px] font-semibold leading-relaxed text-ink">
             비슷한 문제를 겪고 있다면
           </p>

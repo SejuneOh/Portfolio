@@ -49,12 +49,17 @@ export default async function Work() {
             >
               <span
                 aria-hidden
-                className={`inline-block h-1.5 w-1.5 rounded-full ${ch.lit ? "bg-lime" : "bg-line"}`}
+                className={`inline-block h-1.5 w-1.5 shrink-0 rounded-full ${ch.lit ? "bg-lime" : "bg-line"}`}
               />
-              <span className="text-[10.5px] uppercase tracking-[0.18em] text-muted">
+              {/*
+                라벨이 셀보다 길면(Experiences 는 90px) flex 가 줄이지 못해 값이 옆 칸을 덮는다.
+                min-w-0 + truncate 로 라벨이 먼저 줄고, 값은 shrink-0 으로 항상 온전히 남는다.
+                홈은 라벨이 다섯 자 이하라 이 문제가 드러나지 않았다 — 규격이 안전해서가 아니다.
+              */}
+              <span className="min-w-0 truncate text-[10.5px] uppercase tracking-[0.18em] text-muted">
                 {ch.label}
               </span>
-              <span className="ml-auto text-[13px] text-ink">{ch.value}</span>
+              <span className="ml-auto shrink-0 text-[13px] text-ink">{ch.value}</span>
             </div>
           ))}
         </div>

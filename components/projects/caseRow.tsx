@@ -67,7 +67,10 @@ function representativeMetric(g: ProjectGroup) {
 /*
   케이스 목록의 스코프박스. 계기판의 관측 창처럼 각진 테두리 안에 한 건씩 놓는다.
   목록은 스캔하는 화면이라 한 줄에 하나씩 두고 좌우로 정보를 나누는 편이 읽기 쉽다.
-  진행 중인 케이스는 한 단 올라온 판(--surface-hover)으로 구분한다.
+
+  진행 중인 케이스는 **라임 좌측 눈금**으로 구분한다. 판 밝기(--surface-hover)도 한 단
+  올리지만 --surface 와의 대비가 1.07:1 이라 그것만으로는 보이지 않고, 완료 행의 호버색과
+  같은 값이라 마우스를 올리면 구분이 사라진다. 눈금이 실제 신호이고 밝기는 보조다.
 
   이 박스의 얼굴은 커버 이미지가 아니라 수치다. 그래서 커버를 쓰지 않는다.
   수치는 Notion 매핑(#146)으로 들어온다. 세 값이 다 차 있지 않으면 우측은 CTA 만 남는다.
@@ -83,7 +86,7 @@ export default function CaseRow({ data }: { data: ProjectGroup }) {
       href={`/work/${data.slug}`}
       className={
         ink
-          ? "group grid gap-6 rounded-[3px] border border-line bg-surface-hover px-7 py-[26px] transition-colors hover:bg-[color:var(--border)] lg:grid-cols-[minmax(0,1fr)_300px]"
+          ? "group grid gap-6 rounded-[3px] border border-line border-l-2 border-l-lime bg-surface-hover px-7 py-[26px] transition-colors hover:bg-[color:var(--border)] lg:grid-cols-[minmax(0,1fr)_300px]"
           : "group grid gap-6 rounded-[3px] border border-line bg-surface px-7 py-[26px] transition-colors hover:bg-surface-hover lg:grid-cols-[minmax(0,1fr)_300px]"
       }
     >

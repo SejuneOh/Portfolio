@@ -168,7 +168,7 @@ export default async function Home() {
           >
             <span
               aria-hidden
-              className={`inline-block h-1.5 w-1.5 rounded-full ${ch.lit ? "bg-lime" : "bg-[var(--border)]"}`}
+              className={`inline-block h-1.5 w-1.5 rounded-full ${ch.lit ? "bg-lime" : "bg-line"}`}
             />
             <span className="text-[10.5px] uppercase tracking-[0.18em] text-muted">{ch.label}</span>
             <span className="ml-auto text-[13px] text-ink">{ch.value}</span>
@@ -229,14 +229,23 @@ export default async function Home() {
                   }`}
                 />
 
-                {/* 날짜 — 고정폭. 모바일에서는 점 옆에 남고 본문이 그 아래로 내려간다 */}
-                {e.dateLabel ? (
+                {/* 날짜 — md 이상에서 고정폭 112px. 모바일에서는 점 옆에 남고 본문이 그 아래로 내려간다 */}
+                {e.when ? (
                   <time
-                    dateTime={e.when || undefined}
+                    dateTime={e.when}
                     className="font-[family-name:var(--font-jbmono)] text-[11.5px] leading-[1.5] text-muted md:mt-[3px]"
                   >
                     {e.dateLabel}
                   </time>
+                ) : e.dateLabel ? (
+                  /*
+                    라벨은 있는데 정렬용 날짜가 없는 경우 — periodLabel 은 진행 중이면
+                    시작일이 없어도 "현재" 를 낸다. <time> 은 datetime 이 없으면 본문이
+                    기계 판독 날짜여야 하므로 그 자리에는 쓰지 않는다.
+                  */
+                  <span className="font-[family-name:var(--font-jbmono)] text-[11.5px] leading-[1.5] text-muted md:mt-[3px]">
+                    {e.dateLabel}
+                  </span>
                 ) : (
                   <span aria-hidden />
                 )}

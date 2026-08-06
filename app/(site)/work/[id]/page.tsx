@@ -168,11 +168,22 @@ export default async function CaseDetail({ params }: { params: Promise<{ id: str
               {e.projectName}
             </h2>
 
+            {/*
+              이 두 문단은 아래 PostBody 와 같은 읽기 칼럼에 이어진다. #183 이 본문 문단을
+              세리프로 바꿨으므로 여기도 세리프여야 한다 — 고딕으로 두면 같은 칼럼 안에서
+              리드 문단만 서체가 달라 위계가 아니라 어긋남으로 읽힌다.
+
+              규칙은 "읽는 흐름의 산문은 세리프, 구조·메타·라벨은 고딕" 이다(app/layout.tsx).
+            */}
             {e.impact?.trim() && (
-              <p className="mt-3 text-[15.5px] leading-[1.8] text-ink">{e.impact.trim()}</p>
+              <p className="mt-3 font-[family-name:var(--font-serif)] text-[15.5px] leading-[1.8] text-ink">
+                {e.impact.trim()}
+              </p>
             )}
             {e.description?.trim() && e.description.trim() !== e.impact?.trim() && (
-              <p className="mt-2 text-[15px] leading-[1.8] text-muted">{e.description.trim()}</p>
+              <p className="mt-2 font-[family-name:var(--font-serif)] text-[15px] leading-[1.8] text-muted">
+                {e.description.trim()}
+              </p>
             )}
 
             <MetricLine e={e} />

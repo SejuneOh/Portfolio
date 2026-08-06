@@ -2,7 +2,7 @@ import Link from "next/link"
 import { getProjectGroups } from "../../lib/notion"
 import { getPosts } from "../../lib/postsData"
 import { readingMinutes } from "../../lib/posts"
-import { periodLabel } from "../../lib/date"
+import { fmtMonth, periodLabel } from "../../lib/date"
 import JsonLd from "../../components/jsonLd"
 import { SITE_URL, SITE_DESCRIPTION, AUTHOR } from "../../lib/site"
 
@@ -57,10 +57,12 @@ export default async function Home() {
     title: p.title,
     summary: p.summary,
     when: p.date,
-    dateLabel: p.date,
+    // 케이스는 periodLabel 로 `2025.01 — 2026.07` 이 된다. 한 축의 같은 칸이므로 표기를 맞춘다.
+    dateLabel: fmtMonth(p.date),
     tags: p.tags,
     live: false,
-    meta: `${readingMinutes(p)}분 읽기`,
+    // 카테고리는 이전 홈의 라임 카드가 배지로 내던 정보다. 축에서는 메타 줄에 남긴다.
+    meta: [p.category, `${readingMinutes(p)}분 읽기`].filter(Boolean).join(" · "),
   }))
 
   const caseEntries: LogEntry[] = groups.map((g) => {
@@ -98,8 +100,13 @@ export default async function Home() {
   const caseCount = groups.length
   const liveCount = groups.filter((g) => g.inProgress).length
 
-  // 축이 이미 전부 보여주고 있으면 "더 보기"는 막힌 링크가 된다.
-  const hasMore = postEntries.length + caseEntries.length > log.length
+  /*
+    "더 보기"는 /writing 으로 가므로 **글 기준으로만** 센다.
+    합계로 세면 케이스가 많을 때 글이 이미 다 나와 있어도 버튼이 뜨고, 눌러도 같은 글뿐인
+    막힌 링크가 된다.
+  */
+  const shownPosts = log.filter((e) => e.kind === "post").length
+  const hasMore = postEntries.length > shownPosts
 
   // 태그 집계 — 글의 태그만 센다. 케이스 태그는 스택이라 성격이 다르다.
   const tagCount = new Map<string, number>()
@@ -172,6 +179,7 @@ export default async function Home() {
       {/* 태그 스트립 — 칩이 세 개 미만이면 내지 않는다 */}
       {topics.length >= TOPICS_MIN && (
         <div className="mt-4 flex flex-wrap items-center gap-1.5">
+          <span className="eyebrow mr-1 text-muted">Topics</span>
           {topics.map(([t, n], i) => (
             <span
               key={t}
@@ -221,12 +229,23 @@ export default async function Home() {
                   }`}
                 />
 
-                {/* 날짜 — 고정폭. 모바일에서는 제목 위로 접힌다 */}
-                <span className="font-[family-name:var(--font-jbmono)] text-[11.5px] leading-[1.5] text-muted md:mt-[3px]">
-                  {e.dateLabel}
-                </span>
+                {/* 날짜 — 고정폭. 모바일에서는 점 옆에 남고 본문이 그 아래로 내려간다 */}
+                {e.dateLabel ? (
+                  <time
+                    dateTime={e.when || undefined}
+                    className="font-[family-name:var(--font-jbmono)] text-[11.5px] leading-[1.5] text-muted md:mt-[3px]"
+                  >
+                    {e.dateLabel}
+                  </time>
+                ) : (
+                  <span aria-hidden />
+                )}
 
-                <div className="min-w-0 md:col-start-3">
+                {/*
+                  컬럼을 모바일에도 명시한다. md: 에만 걸면 자동배치가 행 우선으로 돌아
+                  본문이 2행 1열(10px 트랙)로 떨어지고 글자가 한 자씩 세로로 쌓인다.
+                */}
+                <div className="col-start-2 min-w-0 md:col-start-3">
                   <span className="font-[family-name:var(--font-jbmono)] text-[10.5px] uppercase tracking-[0.18em] text-lime">
                     {e.kind === "case" ? "Case" : "Post"}
                   </span>
@@ -251,7 +270,7 @@ export default async function Home() {
                   임시 값을 넣지 않는다. 값은 Notion 매핑(#146)으로 들어온다.
                 */}
                 {e.metric && (
-                  <div className="font-[family-name:var(--font-jbmono)] md:col-start-4 md:text-right">
+                  <div className="col-start-2 font-[family-name:var(--font-jbmono)] md:col-start-4 md:text-right">
                     <p className="text-[15px] leading-none text-ink">
                       <span className="text-muted">{e.metric.before}</span>
                       <span className="text-muted"> → </span>

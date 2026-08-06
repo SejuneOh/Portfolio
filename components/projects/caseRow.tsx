@@ -94,13 +94,13 @@ export default function CaseRow({ data }: { data: ProjectGroup }) {
       <div className="min-w-0">
         {ink ? (
           <span
-            className="inline-flex items-center gap-1.5 rounded-full bg-lime px-3 py-1 text-[11px] font-semibold"
+            className="inline-flex items-center gap-1.5 rounded-[3px] bg-lime px-3 py-1 text-[11px] font-semibold"
             style={{ color: "var(--lime-ink)" }}
           >
             <span aria-hidden>●</span> 진행 중
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1 text-[11px] font-medium text-muted">
+          <span className="inline-flex items-center gap-1.5 rounded-[3px] border border-line px-3 py-1 text-[11px] font-medium text-muted">
             <span aria-hidden>○</span> 완료
           </span>
         )}
@@ -155,7 +155,7 @@ export default function CaseRow({ data }: { data: ProjectGroup }) {
           className={
             ink
               ? "btn-lime w-fit"
-              : "inline-flex w-fit items-center gap-1.5 rounded-full border border-line px-4 py-2 text-sm font-medium text-ink transition-colors group-hover:bg-page"
+              : "inline-flex w-fit items-center gap-1.5 rounded-[3px] border border-line px-4 py-2 text-sm font-medium text-ink transition-colors group-hover:bg-page"
           }
         >
           케이스 보기 →

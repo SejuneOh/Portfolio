@@ -157,7 +157,7 @@ export default async function CaseDetail({ params }: { params: Promise<{ id: str
           <section key={e.id} className="mt-10 border-t border-line pt-[26px]">
             {group.count > 1 && (
               <span
-                className="inline-flex items-center rounded-full bg-lime px-3 py-1 text-[11px] font-semibold"
+                className="inline-flex items-center rounded-[3px] bg-lime px-3 py-1 text-[11px] font-semibold"
                 style={{ color: "var(--lime-ink)" }}
               >
                 경험 {i + 1}

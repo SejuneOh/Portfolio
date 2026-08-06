@@ -34,10 +34,15 @@ export default async function Work() {
         </h1>
 
         {/*
-          채널 스트립 — 홈과 같은 규격. 축에 무엇이 몇 개 걸려 있는지 먼저 읽힌다.
+          채널 스트립 — 축에 무엇이 몇 개 걸려 있는지 먼저 읽힌다.
           값이 0 인 채널도 낸다. 0 이라는 사실 자체가 정보다.
+
+          구조는 홈과 같지만 **좁은 폭에서 세로로 쌓는다.** 홈의 라벨은 다섯 자 이하라
+          3열이 성립하는데, 여기 `Experiences` 는 자연 폭이 87px 이고 360px 화면의 셀은
+          46px 밖에 주지 못한다. 한 줄로 밀어 넣으면 옆 칸을 덮거나 잘려서, 숫자의 의미를
+          말해 주는 유일한 요소가 사라진다.
         */}
-        <div className="mt-7 grid grid-cols-3 border border-line bg-surface font-[family-name:var(--font-jbmono)]">
+        <div className="mt-7 grid grid-cols-1 border border-line bg-surface font-[family-name:var(--font-jbmono)] sm:grid-cols-3">
           {[
             { label: "Cases", value: groups.length },
             { label: "Experiences", value: experiences },
@@ -45,18 +50,15 @@ export default async function Work() {
           ].map((ch, i) => (
             <div
               key={ch.label}
-              className={`flex items-center gap-2 px-4 py-2.5 ${i < 2 ? "border-r border-line" : ""}`}
+              className={`flex items-center gap-2 px-4 py-2.5 ${
+                i < 2 ? "border-b border-line sm:border-b-0 sm:border-r" : ""
+              }`}
             >
               <span
                 aria-hidden
                 className={`inline-block h-1.5 w-1.5 shrink-0 rounded-full ${ch.lit ? "bg-lime" : "bg-line"}`}
               />
-              {/*
-                라벨이 셀보다 길면(Experiences 는 90px) flex 가 줄이지 못해 값이 옆 칸을 덮는다.
-                min-w-0 + truncate 로 라벨이 먼저 줄고, 값은 shrink-0 으로 항상 온전히 남는다.
-                홈은 라벨이 다섯 자 이하라 이 문제가 드러나지 않았다 — 규격이 안전해서가 아니다.
-              */}
-              <span className="min-w-0 truncate text-[10.5px] uppercase tracking-[0.18em] text-muted">
+              <span className="min-w-0 text-[10.5px] uppercase tracking-[0.18em] text-muted">
                 {ch.label}
               </span>
               <span className="ml-auto shrink-0 text-[13px] text-ink">{ch.value}</span>

@@ -129,21 +129,26 @@ export default async function CaseDetail({ params }: { params: Promise<{ id: str
               { label: "문제", body: problem, lit: false },
               { label: "접근", body: approach, lit: false },
               { label: "결과", body: outcome, lit: true },
-            ].map((t) => (
-              <div
-                key={t.label}
-                className={`rounded-[3px] border border-line bg-surface p-[18px] ${
-                  t.lit ? "border-l-2 border-l-lime" : ""
-                }`}
-              >
-                <p className={`eyebrow ${t.lit ? "text-lime" : "text-muted"}`}>{t.label}</p>
-                {t.body && (
+            ]
+              /*
+                값이 있는 칸만 낸다. 이전 타일은 테두리가 없어(bg-page) 빈 칸이 보이지 않았지만
+                스코프박스는 테두리를 그으므로, 셋 중 하나만 차면 빈 액자가 남는다.
+                특히 결과 칸은 라임 눈금이 붙은 채로 비어 "가장 중요한 칸이 비었다" 로 읽힌다.
+              */
+              .filter((t) => t.body)
+              .map((t) => (
+                <div
+                  key={t.label}
+                  className={`rounded-[3px] border border-line bg-surface p-[18px] ${
+                    t.lit ? "border-l-2 border-l-lime" : ""
+                  }`}
+                >
+                  <p className={`eyebrow ${t.lit ? "text-lime" : "text-muted"}`}>{t.label}</p>
                   <p className="mt-2 break-words text-[14px] leading-[1.7] text-[color:var(--text-body)]">
                     {t.body}
                   </p>
-                )}
-              </div>
-            ))}
+                </div>
+              ))}
           </div>
         )}
 
@@ -245,7 +250,11 @@ export default async function CaseDetail({ params }: { params: Promise<{ id: str
           <p className="text-[14.5px] font-semibold leading-relaxed text-ink">
             비슷한 문제를 겪고 있다면
           </p>
-          <p className="mt-2 text-[13px] leading-relaxed">
+          {/*
+            card-ink 유틸은 color: var(--text-body) 도 함께 주고 있었다. 각진 판으로 펴면서
+            그 선언이 사라져 이 문단이 --ink 를 상속해 제목과 같은 색이 됐다. 명시한다.
+          */}
+          <p className="mt-2 text-[13px] leading-relaxed text-[color:var(--text-body)]">
             어떤 상황인지 한 줄만 적어주셔도 됩니다.
           </p>
           <Link href="/contact" className="btn-lime mt-4">

@@ -33,7 +33,7 @@ function BlockView({ block, index }: { block: Block; index: number }) {
           // 불릿은 라임 7px 사각형. 라임을 쓰는 세 자리 중 하나다.
           <li
             key={i}
-            className="relative pl-5 text-[15.5px] leading-[1.85] text-[color:var(--text-body)] before:absolute before:left-0 before:top-[0.72em] before:h-[7px] before:w-[7px] before:rounded-[3px] before:bg-lime"
+            className="relative pl-5 text-[15.5px] leading-[1.85] text-[color:var(--text-body)] before:absolute before:left-0 before:top-[0.72em] before:h-[7px] before:w-[7px] before:rounded-[2px] before:bg-lime"
           >
             {renderInline(li)}
           </li>

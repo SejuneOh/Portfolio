@@ -37,20 +37,47 @@ export default function Toc({ items }: { items: TocItem[] }) {
 
   if (items.length < 2) return null
 
+  /*
+    계측기 눈금. 레일(border-l)에서 짧은 선이 항목마다 뻗어 나오고, 현재 위치의
+    눈금만 라임으로 길어진다 — 굵기 변화만으로 알리던 것을 눈금 위치로 바꾼 것이다.
+
+    눈금의 left 는 레일을 감싼 쪽의 pl-[18px] 과 맞물린다. 그쪽 값을 바꾸면
+    여기도 같이 바꿔야 한다.
+
+    번호는 aria-hidden 이다. 순서는 목록 구조가 이미 전달하므로 스크린리더가
+    제목마다 "영일"을 먼저 읽을 이유가 없다. 눈으로 훑을 때의 눈금 라벨이다.
+  */
   const list = (
-    <ul className="space-y-2.5">
-      {items.map((it) => (
-        <li key={it.id}>
-          <a
-            href={`#${it.id}`}
-            className={`block text-[13px] leading-snug transition-colors ${
-              active === it.id ? "font-semibold text-ink" : "text-muted hover:text-ink"
-            }`}
-          >
-            {it.text}
-          </a>
-        </li>
-      ))}
+    <ul className="space-y-3">
+      {items.map((it, i) => {
+        const on = active === it.id
+        return (
+          <li key={it.id} className="relative">
+            <span
+              aria-hidden
+              className={`absolute -left-[18px] top-[0.6em] h-px transition-all ${
+                on ? "w-[12px] bg-lime" : "w-[6px] bg-line"
+              }`}
+            />
+            <a
+              href={`#${it.id}`}
+              className={`flex gap-2 text-[13px] leading-snug transition-colors ${
+                on ? "font-semibold text-ink" : "text-muted hover:text-ink"
+              }`}
+            >
+              <span
+                aria-hidden
+                className={`shrink-0 font-[family-name:var(--font-jbmono)] text-[10.5px] leading-[1.5] ${
+                  on ? "text-lime" : "text-muted"
+                }`}
+              >
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <span className="min-w-0">{it.text}</span>
+            </a>
+          </li>
+        )
+      })}
     </ul>
   )
 
@@ -67,11 +94,12 @@ export default function Toc({ items }: { items: TocItem[] }) {
           <span className="eyebrow text-muted">목차 {items.length}개</span>
           <span className="eyebrow text-muted">{open ? "접기 ▴" : "펼치기 ▾"}</span>
         </button>
-        {open && <div className="mt-3 border-l-2 border-line pl-[18px]">{list}</div>}
+        {/* 레일은 1px. 눈금이 뻗어 나오는 자(尺)이므로 자보다 눈금이 굵으면 안 된다 */}
+        {open && <div className="mt-3 border-l border-line pl-[18px]">{list}</div>}
       </div>
 
       {/* 데스크톱 — sticky 로 따라온다 */}
-      <nav className="hidden lg:sticky lg:top-6 lg:block lg:self-start lg:border-l-2 lg:border-line lg:pl-[18px]">
+      <nav className="hidden lg:sticky lg:top-6 lg:block lg:self-start lg:border-l lg:border-line lg:pl-[18px]">
         <p className="eyebrow mb-3 text-muted">목차</p>
         {list}
       </nav>

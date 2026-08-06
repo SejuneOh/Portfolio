@@ -144,8 +144,9 @@ export default function CaseRow({ data }: { data: ProjectGroup }) {
       <div className="flex flex-col justify-between gap-4 lg:border-l lg:border-line lg:pl-[26px]">
         {metric && (
           <div className="border-l-2 border-lime pl-4">
-            <p className="eyebrow leading-[1.6] text-muted">{metric.metricLabel}</p>
-            <p className="mt-2 font-[family-name:var(--font-jbmono)] text-[25px] leading-none">
+            {/* 라벨·값 모두 Notion 자유 문자열이다 (#214) */}
+            <p className="eyebrow break-words leading-[1.6] text-muted">{metric.metricLabel}</p>
+            <p className="mt-2 break-words font-[family-name:var(--font-jbmono)] text-[25px] leading-none">
               <span className="text-muted">{metric.metricBefore}</span>
               <span className="text-muted"> → </span>
               <span

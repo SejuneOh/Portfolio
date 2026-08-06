@@ -116,9 +116,14 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
           {/* 메타 행 — 카테고리만 라임 필 */}
           <div className="mt-6 flex flex-wrap items-center gap-2 font-[family-name:var(--font-jbmono)] text-[11.5px] text-muted">
             {meta[0] && <span>{meta[0]}</span>}
+            {/*
+              분류는 Notion select 의 자유 문자열이다. 이 span 은 flex 컨테이너의 자식이라
+              flex 아이템으로 블록화되고 min-width: auto 가 min-content 로 풀린다 —
+              칩과 같은 이유로 break-words 가 아니라 overflow-wrap:anywhere 여야 한다 (#214).
+            */}
             {post.category && (
               <span
-                className="rounded-[3px] bg-lime px-2.5 py-0.5 font-semibold"
+                className="rounded-[3px] bg-lime px-2.5 py-0.5 font-semibold [overflow-wrap:anywhere]"
                 style={{ color: "var(--lime-ink)" }}
               >
                 {post.category}
@@ -191,7 +196,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
                     className="card group p-5 hover:bg-surface-hover"
                   >
                     <p className="eyebrow text-muted">같은 태그 · {shared.slice(0, 2).join(" · ")}</p>
-                    <p className="mt-2 text-[15px] font-semibold leading-snug text-ink underline-offset-4 group-hover:underline group-hover:decoration-lime group-hover:decoration-2">
+                    <p className="mt-2 break-words text-[15px] font-semibold leading-snug text-ink underline-offset-4 group-hover:underline group-hover:decoration-lime group-hover:decoration-2">
                       {r.title}
                     </p>
                   </Link>

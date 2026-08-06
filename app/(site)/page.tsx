@@ -264,11 +264,14 @@ export default async function Home() {
                   <span className="font-[family-name:var(--font-jbmono)] text-[10.5px] uppercase tracking-[0.18em] text-lime">
                     {e.kind === "case" ? "Case" : "Post"}
                   </span>
-                  <h2 className="mt-1.5 text-[18px] font-bold leading-[1.4] text-ink transition-colors group-hover:text-lime">
+                  {/* 케이스 이름·글 제목·요약은 Notion 자유 문자열이다 — 긴 토큰을 끊는다 (#214) */}
+                  <h2 className="mt-1.5 break-words text-[18px] font-bold leading-[1.4] text-ink transition-colors group-hover:text-lime">
                     {e.title}
                   </h2>
                   {e.summary && (
-                    <p className="mt-1.5 text-[14px] leading-[1.8] text-muted">{e.summary}</p>
+                    <p className="mt-1.5 break-words text-[14px] leading-[1.8] text-muted">
+                      {e.summary}
+                    </p>
                   )}
                   <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
                     {e.meta && <span className="eyebrow text-muted">{e.meta}</span>}

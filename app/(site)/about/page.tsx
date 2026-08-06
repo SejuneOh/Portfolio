@@ -101,7 +101,12 @@ export default function About() {
                   <p className={`text-[17px] font-bold text-ink ${live ? "mt-1.5" : ""}`}>
                     {t.org}
                   </p>
-                  <p className="mt-2 text-[14.5px] leading-[1.8] text-[color:var(--text-body)]">
+                  {/*
+                    이 문단은 이 파일에 적힌 값이라 Notion 자유 문자열이 아니다. 그래도
+                    좁은 격자 칼럼 안의 산문이므로 같은 규칙을 준다 — 예외를 두면 다음에
+                    누가 긴 식별자를 적었을 때 조용히 넘친다 (#214).
+                  */}
+                  <p className="mt-2 break-words text-[14.5px] leading-[1.8] text-[color:var(--text-body)]">
                     {t.body}
                   </p>
                 </div>

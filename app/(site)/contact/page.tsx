@@ -3,7 +3,7 @@ import ContactForm from "../../../components/contact/contactForm"
 export const metadata = { title: "Contact" }
 
 /*
-  상단 내비의 이 페이지 예외(우측 Contact 버튼을 렌더하지 않고 필 내비에 Contact 를
+  상단 내비의 이 페이지 예외(우측 Contact 버튼을 렌더하지 않고 라벨 바에 Contact 를
   다섯 번째 항목으로 넣어 활성 표시)는 components/topNav.tsx 에 이미 들어 있다.
   이 파일에서 할 일은 없다.
 */
@@ -25,10 +25,12 @@ export default function Contact() {
       {/* 사이드 320px */}
       <aside className="flex flex-col gap-4">
         {/* 검정 카드 — 어떤 연락을 기다리는지 */}
+        {/*
+          --on-ink-* 는 밝은 지면에 얹던 검정 카드의 반전 색이었다. 어두운 지면에서는
+          값이 본문 토큰과 같아져 이름만 남았으므로 본문 토큰을 직접 쓴다. 변수 삭제는 #191.
+        */}
         <div className="card-ink p-6">
-          <p className="eyebrow" style={{ color: "var(--on-ink-muted)" }}>
-            이런 제안을 기다립니다
-          </p>
+          <p className="eyebrow text-muted">이런 제안을 기다립니다</p>
 
           {/*
             문의 유형에서 "기술 문의"를 빼기로 해서 이 목록에서도 뺐다.
@@ -44,10 +46,7 @@ export default function Contact() {
           </ul>
 
           {/* 응답 시간을 약속하지 않는다(24시간·30분 같은 문구). 부담이 된다. */}
-          <p
-            className="mt-5 border-t pt-4 text-[12.5px] leading-relaxed"
-            style={{ borderColor: "var(--on-ink-border)", color: "var(--on-ink-muted)" }}
-          >
+          <p className="mt-5 border-t border-line pt-4 text-[12.5px] leading-relaxed text-muted">
             읽고 회신드립니다. 이력서나 채용 공고 링크가 있으면 함께 남겨주시면 더 정확히
             답할 수 있습니다.
           </p>

@@ -50,35 +50,65 @@ export default function About() {
         </div>
       </header>
 
-      {/* 타임라인 — 전폭. 가장 위(현재 재직)만 한 단 올라온 판 */}
-      <section className="mt-12 flex flex-col gap-4">
-        {timeline.map((t, i) => {
-          const ink = i === 0
-          return (
-            <div
-              key={t.org}
-              className={
-                ink
-                  ? "card-ink grid gap-[22px] rounded-[3px] px-6 py-[22px] sm:grid-cols-[132px_minmax(0,1fr)]"
-                  : "card grid gap-[22px] rounded-[3px] px-6 py-[22px] sm:grid-cols-[132px_minmax(0,1fr)]"
-              }
-            >
-              {/* 기간은 고정폭. 올라온 판 안에서는 라임으로 */}
-              <p className={`eyebrow ${ink ? "text-lime" : "text-muted"}`}>{t.period ?? "—"}</p>
-              <div className="min-w-0">
-                {/* 어두운 지면에서는 판이 올라가도 글자색이 같다 — ink 분기가 필요 없다 */}
-                <p className="text-[17px] font-bold text-ink">{t.org}</p>
+      {/*
+        타임라인 — 계측 축. 홈 로그 축(app/(site)/page.tsx)과 같은 어법을 쓴다:
+        상태 점 레일(10px) + 고정폭 기간 컬럼 + 행마다 헤어라인.
+
+        판을 나열하던 조판(card / card-ink + gap-4)을 버린 이유는, 어두운 지면에서
+        판의 경계가 정보를 더 주지 않으면서 축을 끊기 때문이다. 경력은 시간 위의
+        한 줄이므로 축이 맞다.
+
+        기간은 <time> 에 넣지 않는다 — "2023.02 – 재직중"은 기계 판독 날짜가 아니고,
+        datetime 없는 <time> 은 본문이 기계 판독이어야 한다는 규칙을 깬다(#181에서 같은 지적).
+      */}
+      <section className="mt-12">
+        <div className="border-b border-line pb-3">
+          <p className="eyebrow text-muted">Timeline — 경력</p>
+        </div>
+
+        <div className="flex flex-col">
+          {timeline.map((t, i) => {
+            const live = i === 0
+            return (
+              <div
+                key={t.org}
+                /*
+                  컬럼을 모바일에도 명시한다. md: 에만 걸면 자동배치가 행 우선으로 돌아
+                  본문이 10px 트랙에 떨어지고 글자가 한 자씩 세로로 쌓인다(#181에서 겪은 것).
+                */
+                className="grid grid-cols-[10px_minmax(0,1fr)] items-start gap-x-3 gap-y-2 border-b border-line py-5 md:grid-cols-[10px_132px_minmax(0,1fr)] md:gap-x-6"
+              >
+                {/* 상태 점 — 재직 중이면 라임으로 켠다 */}
+                <span
+                  aria-hidden
+                  className={`mt-[7px] inline-block h-[7px] w-[7px] shrink-0 rounded-full border ${
+                    live ? "border-lime bg-lime" : "border-line"
+                  }`}
+                />
+
                 <p
-                  className={`mt-2 text-[14.5px] leading-[1.8] ${
-                    ink ? "" : "text-[color:var(--text-body)]"
+                  className={`font-[family-name:var(--font-jbmono)] text-[11.5px] leading-[1.5] md:mt-[3px] ${
+                    live ? "text-lime" : "text-muted"
                   }`}
                 >
-                  {t.body}
+                  {t.period ?? "—"}
                 </p>
+
+                <div className="col-start-2 min-w-0 md:col-start-3">
+                  {live && (
+                    <span className="eyebrow text-[10.5px] text-lime">재직 중</span>
+                  )}
+                  <p className={`text-[17px] font-bold text-ink ${live ? "mt-1.5" : ""}`}>
+                    {t.org}
+                  </p>
+                  <p className="mt-2 text-[14.5px] leading-[1.8] text-[color:var(--text-body)]">
+                    {t.body}
+                  </p>
+                </div>
               </div>
-            </div>
-          )
-        })}
+            )
+          })}
+        </div>
       </section>
 
       {/* 하단 3열 — 모바일에서는 1열 스택 */}
@@ -121,8 +151,13 @@ export default function About() {
           </dl>
         </div>
 
-        {/* 지면색 Contact 카드 — 고정폭 3줄 */}
-        <div className="rounded-[3px] bg-page p-6">
+        {/*
+          Contact 카드 — 고정폭 3줄.
+          이전에는 bg-page 였다. 밝은 지면 시절에는 지면색이 흰 표면 위에서 카드로 읽혔지만,
+          어두운 지면에서는 지면과 같은 색이 되어(명암비 1.0:1) 테두리도 없이 사라졌다.
+          Skills 와 같은 card 로 맞춘다 — 강조는 라임 Resume 카드 하나가 맡는다.
+        */}
+        <div className="card p-6">
           <p className="eyebrow text-muted">Contact</p>
           <div className="mt-3 space-y-1.5 font-[family-name:var(--font-jbmono)] text-[13px] leading-relaxed text-ink">
             <p>etry0715@gmail.com</p>

@@ -37,15 +37,61 @@ export default function BlogIndex({
   const countOf = (c: string) =>
     c === ALL ? posts.length : posts.filter((p) => p.category === c).length
 
+  /*
+    채널 스트립 값. 전부 실제 집계다.
+    categories 는 첫 항목이 ALL 이므로 주제 수는 하나를 뺀다.
+  */
+  const topicCount = Math.max(0, categories.length - 1)
+  const tagCount = new Set(posts.flatMap((p) => p.tags)).size
+
   return (
     <>
-      <header className="flex flex-col gap-4 pb-8 md:flex-row md:items-end md:justify-between">
-        <h1 className="text-[52px] font-bold leading-[1.05] tracking-[-0.03em] text-ink">
-          WRITING
-        </h1>
-        <p className="max-w-[46ch] text-[15px] leading-[1.8] text-muted">
-          실무에서 부딪힌 문제와 해결 과정을 성능·안정성·아키텍처 중심으로 정리합니다.
-        </p>
+      <header className="pb-8">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <h1 className="text-[52px] font-bold leading-[1.05] tracking-[-0.03em] text-ink">
+            WRITING
+          </h1>
+          <p className="max-w-[46ch] text-[15px] leading-[1.8] text-muted">
+            실무에서 부딪힌 문제와 해결 과정을 성능·안정성·아키텍처 중심으로 정리합니다.
+          </p>
+        </div>
+
+        {/*
+          채널 스트립 — 목록 화면의 계기판 상단 표시부. 홈과 Work 목록이 이미 쓴다.
+          값이 0 인 채널도 낸다. 0 이라는 사실 자체가 정보다.
+
+          markup 은 Work 목록(app/(site)/work/page.tsx)을 따른다 — 표시등에 shrink-0,
+          라벨에 min-w-0, 좁은 폭에서는 세로로 쌓는다. 홈 버전에는 그 처리가 없어
+          320px 에서 표시등이 폭 0 으로 눌리는 결함이 남아 있다(#207).
+
+          표시등은 **값이 있으면 켠다.** Work 는 Live 채널에만 lit 을 주는데,
+          그쪽 Live 는 "진행 중인 케이스가 있다"는 뜻이라 같은 규칙의 특수한 경우다.
+        */}
+        <div className="mt-7 grid grid-cols-1 border border-line bg-surface font-[family-name:var(--font-jbmono)] sm:grid-cols-3">
+          {[
+            { label: "Posts", value: posts.length },
+            { label: "Topics", value: topicCount },
+            { label: "Tags", value: tagCount },
+          ].map((ch, i) => (
+            <div
+              key={ch.label}
+              className={`flex items-center gap-2 px-4 py-2.5 ${
+                i < 2 ? "border-b border-line sm:border-b-0 sm:border-r" : ""
+              }`}
+            >
+              <span
+                aria-hidden
+                className={`inline-block h-1.5 w-1.5 shrink-0 rounded-full ${
+                  ch.value > 0 ? "bg-lime" : "bg-line"
+                }`}
+              />
+              <span className="min-w-0 text-[10.5px] uppercase tracking-[0.18em] text-muted">
+                {ch.label}
+              </span>
+              <span className="ml-auto shrink-0 text-[13px] text-ink">{ch.value}</span>
+            </div>
+          ))}
+        </div>
       </header>
 
       {/*
@@ -129,34 +175,54 @@ export default function BlogIndex({
             </Link>
           )}
 
-          {/* 텍스트 리스트 */}
+          {/*
+            텍스트 리스트 — 날짜 축.
+            날짜를 제목 오른쪽에 붙여 두면 제목 길이에 따라 좌우로 흔들려서 훑을 수 없다.
+            고정폭 칸으로 왼쪽에 세우면 날짜가 세로로 정렬돼 시간 축이 된다.
+            홈 로그 축의 112px 날짜 컬럼과 같은 폭을 쓴다.
+
+            모바일은 grid-cols-1 로 단순히 쌓는다. md: 에만 컬럼을 주면 자동배치가
+            어긋나는 함정(#181)이 있는데, 단일 컬럼에서는 그 여지가 없다.
+
+            상태 점은 두지 않는다. 목록의 모든 글이 같은 상태여서 점이 늘 같은 모양이면
+            정보를 주지 않는 장식이 된다 — 홈 로그 축의 점은 진행 중인 케이스를 가릴 때만
+            뜻이 있다.
+          */}
           {list.length > 0 && (
             <div className="mt-2">
               {list.map((post) => (
                 <Link
                   key={post.slug}
                   href={`/writing/${post.slug}`}
-                  className="group block border-b border-line py-5 transition-colors hover:bg-surface-hover"
+                  className="group grid grid-cols-1 gap-x-6 gap-y-1.5 border-b border-line py-5 transition-colors hover:bg-surface-hover md:grid-cols-[112px_minmax(0,1fr)]"
                 >
-                  <div className="flex items-baseline justify-between gap-4">
+                  {post.date ? (
+                    <time
+                      dateTime={post.date}
+                      className="font-[family-name:var(--font-jbmono)] text-[11.5px] leading-[1.5] text-muted md:mt-[5px]"
+                    >
+                      {post.date}
+                    </time>
+                  ) : (
+                    <span aria-hidden />
+                  )}
+
+                  <div className="min-w-0">
                     <h2 className="text-[18px] font-bold leading-[1.4] text-ink underline-offset-4 group-hover:underline group-hover:decoration-lime group-hover:decoration-2">
                       {post.title}
                     </h2>
-                    {post.date && (
-                      <time className="eyebrow shrink-0 text-muted">{post.date}</time>
+                    {post.summary && (
+                      <p className="mt-1.5 text-[14px] leading-[1.8] text-muted">{post.summary}</p>
                     )}
-                  </div>
-                  {post.summary && (
-                    <p className="mt-1.5 text-[14px] leading-[1.8] text-muted">{post.summary}</p>
-                  )}
-                  <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
-                    <span className="eyebrow text-muted">{readingMinutes(post)}분 읽기</span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {post.tags.map((t) => (
-                        <span key={t} className="chip">
-                          {t}
-                        </span>
-                      ))}
+                    <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                      <span className="eyebrow text-muted">{readingMinutes(post)}분 읽기</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {post.tags.map((t) => (
+                          <span key={t} className="chip">
+                            {t}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </Link>

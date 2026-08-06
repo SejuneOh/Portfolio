@@ -50,8 +50,9 @@ function MetricLine({ e }: { e: Experience }) {
   if (!e.metricLabel || !e.metricBefore || !e.metricAfter) return null
   return (
     <div className="mt-5 border-l-2 border-lime pl-4">
-      <p className="eyebrow leading-[1.6] text-muted">{e.metricLabel}</p>
-      <p className="mt-2 font-[family-name:var(--font-jbmono)] text-[22px] leading-none">
+      {/* 라벨·값 모두 Notion 자유 문자열이다 (#214) */}
+      <p className="eyebrow break-words leading-[1.6] text-muted">{e.metricLabel}</p>
+      <p className="mt-2 break-words font-[family-name:var(--font-jbmono)] text-[22px] leading-none">
         <span className="text-muted">{e.metricBefore}</span>
         <span className="text-muted"> → </span>
         <span className="rounded-[3px] bg-lime px-[5px]" style={{ color: "var(--lime-ink)" }}>
@@ -116,7 +117,9 @@ export default async function CaseDetail({ params }: { params: Promise<{ id: str
         </h1>
 
         {heroLead && (
-          <p className="mt-4 text-[18px] font-medium leading-[1.7] text-ink">{heroLead}</p>
+          <p className="mt-4 break-words text-[18px] font-medium leading-[1.7] text-ink">
+            {heroLead}
+          </p>
         )}
 
         {showTiles && (
@@ -164,7 +167,7 @@ export default async function CaseDetail({ params }: { params: Promise<{ id: str
               </span>
             )}
 
-            <h2 className="mt-3 text-[26px] font-bold leading-[1.25] tracking-[-0.02em] text-ink">
+            <h2 className="mt-3 break-words text-[26px] font-bold leading-[1.25] tracking-[-0.02em] text-ink">
               {e.projectName}
             </h2>
 
@@ -176,12 +179,12 @@ export default async function CaseDetail({ params }: { params: Promise<{ id: str
               규칙은 "읽는 흐름의 산문은 세리프, 구조·메타·라벨은 고딕" 이다(app/layout.tsx).
             */}
             {e.impact?.trim() && (
-              <p className="mt-3 font-[family-name:var(--font-serif)] text-[15.5px] leading-[1.8] text-ink">
+              <p className="mt-3 break-words font-[family-name:var(--font-serif)] text-[15.5px] leading-[1.8] text-ink">
                 {e.impact.trim()}
               </p>
             )}
             {e.description?.trim() && e.description.trim() !== e.impact?.trim() && (
-              <p className="mt-2 font-[family-name:var(--font-serif)] text-[15px] leading-[1.8] text-muted">
+              <p className="mt-2 break-words font-[family-name:var(--font-serif)] text-[15px] leading-[1.8] text-muted">
                 {e.description.trim()}
               </p>
             )}

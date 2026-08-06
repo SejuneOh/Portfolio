@@ -73,7 +73,11 @@ export default function Toc({ items }: { items: TocItem[] }) {
               >
                 {String(i + 1).padStart(2, "0")}
               </span>
-              <span className="min-w-0">{it.text}</span>
+              {/*
+                헤딩 텍스트도 Notion 자유 문자열이다. 이 span 은 이미 min-w-0 이라
+                flex 아이템이 min-content 아래로 줄어들 수 있으므로 break-words 로 충분하다 (#214).
+              */}
+              <span className="min-w-0 break-words">{it.text}</span>
             </a>
           </li>
         )

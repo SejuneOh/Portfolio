@@ -109,10 +109,15 @@ export default function BlogIndex({
               type="button"
               onClick={() => setActive(c)}
               aria-pressed={on}
+              /*
+                분류 이름도 Notion select 의 자유 문자열이다. 이 칩 행은 가로 스크롤이 아니라
+                flex-wrap 이므로 긴 값이 들어오면 행이 넘친다 (#214).
+                inline-flex 이므로 chip 유틸과 같은 이유로 overflow-wrap:anywhere 를 쓴다.
+              */
               className={
                 on
-                  ? "inline-flex items-center gap-1.5 rounded-[3px] bg-lime px-4 py-1.5 text-[13.5px] font-semibold text-[color:var(--lime-ink)] transition-colors hover:bg-[#CDEA55]"
-                  : "inline-flex items-center gap-1.5 rounded-[3px] border border-line px-4 py-1.5 text-[13.5px] text-ink transition-colors hover:bg-surface-hover"
+                  ? "inline-flex max-w-full items-center gap-1.5 rounded-[3px] bg-lime px-4 py-1.5 text-[13.5px] font-semibold text-[color:var(--lime-ink)] transition-colors [overflow-wrap:anywhere] hover:bg-[#CDEA55]"
+                  : "inline-flex max-w-full items-center gap-1.5 rounded-[3px] border border-line px-4 py-1.5 text-[13.5px] text-ink transition-colors [overflow-wrap:anywhere] hover:bg-surface-hover"
               }
             >
               {c}
@@ -143,14 +148,15 @@ export default function BlogIndex({
                 </span>
               </div>
 
+              {/* 제목·요약은 Notion 자유 문자열이라 공백 없는 긴 토큰이 들어올 수 있다 (#214) */}
               <h2
-                className="mt-4 text-[30px] font-bold leading-[1.22]"
+                className="mt-4 break-words text-[30px] font-bold leading-[1.22]"
                 style={{ color: "var(--lime-ink)" }}
               >
                 {pinned.title}
               </h2>
               {pinned.summary && (
-                <p className="mt-3 text-[14.5px] leading-[1.8]">{pinned.summary}</p>
+                <p className="mt-3 break-words text-[14.5px] leading-[1.8]">{pinned.summary}</p>
               )}
 
               <div className="mt-6 flex items-center justify-between gap-4">
@@ -208,11 +214,13 @@ export default function BlogIndex({
                   )}
 
                   <div className="min-w-0">
-                    <h2 className="text-[18px] font-bold leading-[1.4] text-ink underline-offset-4 group-hover:underline group-hover:decoration-lime group-hover:decoration-2">
+                    <h2 className="break-words text-[18px] font-bold leading-[1.4] text-ink underline-offset-4 group-hover:underline group-hover:decoration-lime group-hover:decoration-2">
                       {post.title}
                     </h2>
                     {post.summary && (
-                      <p className="mt-1.5 text-[14px] leading-[1.8] text-muted">{post.summary}</p>
+                      <p className="mt-1.5 break-words text-[14px] leading-[1.8] text-muted">
+                        {post.summary}
+                      </p>
                     )}
                     <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
                       <span className="eyebrow text-muted">{readingMinutes(post)}분 읽기</span>

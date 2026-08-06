@@ -202,7 +202,13 @@ export default async function Home() {
               key={t}
               className={
                 i === 0
-                  ? "inline-flex items-center gap-1.5 rounded-[3px] bg-lime px-2.5 py-0.5 text-xs font-semibold"
+                  ? /*
+                       1등 토픽만 라임이다. chip 유틸을 쓰지 않으므로 같은 처리를 직접 준다 (#214).
+                       inline-flex 에서는 break-words 가 아니라 overflow-wrap:anywhere 여야 한다 —
+                       break-word 는 min-content 를 줄이지 않아 익명 flex 아이템이 토큰 전체 폭을
+                       요구하고, 그러면 max-w-full 로 묶어도 글자가 삐져나간다.
+                     */
+                    "inline-flex max-w-full items-center gap-1.5 rounded-[3px] bg-lime px-2.5 py-0.5 text-xs font-semibold [overflow-wrap:anywhere]"
                   : "chip gap-1.5"
               }
               style={i === 0 ? { color: "var(--lime-ink)" } : undefined}
@@ -275,11 +281,14 @@ export default async function Home() {
                   <span className="font-[family-name:var(--font-jbmono)] text-[10.5px] uppercase tracking-[0.18em] text-lime">
                     {e.kind === "case" ? "Case" : "Post"}
                   </span>
-                  <h2 className="mt-1.5 text-[18px] font-bold leading-[1.4] text-ink transition-colors group-hover:text-lime">
+                  {/* 케이스 이름·글 제목·요약은 Notion 자유 문자열이다 — 긴 토큰을 끊는다 (#214) */}
+                  <h2 className="mt-1.5 break-words text-[18px] font-bold leading-[1.4] text-ink transition-colors group-hover:text-lime">
                     {e.title}
                   </h2>
                   {e.summary && (
-                    <p className="mt-1.5 text-[14px] leading-[1.8] text-muted">{e.summary}</p>
+                    <p className="mt-1.5 break-words text-[14px] leading-[1.8] text-muted">
+                      {e.summary}
+                    </p>
                   )}
                   <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
                     {e.meta && <span className="eyebrow text-muted">{e.meta}</span>}

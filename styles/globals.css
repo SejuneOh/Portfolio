@@ -24,8 +24,25 @@
   @apply rounded-[3px] border border-line bg-surface transition-all duration-200;
 }
 
+/*
+  태그·분류 칩. 내용은 Notion multi_select·select 의 자유 문자열이므로 공백 없는 긴 값이
+  들어올 수 있다 (#214).
+
+  **여기는 break-words(overflow-wrap: break-word)로 안 된다.** 칩이 inline-flex 라
+  텍스트가 익명 flex 아이템이 되고, 그 아이템의 min-width: auto 는 min-content 로 풀린다.
+  break-word 는 줄바꿈만 허용하고 **min-content 크기를 줄이지 않으므로** 아이템이 토큰
+  전체 폭을 그대로 요구한다. 그래서 max-w-full 로 칩을 묶어도 안에서 글자가 삐져나가고
+  문서가 가로로 넘친다(320px 에서 +118px 실측).
+
+  overflow-wrap: anywhere 는 min-content 계산에도 적용된다. 그래서 flex 컨테이너에서는
+  이것을 써야 한다. 블록(문단·목록 항목)에서는 break-words 로 충분하다 — 그쪽은 줄 상자가
+  이미 컨테이너 폭이라 끊기만 하면 되기 때문이다.
+
+  word-break: break-all 은 여전히 쓰지 않는다 — 한글을 아무 곳이나 끊는다.
+*/
 @utility chip {
-  @apply inline-flex items-center rounded-[3px] border border-line bg-surface px-2.5 py-0.5 text-xs font-medium text-muted;
+  @apply inline-flex max-w-full items-center rounded-[3px] border border-line bg-surface px-2.5 py-0.5 text-xs font-medium text-muted;
+  overflow-wrap: anywhere;
 }
 
 /*

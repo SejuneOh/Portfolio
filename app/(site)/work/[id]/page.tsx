@@ -116,7 +116,9 @@ export default async function CaseDetail({ params }: { params: Promise<{ id: str
         </h1>
 
         {heroLead && (
-          <p className="mt-4 text-[18px] font-medium leading-[1.7] text-ink">{heroLead}</p>
+          <p className="mt-4 break-words text-[18px] font-medium leading-[1.7] text-ink">
+            {heroLead}
+          </p>
         )}
 
         {showTiles && (
@@ -176,12 +178,12 @@ export default async function CaseDetail({ params }: { params: Promise<{ id: str
               규칙은 "읽는 흐름의 산문은 세리프, 구조·메타·라벨은 고딕" 이다(app/layout.tsx).
             */}
             {e.impact?.trim() && (
-              <p className="mt-3 font-[family-name:var(--font-serif)] text-[15.5px] leading-[1.8] text-ink">
+              <p className="mt-3 break-words font-[family-name:var(--font-serif)] text-[15.5px] leading-[1.8] text-ink">
                 {e.impact.trim()}
               </p>
             )}
             {e.description?.trim() && e.description.trim() !== e.impact?.trim() && (
-              <p className="mt-2 font-[family-name:var(--font-serif)] text-[15px] leading-[1.8] text-muted">
+              <p className="mt-2 break-words font-[family-name:var(--font-serif)] text-[15px] leading-[1.8] text-muted">
                 {e.description.trim()}
               </p>
             )}

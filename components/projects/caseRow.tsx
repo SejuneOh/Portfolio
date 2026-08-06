@@ -107,12 +107,19 @@ export default function CaseRow({ data }: { data: ProjectGroup }) {
 
         {meta && <p className="eyebrow mt-3 text-muted">{meta}</p>}
 
-        <h2 className="mt-2 text-[28px] font-bold leading-[1.2] tracking-[-0.02em] text-ink">
+        {/*
+          케이스 이름·요약은 Notion 자유 문자열이다. `CloudHospital.Api` 처럼 공백 없는
+          긴 토큰이 들어와 320px 에서 제목이 상자를 넘겼다(+1.5px). 상세 화면의 H1 은
+          #182 가 이미 break-words 로 끊고 있는데 목록의 제목이 빠져 있었다.
+        */}
+        <h2 className="mt-2 break-words text-[28px] font-bold leading-[1.2] tracking-[-0.02em] text-ink">
           {data.name}
         </h2>
 
         {data.summary && (
-          <p className="mt-2 max-w-[60ch] text-[14px] leading-[1.8] text-muted">{data.summary}</p>
+          <p className="mt-2 max-w-[60ch] break-words text-[14px] leading-[1.8] text-muted">
+            {data.summary}
+          </p>
         )}
 
         {data.tags.length > 0 && (

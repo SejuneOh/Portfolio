@@ -127,7 +127,8 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
             {meta[1] && <span>{meta[1]}</span>}
           </div>
 
-          <h1 className="mt-3 text-[40px] font-bold leading-[1.12] tracking-[-0.032em] text-ink">
+          {/* 글 제목도 Notion 자유 문자열이다 — 긴 토큰을 끊는다 (#214) */}
+          <h1 className="mt-3 break-words text-[40px] font-bold leading-[1.12] tracking-[-0.032em] text-ink">
             {post.title}
           </h1>
 
@@ -148,7 +149,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
           {post.summary && (
             <div className="mt-6 flex flex-col gap-2 border-l-2 border-lime pl-5 sm:flex-row sm:gap-5">
               <span className="eyebrow shrink-0 text-muted sm:pt-1">TL;DR</span>
-              <p className="font-[family-name:var(--font-serif)] text-[14px] leading-[1.8] text-[color:var(--text-body)]">
+              <p className="break-words font-[family-name:var(--font-serif)] text-[14px] leading-[1.8] text-[color:var(--text-body)]">
                 {post.summary}
               </p>
             </div>

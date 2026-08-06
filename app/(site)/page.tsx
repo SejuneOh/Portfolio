@@ -155,8 +155,21 @@ export default async function Home() {
       {/*
         채널 스트립 — 축에 무엇이 몇 개 걸려 있는지. 계기판의 상단 표시부에 해당한다.
         값이 0 인 채널도 낸다. 0 이라는 사실 자체가 정보다.
+
+        표시등에 shrink-0, 라벨에 min-w-0, 값에 shrink-0 을 준다. 없으면 좁은 폭에서
+        flex 가 표시등을 0 까지 줄여 없애 버린다 — Live 의 라임 점이 "진행 중이 있다"를
+        말하는 유일한 신호인데 그것이 사라졌다.
+
+        3열이 성립하는 최소 폭을 5px 간격으로 재보니 **340px** 이다. 그 아래에서는
+        라벨이 상자를 넘긴다(320px 에서 「Cases」가 +7.1px). 340px 에 딱 맞추지 않고
+        360px 에서 3열로 올리는 이유는 서체 스왑 구간의 폴백 폭 차이만큼 여유를 두려는
+        것이다 — 흔한 기기 폭(360·375·390·412·428)은 모두 한 줄을 유지한다.
+
+        Work 목록은 같은 처리를 sm:(640px) 에서 한다. 라벨 「Experiences」의 자연 폭이
+        87px 이라 훨씬 넓은 폭까지 3열이 성립하지 않기 때문이다. 임계 폭이 다른 것은
+        내용이 다르기 때문이고, 동작 규칙("좁으면 쌓고 들어가면 3열")은 같다.
       */}
-      <div className="mt-9 grid grid-cols-3 border border-line bg-surface font-[family-name:var(--font-jbmono)]">
+      <div className="mt-9 grid grid-cols-1 border border-line bg-surface font-[family-name:var(--font-jbmono)] min-[360px]:grid-cols-3">
         {[
           { label: "Cases", value: caseCount },
           { label: "Posts", value: postCount },
@@ -164,14 +177,18 @@ export default async function Home() {
         ].map((ch, i) => (
           <div
             key={ch.label}
-            className={`flex items-center gap-2 px-4 py-2.5 ${i < 2 ? "border-r border-line" : ""}`}
+            className={`flex items-center gap-2 px-4 py-2.5 ${
+              i < 2 ? "border-b border-line min-[360px]:border-b-0 min-[360px]:border-r" : ""
+            }`}
           >
             <span
               aria-hidden
-              className={`inline-block h-1.5 w-1.5 rounded-full ${ch.lit ? "bg-lime" : "bg-line"}`}
+              className={`inline-block h-1.5 w-1.5 shrink-0 rounded-full ${ch.lit ? "bg-lime" : "bg-line"}`}
             />
-            <span className="text-[10.5px] uppercase tracking-[0.18em] text-muted">{ch.label}</span>
-            <span className="ml-auto text-[13px] text-ink">{ch.value}</span>
+            <span className="min-w-0 text-[10.5px] uppercase tracking-[0.18em] text-muted">
+              {ch.label}
+            </span>
+            <span className="ml-auto shrink-0 text-[13px] text-ink">{ch.value}</span>
           </div>
         ))}
       </div>

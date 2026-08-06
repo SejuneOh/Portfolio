@@ -23,64 +23,72 @@ function GitHubIcon() {
 export default function TopNav() {
   const pathname = usePathname()
 
-  // Contact 페이지에서는 우측 버튼을 없애고 필 내비의 다섯 번째 항목으로 옮긴다.
+  // Contact 페이지에서는 우측 버튼을 없애고 라벨 바의 다섯 번째 항목으로 옮긴다.
   const onContact = isNavActive(pathname, CONTACT.href)
   const items = onContact ? [...NAV, CONTACT] : NAV
 
   return (
-    <nav className="hidden grid-cols-[1fr_auto_1fr] items-center py-1 md:grid print:hidden">
-      {/* 좌 — 로고 */}
-      <Link href="/" aria-label="home" className="w-fit">
-        <span className="font-logo text-[21px] font-bold leading-none tracking-tight text-ink">
-          SEJUNE<span className="text-lime">.</span>DEV
-        </span>
-      </Link>
+    /*
+      계측기 라벨 바. 이전에는 지면 위에 필 내비만 떠 있었는데, 계측 콘솔에서는
+      크롬이 계기판 상단 라벨 스트립처럼 테두리 안에 담긴다.
 
-      {/* 중앙 — 필 내비 */}
-      <ul className="flex list-none items-center gap-1 justify-self-center rounded-full border border-line px-2.5 py-[7px]">
-        {items.map((n) => {
-          const active = isNavActive(pathname, n.href)
-          return (
-            <li key={n.href}>
-              <Link
-                href={n.href}
-                aria-current={active ? "page" : undefined}
-                className={
-                  active
-                    ? "pill-nav-item bg-lime font-semibold text-[color:var(--lime-ink)] hover:bg-[#CDEA55]"
-                    : "pill-nav-item text-fg hover:bg-surface-hover"
-                }
-              >
-                {n.label}
-              </Link>
-            </li>
-          )
-        })}
-      </ul>
+      3슬롯 그리드는 유지한다 — 아래 주석의 이유가 그대로 유효하다.
+    */
+    <nav className="hidden md:block print:hidden">
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 rounded-[3px] border border-line bg-surface px-4 py-[9px]">
+        {/* 좌 — 로고 */}
+        <Link href="/" aria-label="home" className="w-fit">
+          <span className="font-logo text-[19px] font-bold leading-none tracking-tight text-ink">
+            SEJUNE<span className="text-lime">.</span>DEV
+          </span>
+        </Link>
 
-      {/*
-        우 — GitHub + Contact 버튼.
-        Contact 페이지에서는 버튼을 렌더하지 않는다. 슬롯 자체는 남으므로
-        가운데 내비 위치는 모든 페이지에서 같다.
-      */}
-      <div className="flex items-center gap-3 justify-self-end">
-        <a
-          href="https://github.com/SejuneOh"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="GitHub"
-          className="text-muted transition-colors hover:text-fg"
-        >
-          <GitHubIcon />
-        </a>
-        {!onContact && (
-          <Link
-            href={CONTACT.href}
-            className="pill-nav-item bg-lime font-semibold text-[color:var(--lime-ink)] hover:bg-[#CDEA55]"
+        {/* 중앙 — 라벨. 고정폭 + 넓은 자간으로 계기판 표기처럼 읽힌다 */}
+        <ul className="flex list-none items-center gap-1 justify-self-center">
+          {items.map((n) => {
+            const active = isNavActive(pathname, n.href)
+            return (
+              <li key={n.href}>
+                <Link
+                  href={n.href}
+                  aria-current={active ? "page" : undefined}
+                  className={
+                    active
+                      ? "pill-nav-item bg-lime font-[family-name:var(--font-jbmono)] text-[12px] tracking-[0.08em] text-[color:var(--lime-ink)] hover:bg-[#CDEA55]"
+                      : "pill-nav-item font-[family-name:var(--font-jbmono)] text-[12px] tracking-[0.08em] text-muted hover:bg-surface-hover hover:text-ink"
+                  }
+                >
+                  {n.label}
+                </Link>
+              </li>
+            )
+          })}
+        </ul>
+
+        {/*
+          우 — GitHub + Contact 버튼.
+          Contact 페이지에서는 버튼을 렌더하지 않는다. 슬롯 자체는 남으므로
+          가운데 내비 위치는 모든 페이지에서 같다.
+        */}
+        <div className="flex items-center gap-3 justify-self-end">
+          <a
+            href="https://github.com/SejuneOh"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="GitHub"
+            className="text-muted transition-colors hover:text-fg"
           >
-            {CONTACT.label}
-          </Link>
-        )}
+            <GitHubIcon />
+          </a>
+          {!onContact && (
+            <Link
+              href={CONTACT.href}
+              className="pill-nav-item bg-lime font-[family-name:var(--font-jbmono)] text-[12px] tracking-[0.08em] text-[color:var(--lime-ink)] hover:bg-[#CDEA55]"
+            >
+              {CONTACT.label}
+            </Link>
+          )}
+        </div>
       </div>
     </nav>
   )

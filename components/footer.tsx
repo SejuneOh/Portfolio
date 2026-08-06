@@ -21,7 +21,8 @@ export default function Footer() {
     <footer className="border-t border-line pt-6 pb-10 print:hidden">
       <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
         <div className="min-w-0">
-          <nav className="flex flex-wrap gap-x-5 gap-y-2 text-[13px] font-semibold text-ink">
+          {/* 상단 라벨 바와 같은 고정폭 표기로 맞춘다 — 크롬의 어법을 한 벌로 둔다 */}
+          <nav className="flex flex-wrap gap-x-5 gap-y-2 font-[family-name:var(--font-jbmono)] text-[12px] tracking-[0.08em] text-ink">
             {nav.map((n) => (
               <Link key={n.href} href={n.href} className="hover:text-muted">
                 {n.label}

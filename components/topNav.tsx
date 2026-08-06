@@ -65,11 +65,11 @@ export default function TopNav() {
           })}
         </ul>
 
-      {/*
-        우 — GitHub + Contact 버튼.
-        Contact 페이지에서는 버튼을 렌더하지 않는다. 슬롯 자체는 남으므로
-        가운데 내비 위치는 모든 페이지에서 같다.
-      */}
+        {/*
+          우 — GitHub + Contact 버튼.
+          Contact 페이지에서는 버튼을 렌더하지 않는다. 슬롯 자체는 남으므로
+          가운데 내비 위치는 모든 페이지에서 같다.
+        */}
         <div className="flex items-center gap-3 justify-self-end">
           <a
             href="https://github.com/SejuneOh"

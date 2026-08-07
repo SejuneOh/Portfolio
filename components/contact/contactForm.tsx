@@ -21,15 +21,16 @@ const TYPES = ["면접 요청", "이메일 요청"] as const
 const DEFAULT_TYPE: (typeof TYPES)[number] = "면접 요청"
 
 /*
-  필드 경계는 --field-border 를 쓴다. --border 는 지면 대비 1.38:1 이라 어두운 지면에서
-  필드가 어디부터 어디까지인지 보이지 않는다 (WCAG 1.4.11 비텍스트 3:1 미달).
+  필드 경계는 --control-border(구 --field-border) 를 쓴다. --border 는 지면 대비 1.38:1 이라
+  어두운 지면에서 필드가 어디부터 어디까지인지 보이지 않는다 (WCAG 1.4.11 비텍스트 3:1 미달).
+  #229 에서 같은 토큰을 필터 칩·필 버튼·복사 버튼까지 넓히면서 이름을 바꿨다.
 
   포커스는 전역 :focus-visible 이 라임 외곽선을 그린다(globals.css). 여기서는 경계색까지
   라임으로 올려 신호를 둘로 만든다 — :focus-visible 이 아니라 :focus 를 쓰는 이유는
   텍스트 입력은 마우스로 눌러 들어와도 "지금 여기 쓴다"가 보여야 하기 때문이다.
 */
 const fieldCls =
-  "mt-2 w-full rounded-[3px] border border-[color:var(--field-border)] bg-transparent px-[14px] py-3 text-sm text-ink transition-colors placeholder:text-muted hover:border-ink focus:border-lime"
+  "mt-2 w-full rounded-[3px] border border-control bg-transparent px-[14px] py-3 text-sm text-ink transition-colors placeholder:text-muted hover:border-ink focus:border-lime"
 
 /*
   라벨은 규격이 10.5px 다. eyebrow 유틸(고정폭·대문자·자간)을 쓰되 크기만 덮는다 —
@@ -82,7 +83,7 @@ export default function ContactForm() {
                 className="peer sr-only"
               />
               {/* 포커스 외곽선은 전역과 같은 라임으로 맞춘다 — 한 폼에 포커스색이 둘이면 안 된다 */}
-              <span className="inline-flex items-center rounded-[3px] border border-[color:var(--field-border)] px-4 py-1.5 text-[13.5px] text-ink transition-colors peer-checked:border-lime peer-checked:bg-lime peer-checked:font-semibold peer-checked:text-[color:var(--lime-ink)] peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-lime">
+              <span className="inline-flex items-center rounded-[3px] border border-control px-4 py-1.5 text-[13.5px] text-ink transition-colors peer-checked:border-lime peer-checked:bg-lime peer-checked:font-semibold peer-checked:text-[color:var(--lime-ink)] peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-lime">
                 {t}
               </span>
             </label>

@@ -113,11 +113,14 @@ export default function BlogIndex({
                 분류 이름도 Notion select 의 자유 문자열이다. 이 칩 행은 가로 스크롤이 아니라
                 flex-wrap 이므로 긴 값이 들어오면 행이 넘친다 (#214).
                 inline-flex 이므로 chip 유틸과 같은 이유로 overflow-wrap:anywhere 를 쓴다.
+
+                비선택 칩의 테두리는 border-control 이다. 배경이 없어 테두리가 '누를 수 있다'의
+                유일한 단서인데 border-line(1.38:1)은 WCAG 1.4.11(3:1)에 못 미친다 (#229).
               */
               className={
                 on
                   ? "inline-flex max-w-full items-center gap-1.5 rounded-[3px] bg-lime px-4 py-1.5 text-[13.5px] font-semibold text-[color:var(--lime-ink)] transition-colors [overflow-wrap:anywhere] hover:bg-[#CDEA55]"
-                  : "inline-flex max-w-full items-center gap-1.5 rounded-[3px] border border-line px-4 py-1.5 text-[13.5px] text-ink transition-colors [overflow-wrap:anywhere] hover:bg-surface-hover"
+                  : "inline-flex max-w-full items-center gap-1.5 rounded-[3px] border border-control px-4 py-1.5 text-[13.5px] text-ink transition-colors [overflow-wrap:anywhere] hover:bg-surface-hover"
               }
             >
               {c}

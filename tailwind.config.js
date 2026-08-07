@@ -15,7 +15,10 @@ module.exports = {
         "surface-hover": "var(--surface-hover)",
         fg: "var(--ink)",
         muted: "var(--text-muted)",
+        // 장식 경계 — 카드·구분선·격자
         line: "var(--border)",
+        // 조작 요소의 경계 — 필드·필터 칩·필 버튼·복사 버튼 (WCAG 1.4.11, #229)
+        control: "var(--control-border)",
         accent: {
           DEFAULT: "var(--accent)",
           hover: "var(--accent-hover)",

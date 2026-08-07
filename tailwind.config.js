@@ -25,7 +25,6 @@ module.exports = {
         },
         ink: "var(--ink)",
         lime: "var(--lime)",
-        track: "var(--track)",
       },
       fontFamily: {
         // 본문 기본. --font-display(IBM Plex Sans KR)가 한글을 포함하므로 그것을 먼저 둔다.

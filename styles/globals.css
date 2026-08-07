@@ -62,11 +62,6 @@
   color: var(--text-body);
 }
 
-/* 소형 타일 */
-@utility tile {
-  @apply rounded-[3px] border border-line bg-surface;
-}
-
 /*
   아웃라인 필 버튼. 배경이 없어 테두리가 '이것은 버튼이다'의 유일한 단서다 —
   border-line(1.38:1)이면 테두리를 걷어낸 것과 비슷하게 보인다. border-control 을 쓴다 (#229).
@@ -81,7 +76,10 @@
   color: var(--lime-ink);
 }
 
-/* 상단 필 내비의 개별 항목 */
+/*
+  상단 라벨 바의 개별 항목. 유틸 이름은 필 내비 시절 그대로다 —
+  #180 에서 필 내비가 계측 라벨 바로 바뀌었지만 이름을 바꾸면 호출부를 전부 고쳐야 한다.
+*/
 @utility pill-nav-item {
   @apply inline-flex items-center rounded-[3px] px-4 py-1.5 text-[13.5px] transition-colors;
 }
@@ -102,22 +100,31 @@
   text-transform: uppercase;
 }
 
-/* 수치(Proof) — 히어로·강조용 */
+/*
+  수치(Proof) 리드아웃. 계측 콘솔에서 화면의 주역이다.
+
+  30px·19px 이었는데 호출부가 0이었다 (#222). 실제 리드아웃이 두 곳에서 인라인으로
+  25px·22px 를 쓰고 있었다 — 어느 쪽도 유틸과 맞지 않아 우회한 것이다.
+  유틸을 실제 크기에 맞추고 그 두 곳이 유틸을 쓰게 했다. 수치 크기가 네 종류
+  (30·25·22·19)에서 두 종류로 줄었다.
+
+  **font-weight: 600 은 뺐다.** 유틸에는 있었지만 실제 호출부 둘 다 굵기를 지정하지
+  않아 400 으로 렌더된다. 유틸을 그대로 붙이면 수치가 굵어진다 — 정리하다가 화면을
+  바꾸는 것이라 하지 않는다. 리드아웃을 굵게 할지는 따로 정할 일이다.
+*/
+
+/* 케이스 목록의 리드아웃 */
 @utility proof {
   font-family: var(--font-jbmono), ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 30px;
-  font-weight: 600;
+  font-size: 25px;
+  line-height: 1;
 }
 
-/* 수치(Proof) — 타일 등 좁은 자리용 */
+/* 케이스 상세의 좁은 자리 */
 @utility proof-sm {
   font-family: var(--font-jbmono), ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 19px;
-  font-weight: 600;
-}
-
-@utility btn-accent {
-  @apply inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover;
+  font-size: 22px;
+  line-height: 1;
 }
 
 /*
@@ -152,10 +159,15 @@
     */
     --accent: #dde8ec;
     --accent-hover: #f2f8fa;
-    --track: #16232b;
     /* 계기판 격자. #180에서 계측 배경이 쓴다 */
     --grid: #16232b;
-    /* 계측 3채널 — 1번은 --lime이고, 2·3번은 아직 쓰는 곳이 없다 */
+    /*
+      계측 3채널. 1번이 --lime 이고 2·3번은 보조다.
+
+      --ch3 는 참조가 0이지만 남긴다 (#222). '3채널' 은 계측 콘솔의 설계 전제라
+      하나를 지우면 2채널이 되고, 나중에 세 번째가 필요해질 때 라임·청록과 각이 벌어진
+      값을 다시 찾아야 한다. 예약으로 둔 것이지 지우다 만 것이 아니다.
+    */
     --ch2: #4fd0d8;
     --ch3: #f2a54a;
     /*
@@ -181,8 +193,6 @@
       --border로 충분하다. 구분되지 않아 경계가 유일한 단서면 이쪽을 쓴다.
     */
     --control-border: #54707f;
-    --glow1: rgb(216 242 106 / 0.42);
-    --glow2: rgb(79 208 216 / 0.34);
   }
 }
 

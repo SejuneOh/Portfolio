@@ -146,7 +146,8 @@ export default function CaseRow({ data }: { data: ProjectGroup }) {
           <div className="border-l-2 border-lime pl-4">
             {/* 라벨·값 모두 Notion 자유 문자열이다 (#214) */}
             <p className="eyebrow break-words leading-[1.6] text-muted">{metric.metricLabel}</p>
-            <p className="mt-2 break-words font-[family-name:var(--font-jbmono)] text-[25px] leading-none">
+            {/* 크기는 proof 유틸이 정한다 (#222) — 이전에는 여기서 25px 을 직접 적었다 */}
+            <p className="proof mt-2 break-words">
               <span className="text-muted">{metric.metricBefore}</span>
               <span className="text-muted"> → </span>
               <span

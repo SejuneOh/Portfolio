@@ -287,7 +287,7 @@ export default function ResumeDoc() {
           min-height: 100vh;
           background: var(--paper);
           color: var(--ink);
-          font-family: var(--font-instrument), -apple-system, sans-serif;
+          font-family: var(--font-instrument), ui-sans-serif, -apple-system, sans-serif;
           line-height: 1.55;
           font-size: 15px;
           letter-spacing: 0.005em;

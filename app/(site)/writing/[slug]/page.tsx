@@ -113,7 +113,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
             ← Writing
           </Link>
 
-          {/* 메타 행 — 카테고리만 라임 필 */}
+          {/* 메타 행 — 카테고리만 라임 칩 (#208 이후 각진 3px 이다) */}
           <div className="mt-6 flex flex-wrap items-center gap-2 font-[family-name:var(--font-jbmono)] text-[11.5px] text-muted">
             {meta[0] && <span>{meta[0]}</span>}
             {/*

@@ -179,16 +179,16 @@
     /*
       계측 3채널. **셋 다 지금 쓰이고 있다.**
 
-      components/console/instrumentBg.tsx 의 CHANNELS 가 토큰 이름을 **문자열로** 들고
-      있다가 getPropertyValue 로 읽어 파형 3개를 그린다.
+      components/console/instrumentBg.tsx 의 CHANNELS 배열이 토큰 이름을 **문자열로**
+      들고 있다가 getPropertyValue 로 읽어 파형 3개를 그린다.
 
-        instrumentBg.tsx:22-24   { token: "--ch2" } { token: "--lime" } { token: "--ch3" }
-                          :62    root.getPropertyValue(c.token)
+        const CHANNELS = [{ token: "--ch2" … }, { token: "--lime" … }, { token: "--ch3" … }]
+        withAlpha(root.getPropertyValue(c.token), c.fallback, c.alpha)
 
       그래서 `git grep 'var(--ch3)'` 로는 잡히지 않는다. #222 에서 그렇게만 세다가
       "참조 0" 이라고 적었고 검사에서 잡혔다. 죽은 토큰으로 오인해 지우면
       getPropertyValue 가 빈 문자열을 주고 fallback 으로 조용히 넘어간다 — 화면은
-      그대로 보이지만 팔레트와 파형색의 연결이 끊긴다(같은 파일 28-32행 주석 참조).
+      그대로 보이지만 팔레트와 파형색의 연결이 끊긴다(withAlpha 위 주석 참조).
 
       토큰이 코드에 들어오는 경로가 셋이다. 세려면 셋 다 봐야 한다.
         1) CSS 의 var(--x)
@@ -210,7 +210,7 @@
       지면 대비 3.76:1.
 
       #184에서 입력 필드·라디오용으로 들였고, #185 검수에서 같은 문제가 필터 칩·
-      필 버튼·복사 버튼에도 있다는 것이 나와 #229에서 그쪽까지 넓혔다.
+      아웃라인 버튼·복사 버튼에도 있다는 것이 나와 #229에서 그쪽까지 넓혔다.
       이름이 --field-border였는데 필드만의 것이 아니게 되어 바꿨다.
 
       **장식 경계는 --border 그대로 둔다** — 카드·구분선·격자. 전역으로 올리면
@@ -239,7 +239,7 @@
 
     outline-offset 이 양수라 외곽선은 요소 바깥, 즉 **부모 배경 위**에 그려진다.
     부모가 라임이면 라임 외곽선이 라임 위에 얹혀 대비 1:1 — 포커스가 사라진다.
-    (요소 자기 배경이 라임인 것은 문제가 아니다. 내비 활성 필의 외곽선은
+    (요소 자기 배경이 라임인 것은 문제가 아니다. 내비 활성 항목의 외곽선은
      헤더 판넬 #0c1216 위에 그려져 15:1 이다)
 
     자리마다 고치지 않고 규칙 하나로 덮는다. 라임 면이 더 생겨도 따라온다.

@@ -15,7 +15,7 @@ export const NAV: NavItem[] = [
 
 // Contact는 주 내비가 아니라 액션이다. 데스크톱에서는 우측 버튼으로 렌더하고,
 // Contact 페이지에서만 버튼을 없애고 라벨 바의 다섯 번째 항목으로 옮긴다.
-// (#180 에서 필 내비가 계측 라벨 바로 바뀌었다. topNav.tsx:26 은 그때 고쳤고 여기가 남았다)
+// (#180 에서 필 내비가 계측 라벨 바로 바뀌었다. topNav.tsx 는 그때 고쳤고 여기가 남았다)
 // 모바일 드로어는 버튼 자리가 없으므로 주 내비와 함께 나열한다.
 export const CONTACT: NavItem = { href: "/contact", label: "Contact" }
 

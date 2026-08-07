@@ -42,6 +42,9 @@ const plexSansKr = IBM_Plex_Sans_KR({
   세 곳의 주석이 한꺼번에 거짓이 됐다. 지금 수가 궁금하면 세면 된다:
 
     git grep -l -- "--font-jbmono" -- app components lib styles tailwind.config.js
+
+  경로를 한정하는 이유는 docs/loop/STATE.md 같은 실행 기록이 이 이름을 언급하기
+  때문이다 — 고칠 대상이 아니므로 세는 데서도 뺀다.
 */
 const plexMono = IBM_Plex_Mono({
   subsets: ["latin"],

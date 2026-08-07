@@ -19,24 +19,51 @@ export default async function Work() {
   })
 
   const experiences = groups.reduce((n, g) => n + g.count, 0)
+  const live = groups.filter((g) => g.inProgress).length
 
   return (
     <>
-      <header className="flex flex-col gap-6 pb-8 lg:flex-row lg:items-end lg:justify-between">
-        <div className="min-w-0">
-          <p className="eyebrow text-muted">
-            {groups.length} cases · {experiences} experiences
-          </p>
-          {/* FIXED 에만 라임 배경 — 라임을 쓰는 유일한 자리가 아니라 제목의 강조다 */}
-          <h1 className="mt-3 text-[52px] font-bold leading-none tracking-[-0.035em] text-ink">
-            WHAT{" "}
-            <span
-              className="rounded-[6px] bg-lime px-2"
-              style={{ color: "var(--lime-ink)" }}
+      <header className="pb-8">
+        <p className="eyebrow text-muted">Work</p>
+        {/* FIXED 에만 라임 배경 — 라임을 쓰는 유일한 자리가 아니라 제목의 강조다 */}
+        <h1 className="mt-3 text-[52px] font-bold leading-none tracking-[-0.035em] text-ink">
+          WHAT{" "}
+          <span className="rounded-[3px] bg-lime px-2" style={{ color: "var(--lime-ink)" }}>
+            FIXED
+          </span>
+        </h1>
+
+        {/*
+          채널 스트립 — 축에 무엇이 몇 개 걸려 있는지 먼저 읽힌다.
+          값이 0 인 채널도 낸다. 0 이라는 사실 자체가 정보다.
+
+          구조는 홈과 같지만 **좁은 폭에서 세로로 쌓는다.** 홈의 라벨은 다섯 자 이하라
+          3열이 성립하는데, 여기 `Experiences` 는 자연 폭이 87px 이고 360px 화면의 셀은
+          46px 밖에 주지 못한다. 한 줄로 밀어 넣으면 옆 칸을 덮거나 잘려서, 숫자의 의미를
+          말해 주는 유일한 요소가 사라진다.
+        */}
+        <div className="mt-7 grid grid-cols-1 border border-line bg-surface font-[family-name:var(--font-jbmono)] sm:grid-cols-3">
+          {[
+            { label: "Cases", value: groups.length },
+            { label: "Experiences", value: experiences },
+            { label: "Live", value: live, lit: live > 0 },
+          ].map((ch, i) => (
+            <div
+              key={ch.label}
+              className={`flex items-center gap-2 px-4 py-2.5 ${
+                i < 2 ? "border-b border-line sm:border-b-0 sm:border-r" : ""
+              }`}
             >
-              FIXED
-            </span>
-          </h1>
+              <span
+                aria-hidden
+                className={`inline-block h-1.5 w-1.5 shrink-0 rounded-full ${ch.lit ? "bg-lime" : "bg-line"}`}
+              />
+              <span className="min-w-0 text-[10.5px] uppercase tracking-[0.18em] text-muted">
+                {ch.label}
+              </span>
+              <span className="ml-auto shrink-0 text-[13px] text-ink">{ch.value}</span>
+            </div>
+          ))}
         </div>
       </header>
 

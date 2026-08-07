@@ -49,12 +49,12 @@ export default async function Image({
           flexDirection: "column",
           justifyContent: "center",
           padding: "80px",
-          background: "#191919",
-          color: "#ffffff",
+          background: "#070b0d",
+          color: "#dde8ec",
           fontFamily: fontData ? "Noto Sans KR" : "sans-serif",
         }}
       >
-        <div style={{ fontSize: 28, letterSpacing: 6, color: "#818cf8", textTransform: "uppercase" }}>
+        <div style={{ fontSize: 28, letterSpacing: 6, color: "#d8f26a", textTransform: "uppercase" }}>
           {eyebrow}
         </div>
         <div
@@ -68,7 +68,7 @@ export default async function Image({
         >
           {title}
         </div>
-        <div style={{ fontSize: 26, color: "#9b9a97", marginTop: "auto" }}>{footer}</div>
+        <div style={{ fontSize: 26, color: "#7c8f9a", marginTop: "auto" }}>{footer}</div>
       </div>
     ),
     {

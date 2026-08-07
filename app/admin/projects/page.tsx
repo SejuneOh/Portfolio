@@ -24,7 +24,7 @@ export default async function AdminProjects() {
         </h1>
         <Link
           href="/admin/projects/new"
-          className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
+          className="rounded-md bg-lime px-4 py-2 text-sm font-medium text-[color:var(--lime-ink)] transition-colors hover:bg-[#CDEA55]"
         >
           + 새 프로젝트
         </Link>

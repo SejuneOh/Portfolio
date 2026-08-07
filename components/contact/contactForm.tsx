@@ -20,8 +20,17 @@ const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
 const TYPES = ["면접 요청", "이메일 요청"] as const
 const DEFAULT_TYPE: (typeof TYPES)[number] = "면접 요청"
 
+/*
+  필드 경계는 --control-border(구 --field-border) 를 쓴다. --border 는 지면 대비 1.38:1 이라
+  어두운 지면에서 필드가 어디부터 어디까지인지 보이지 않는다 (WCAG 1.4.11 비텍스트 3:1 미달).
+  #229 에서 같은 토큰을 필터 칩·아웃라인 버튼·복사 버튼까지 넓히면서 이름을 바꿨다.
+
+  포커스는 전역 :focus-visible 이 라임 외곽선을 그린다(globals.css). 여기서는 경계색까지
+  라임으로 올려 신호를 둘로 만든다 — :focus-visible 이 아니라 :focus 를 쓰는 이유는
+  텍스트 입력은 마우스로 눌러 들어와도 "지금 여기 쓴다"가 보여야 하기 때문이다.
+*/
 const fieldCls =
-  "mt-2 w-full rounded-[12px] border border-line bg-transparent px-[14px] py-3 text-sm text-ink placeholder:text-muted"
+  "mt-2 w-full rounded-[3px] border border-control bg-transparent px-[14px] py-3 text-sm text-ink transition-colors placeholder:text-muted hover:border-ink focus:border-lime"
 
 /*
   라벨은 규격이 10.5px 다. eyebrow 유틸(고정폭·대문자·자간)을 쓰되 크기만 덮는다 —
@@ -60,7 +69,7 @@ export default function ContactForm() {
         </label>
       </div>
 
-      {/* 문의 유형 — select 가 아니라 필 라디오. 전송 필드는 여전히 name="type" 이다 */}
+      {/* 문의 유형 — select 가 아니라 라디오 칩. 전송 필드는 여전히 name="type" 이다 */}
       <fieldset>
         <legend className={labelCls}>문의 유형</legend>
         <div className="mt-2 flex flex-wrap gap-2">
@@ -73,7 +82,8 @@ export default function ContactForm() {
                 defaultChecked={t === DEFAULT_TYPE}
                 className="peer sr-only"
               />
-              <span className="inline-flex items-center rounded-full border border-line px-4 py-1.5 text-[13.5px] text-ink transition-colors peer-checked:border-lime peer-checked:bg-lime peer-checked:font-semibold peer-checked:text-[color:var(--lime-ink)] peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ink">
+              {/* 포커스 외곽선은 전역과 같은 라임으로 맞춘다 — 한 폼에 포커스색이 둘이면 안 된다 */}
+              <span className="inline-flex items-center rounded-[3px] border border-control px-4 py-1.5 text-[13.5px] text-ink transition-colors peer-checked:border-lime peer-checked:bg-lime peer-checked:font-semibold peer-checked:text-[color:var(--lime-ink)] peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-lime">
                 {t}
               </span>
             </label>
@@ -100,24 +110,46 @@ export default function ContactForm() {
       )}
 
       <div className="flex flex-wrap items-center gap-4">
+        {/*
+          비활성은 opacity 로 흐리게 하지 않는다 — 어두운 지면에서 반투명 라임은
+          그냥 어두운 라임으로 보여 "누를 수 있는 버튼"과 구분되지 않는다.
+          채움을 비우고 아웃라인으로 내려 형태 자체를 바꾼다. 글자는 --text-muted
+          (지면 대비 5.88:1)라 "보내는 중…"이 여전히 읽힌다.
+
+          테두리를 평상시에도 투명으로 깔아 둔다. 비활성일 때만 border 를 붙이면
+          그 순간 1px 씩 커져서 옆의 안내 문구가 밀린다.
+        */}
         <button
           type="submit"
           disabled={pending}
-          className="inline-flex items-center gap-1.5 rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#2A2B22] disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-[3px] border border-transparent bg-lime px-5 py-2.5 text-sm font-semibold text-[color:var(--lime-ink)] transition-colors hover:bg-[#CDEA55] disabled:cursor-not-allowed disabled:border-line disabled:bg-transparent disabled:text-muted"
         >
           {pending ? "보내는 중…" : "문의 보내기 →"}
         </button>
         <span className="eyebrow text-muted">이메일로 회신드립니다</span>
       </div>
 
+      {/*
+        결과 알림. 이전에는 실패가 border-line + text-muted 였다 — 평상시 테두리와
+        같은 색이라 오류가 오류로 보이지 않았다. 실패는 --danger(빨강)로 낸다.
+        라임은 성공에만 쓴다. 강조색과 오류색이 같으면 둘을 구별할 수 없다.
+
+        색 하나에 의존하지 않는다(WCAG 1.4.1). 표식(사각/삼각)과 role 이 함께 갈린다 —
+        실패는 role="alert" 로 즉시 읽히고, 성공은 role="status" 로 순서를 기다린다.
+      */}
       {state.message && (
         <p
-          className={`rounded-[12px] border px-[14px] py-3 text-sm ${
-            state.ok ? "border-lime text-ink" : "border-line text-muted"
+          role={state.ok ? "status" : "alert"}
+          className={`flex items-start gap-2.5 rounded-[3px] border px-[14px] py-3 text-sm ${
+            state.ok
+              ? "border-lime text-ink"
+              : "border-[color:var(--danger)] text-[color:var(--danger)]"
           }`}
-          role="status"
         >
-          {state.message}
+          <span aria-hidden className="mt-[3px] shrink-0 leading-none">
+            {state.ok ? "■" : "▲"}
+          </span>
+          <span className="min-w-0">{state.message}</span>
         </p>
       )}
     </form>

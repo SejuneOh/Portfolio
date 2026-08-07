@@ -20,18 +20,18 @@ export default function OpengraphImage() {
           flexDirection: "column",
           justifyContent: "center",
           padding: "80px",
-          background: "#191919",
-          color: "#ffffff",
+          background: "#070b0d",
+          color: "#dde8ec",
         }}
       >
-        <div style={{ fontSize: 28, letterSpacing: 8, color: "#818cf8", textTransform: "uppercase" }}>
+        <div style={{ fontSize: 28, letterSpacing: 8, color: "#d8f26a", textTransform: "uppercase" }}>
           Backend Engineer · Fullstack
         </div>
         <div style={{ fontSize: 92, fontWeight: 800, marginTop: 24, lineHeight: 1.05 }}>Sejune Oh</div>
-        <div style={{ fontSize: 34, color: "#9b9a97", marginTop: 20 }}>
+        <div style={{ fontSize: 34, color: "#7c8f9a", marginTop: 20 }}>
           C#/.NET · Real-time messaging backend · DDD/CQRS
         </div>
-        <div style={{ fontSize: 24, color: "#787774", marginTop: "auto" }}>{domain}</div>
+        <div style={{ fontSize: 24, color: "#7c8f9a", marginTop: "auto" }}>{domain}</div>
       </div>
     ),
     size

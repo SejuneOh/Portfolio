@@ -27,6 +27,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
+      # close-linked-issues 워크플로는 이슈를 닫는 쓰기 권한을 든 자동화다.
+      # 그 정규식과 오류 처리를 여기서 검사한다 (#243).
+      #
+      # 이 단계를 먼저 두는 이유: npm ci 는 2~3분이 걸리고 이 검사는 몇 초다.
+      # 워크플로가 깨졌으면 빨리 안다.
+      #
+      # gh 를 가짜로 세우므로 진짜 이슈는 닫히지 않는다. 의존성은 bash·awk·grep 뿐이다.
+      - name: Test close-linked-issues workflow
+        run: bash scripts/test-close-linked-issues.sh
+
       - name: Setup Node
         uses: actions/setup-node@v7
         with:

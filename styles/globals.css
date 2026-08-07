@@ -20,44 +20,87 @@
   }
 }
 
+/*
+  transition-all 이었다 (#227). hover 에서 실제로 바뀌는 것은 테두리·배경색뿐인데
+  transition-all 은 바뀌는 모든 속성을 애니메이션한다 — 반응형 분기가 걸릴 때
+  (기기 회전·창 크기 변경) padding·gap 같은 조판 속성까지 0.2초에 걸쳐 움직인다.
+  의도한 적 없는 움직임이고 prefers-reduced-motion 을 켠 사람에게도 그대로 나간다.
+*/
 @utility card {
-  @apply rounded-[26px] border border-line bg-surface transition-all duration-200;
-}
-
-@utility chip {
-  @apply inline-flex items-center rounded-full border border-line bg-surface px-2.5 py-0.5 text-xs font-medium text-muted;
-}
-
-/* 검정 카드 — 내부 구분선은 표면 보더가 아니라 --on-ink-border를 쓴다 */
-@utility card-ink {
-  @apply rounded-[26px] border bg-ink transition-all duration-200;
-  border-color: var(--on-ink-border);
-  color: var(--on-ink-body);
-}
-
-/* 소형 타일 */
-@utility tile {
-  @apply rounded-[18px] border border-line bg-surface;
-}
-
-/* 아웃라인 필 버튼 */
-@utility btn-pill {
-  @apply inline-flex items-center gap-1.5 rounded-full border border-line px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-surface-hover;
-}
-
-/* 라임 배경 필 버튼 */
-@utility btn-lime {
-  @apply inline-flex items-center gap-1.5 rounded-full bg-lime px-4 py-2 text-sm font-semibold transition-colors;
-  color: var(--lime-ink);
-}
-
-/* 상단 필 내비의 개별 항목 */
-@utility pill-nav-item {
-  @apply inline-flex items-center rounded-full px-4 py-1.5 text-[13.5px] transition-colors;
+  @apply rounded-[3px] border border-line bg-surface transition-colors duration-200;
 }
 
 /*
-  고정폭(JetBrains Mono) 유틸 — 폰트는 app/layout.tsx가 --font-jbmono로 노출한다.
+  태그·분류 칩. 내용은 Notion multi_select·select 의 자유 문자열이므로 공백 없는 긴 값이
+  들어올 수 있다 (#214).
+
+  **여기는 break-words(overflow-wrap: break-word)로 안 된다.** 칩이 inline-flex 라
+  텍스트가 익명 flex 아이템이 되고, 그 아이템의 min-width: auto 는 min-content 로 풀린다.
+  break-word 는 줄바꿈만 허용하고 **min-content 크기를 줄이지 않으므로** 아이템이 토큰
+  전체 폭을 그대로 요구한다. 그래서 max-w-full 로 칩을 묶어도 안에서 글자가 삐져나가고
+  문서가 가로로 넘친다(320px 에서 +118px 실측).
+
+  overflow-wrap: anywhere 는 min-content 계산에도 적용된다. 그래서 flex 컨테이너에서는
+  이것을 써야 한다. 블록(문단·목록 항목)에서는 break-words 로 충분하다 — 그쪽은 줄 상자가
+  이미 컨테이너 폭이라 끊기만 하면 되기 때문이다.
+
+  word-break: break-all 은 여전히 쓰지 않는다 — 한글을 아무 곳이나 끊는다.
+*/
+@utility chip {
+  @apply inline-flex max-w-full items-center rounded-[3px] border border-line bg-surface px-2.5 py-0.5 text-xs font-medium text-muted;
+  overflow-wrap: anywhere;
+}
+
+/*
+  지면보다 한 단 올라온 판. 밝은 지면에 얹던 '검정 카드'의 자리를 대신한다.
+  어두운 지면에서는 반전이 성립하지 않으므로 bg-ink(=본문색)가 아니라 --surface-hover를 쓴다.
+  이름을 유지하는 이유는 사용처 6곳을 건드리지 않기 위한 것이다.
+*/
+@utility card-ink {
+  @apply rounded-[3px] border border-line transition-colors duration-200;
+  background: var(--surface-hover);
+  color: var(--text-body);
+}
+
+/*
+  소형 타일. card 에서 transition 을 뺀 것이다 — 눌리지 않는 정보 칸에 쓴다.
+
+  #222 에서 "호출부 0" 을 이유로 지웠는데, work/[id] 의 스코프 상자가 이것과 **정확히
+  같은 조합**을 인라인으로 그리고 있었다(검사 지적). proof 에는 "우회하고 있으니 유틸을
+  쓰게 한다"를 적용하면서 tile 에는 "지운다"를 적용해, 같은 상황에 반대 결론을 냈다.
+  proof 와 같은 처리로 맞춘다.
+*/
+@utility tile {
+  @apply rounded-[3px] border border-line bg-surface;
+}
+
+/*
+  아웃라인 버튼. 유틸 이름(btn-pill)은 필 시절 그대로지만 모양은 각진 3px 이다(#208).
+  배경이 없어 테두리가 '이것은 버튼이다'의 유일한 단서다 —
+  border-line(1.38:1)이면 테두리를 걷어낸 것과 비슷하게 보인다. border-control 을 쓴다 (#229).
+*/
+@utility btn-pill {
+  @apply inline-flex items-center gap-1.5 rounded-[3px] border border-control px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-surface-hover;
+}
+
+/* 라임 배경 버튼 (이름의 pill 은 옛 모양의 잔재다 — 지금은 각진 3px) */
+@utility btn-lime {
+  @apply inline-flex items-center gap-1.5 rounded-[3px] bg-lime px-4 py-2 text-sm font-semibold transition-colors;
+  color: var(--lime-ink);
+}
+
+/*
+  상단 라벨 바의 개별 항목. 유틸 이름은 필 내비 시절 그대로다 —
+  #180 에서 필 내비가 계측 라벨 바로 바뀌었지만 이름을 바꾸면 호출부를 전부 고쳐야 한다.
+*/
+@utility pill-nav-item {
+  @apply inline-flex items-center rounded-[3px] px-4 py-1.5 text-[13.5px] transition-colors;
+}
+
+/*
+  고정폭(IBM Plex Mono) 유틸 — 폰트는 app/layout.tsx가 --font-jbmono로 노출한다.
+  변수 이름은 JetBrains Mono 시절 그대로 유지한다. 이 이름을 참조하는 자리가
+  여러 파일에 흩어져 있어 바꾸면 전부 고쳐야 한다 (수는 app/layout.tsx 주석 참조).
   최소 크기 규칙: 메타 텍스트는 10.5px 미만으로 내리지 않는다.
 */
 
@@ -70,22 +113,33 @@
   text-transform: uppercase;
 }
 
-/* 수치(Proof) — 히어로·강조용 */
+/*
+  수치(Proof) 리드아웃. 계측 콘솔에서 화면의 주역이다.
+
+  30px·19px 이었는데 호출부가 0이었다 (#222). 실제 리드아웃이 두 곳에서 인라인으로
+  25px·22px 를 쓰고 있었다 — 어느 쪽도 유틸과 맞지 않아 우회한 것이다.
+  유틸을 실제 크기에 맞추고 그 두 곳이 유틸을 쓰게 했다.
+
+  **화면에 나오는 크기는 전과 같다.** 30px·19px 은 호출부가 0이라 그려진 적이 없다.
+  줄어든 것은 선언된 값의 가짓수(넷 → 둘)이지 화면이 아니다.
+
+  **font-weight: 600 은 뺐다.** 유틸에는 있었지만 실제 호출부 둘 다 굵기를 지정하지
+  않아 400 으로 렌더된다. 유틸을 그대로 붙이면 수치가 굵어진다 — 정리하다가 화면을
+  바꾸는 것이라 하지 않는다. 리드아웃을 굵게 할지는 따로 정할 일이다.
+*/
+
+/* 케이스 목록의 리드아웃 */
 @utility proof {
   font-family: var(--font-jbmono), ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 30px;
-  font-weight: 600;
+  font-size: 25px;
+  line-height: 1;
 }
 
-/* 수치(Proof) — 타일 등 좁은 자리용 */
+/* 케이스 상세의 좁은 자리 */
 @utility proof-sm {
   font-family: var(--font-jbmono), ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 19px;
-  font-weight: 600;
-}
-
-@utility btn-accent {
-  @apply inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover;
+  font-size: 22px;
+  line-height: 1;
 }
 
 /*
@@ -98,38 +152,110 @@
 }
 
 @layer utilities {
+  /*
+    계측 콘솔(CONSOLE) 팔레트. 단일 다크 테마다 — 라이트 대응물은 없다.
+    변수 이름은 세이지 시절 그대로 유지한다. tailwind.config.js가 bg-surface·text-muted
+    같은 유틸을 이 이름에 이어 두었으므로, 이름을 바꾸면 화면 코드를 전부 고쳐야 한다.
+  */
   :root {
-    --bg: #dfe2ce;
-    --surface: #ffffff;
-    --surface-hover: #f7f8f1;
-    --ink: #1c1d16;
-    --text-muted: #7a7b70;
-    --text-body: #3f4036;
-    --border: #d2d5c0;
+    --bg: #070b0d;
+    --surface: #0c1216;
+    --surface-hover: #111a20;
+    --ink: #dde8ec;
+    --text-muted: #7c8f9a;
+    --text-body: #b9c6cc;
+    --border: #1e2c35;
     --lime: #d8f26a;
-    --lime-ink: #4f5a1e;
-    --lime-body: #3f4a18;
-    /* 강조색은 라임 하나. --accent는 링크·텍스트 액션의 글자색이며 잉크를 쓴다. */
-    --accent: #1c1d16;
-    --accent-hover: #3f4036;
-    --on-ink-muted: #a8ab98;
-    --on-ink-body: #b9bcaa;
-    --on-ink-border: #3b3d31;
-    --track: #c9cbb8;
+    --lime-ink: #0b0f11;
+    --lime-body: #0b0f11;
+    /*
+      강조색은 라임 하나. --accent는 링크·텍스트 액션의 글자색이며 본문색(--ink)과 같다.
+      색이 아니라 밑줄로 링크를 구분하는 규칙은 그대로다 (link-underline 참조).
+    */
+    --accent: #dde8ec;
+    --accent-hover: #f2f8fa;
+    /* 계기판 격자. #180에서 계측 배경이 쓴다 */
+    --grid: #16232b;
+    /*
+      계측 3채널. **셋 다 지금 쓰이고 있다.**
+
+      components/console/instrumentBg.tsx 의 CHANNELS 배열이 토큰 이름을 **문자열로**
+      들고 있다가 getPropertyValue 로 읽어 파형 3개를 그린다.
+
+        const CHANNELS = [{ token: "--ch2" … }, { token: "--lime" … }, { token: "--ch3" … }]
+        withAlpha(root.getPropertyValue(c.token), c.fallback, c.alpha)
+
+      그래서 `git grep 'var(--ch3)'` 로는 잡히지 않는다. #222 에서 그렇게만 세다가
+      "참조 0" 이라고 적었고 검사에서 잡혔다. 죽은 토큰으로 오인해 지우면
+      getPropertyValue 가 빈 문자열을 주고 fallback 으로 조용히 넘어간다 — 화면은
+      그대로 보이지만 팔레트와 파형색의 연결이 끊긴다(withAlpha 위 주석 참조).
+
+      토큰이 코드에 들어오는 경로가 셋이다. 세려면 셋 다 봐야 한다.
+        1) CSS 의 var(--x)
+        2) tailwind.config 매핑을 통한 유틸 클래스 (bg-x 등, 임의값 문법 포함)
+        3) JS 문자열 리터럴 + getPropertyValue("--x")
+    */
+    --ch2: #4fd0d8;
+    --ch3: #f2a54a;
+    /*
+      오류. 강조색(라임)과 반드시 구분돼야 하므로 3채널 밖의 빨강을 따로 둔다.
+      지면(#070b0d) 대비 7.07:1 로 AA 본문 기준 4.5:1을 넘는다.
+      라임과 색상각이 66.6° 벌어져 있다 — 앰버(--ch3)와는 27.7°뿐이므로
+      색 하나에 의존하지 않는다. 오류 알림은 표식과 role="alert"을 함께 낸다.
+    */
+    --danger: #ff6b5e;
+    /*
+      **조작할 수 있는 것의 경계.** --border(#1e2c35)는 지면 대비 1.38:1로
+      WCAG 1.4.11(비텍스트 3:1)에 못 미친다. 밝은 지면 기준으로 고른 값이라 그렇다.
+      지면 대비 3.76:1.
+
+      #184에서 입력 필드·라디오용으로 들였고, #185 검수에서 같은 문제가 필터 칩·
+      아웃라인 버튼·복사 버튼에도 있다는 것이 나와 #229에서 그쪽까지 넓혔다.
+      이름이 --field-border였는데 필드만의 것이 아니게 되어 바꿨다.
+
+      **장식 경계는 --border 그대로 둔다** — 카드·구분선·격자. 전역으로 올리면
+      거의 안 보이는 실선이 만드는 계측 콘솔의 차분함이 사라진다(#229에서 A안으로 검토, 기각).
+
+      갈리는 기준: 요소 배경만으로 주변과 3:1 이상 구분되면 경계는 보조 수단이므로
+      --border로 충분하다. 구분되지 않아 경계가 유일한 단서면 이쪽을 쓴다.
+    */
+    --control-border: #54707f;
   }
 }
 
 @layer base {
-  /* 전역 키보드 포커스 표시(일관성) */
+  /*
+    전역 키보드 포커스 표시(일관성).
+    --accent는 본문색과 같아졌으므로 외곽선에 쓰면 포커스가 배경과 구분되지 않는다. 라임을 쓴다.
+  */
   :where(a, button, input, textarea, select, summary):focus-visible {
-    outline: 2px solid var(--accent);
+    outline: 2px solid var(--lime);
     outline-offset: 2px;
-    border-radius: 4px;
+    border-radius: 3px;
+  }
+
+  /*
+    라임 면 안에서는 위 규칙이 무효가 된다 (#228).
+
+    outline-offset 이 양수라 외곽선은 요소 바깥, 즉 **부모 배경 위**에 그려진다.
+    부모가 라임이면 라임 외곽선이 라임 위에 얹혀 대비 1:1 — 포커스가 사라진다.
+    (요소 자기 배경이 라임인 것은 문제가 아니다. 내비 활성 항목의 외곽선은
+     헤더 판넬 #0c1216 위에 그려져 15:1 이다)
+
+    자리마다 고치지 않고 규칙 하나로 덮는다. 라임 면이 더 생겨도 따라온다.
+    --lime-ink 는 그 면의 글자색이고 라임 대비 15.43:1 이다.
+  */
+  .bg-lime :where(a, button, input, textarea, select, summary):focus-visible {
+    outline-color: var(--lime-ink);
   }
 }
 
 @layer utilities {
-  /* Shiki 코드 하이라이트 — 라이트 단일 테마 */
+  /*
+    Shiki 코드 하이라이트 — 다크 단일 테마(vitesse-dark).
+    배경색은 여기서 지정하지 않는다. Shiki 가 <pre> 인라인 style 로 넣으므로 클래스 규칙이
+    이기지 못한다. components/blog/codeBlock.tsx 가 colorReplacements 로 --bg 를 넣는다.
+  */
   .shiki {
     margin: 0;
     padding: 1rem;
@@ -148,23 +274,24 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
+  /* 라임 배경에 흰 글자는 읽히지 않는다. 라임 위 글자색은 --lime-ink를 쓴다 */
   ::selection {
-    background: var(--accent);
-    color: #fff;
+    background: var(--lime);
+    color: var(--lime-ink);
   }
 }
 
 @layer base {
   /*
-    제목: 디스플레이 폰트(Fraunces, 라틴 전용) → 한글은 산세리프로 폴백.
-    폴백 목록에 `serif`를 넣지 말 것 — Windows에서 한글 제목이 바탕체로 떨어진다.
-    자간은 세리프에 맞춰 완화했다 (기하학적 산세리프 기준이던 -0.01em → -0.005em).
+    제목: IBM Plex Sans KR(--font-display). 한글을 포함하므로 폴백으로 떨어지지 않는다.
+    이전 Fraunces 는 라틴 전용이라 한글 제목이 전부 시스템 폰트로 렌더됐고, 그래서
+    한글 대체 폰트를 길게 나열하고 `serif` 를 금지하는 규칙이 필요했다. 둘 다 없어졌다.
+    자간은 고딕 기준으로 되돌린다 (세리프에 맞춰 완화했던 -0.005em → -0.01em).
   */
   h1, h2, h3, h4, h5, h6 {
     color: var(--ink);
-    font-family: var(--font-display), ui-sans-serif, -apple-system, BlinkMacSystemFont,
-      "Segoe UI", "Apple SD Gothic Neo", Pretendard, "Malgun Gothic", sans-serif;
-    letter-spacing: -0.005em;
+    font-family: var(--font-display), ui-sans-serif, -apple-system, sans-serif;
+    letter-spacing: -0.01em;
   }
 }
 

@@ -7,11 +7,44 @@
   원본을 출력하고 있었다.
 */
 
+/*
+  들어오는 값을 [연, 월, 일] 로 쪼갠다.
+
+  Notion 날짜 속성에 「시간 포함」이 켜지면 `2026-08-06T09:00:00.000+09:00` 을 준다.
+  앞 10글자만 떼어 그 경우를 먼저 없앤다 — 그러지 않으면 일 자리에 시각이 붙어
+  `2026.08.06T09:00:00` 이 된다.
+
+  fmtMonth 는 앞 두 조각만 쓰기 때문에 시간 포함 값에서도 **우연히** 무사했다.
+  우연에 의존하지 않도록 정규화를 한 곳으로 모은다.
+*/
+function parts(d: string): string[] {
+  return d.slice(0, 10).replace(/\./g, "-").split("-")
+}
+
 // "2024-09-01" / "2024.09" → "2024.09"
 export function fmtMonth(d?: string): string {
   if (!d) return ""
-  const [y, m] = d.replace(/\./g, "-").split("-")
+  const [y, m] = parts(d)
   return m ? `${y}.${m}` : y
+}
+
+/*
+  일까지 낸다. "2026-08-06" → "2026.08.06"
+
+  글 날짜에 쓴다. 홈 로그 축은 케이스 기간(periodLabel)과 글 날짜를 같은 칸에 번갈아
+  내므로 어법이 같아야 하는데, fmtMonth 를 쓰면 같은 달의 글 둘이 같은 라벨로 보인다.
+  어법(점 구분)은 유지하고 정밀도만 되찾는다.
+
+  fmtMonth 와 같은 정규화(`.` → `-`)를 쓴다. 일이 없는 입력(`2026-08`·`2026.08`)은
+  fmtMonth 와 같은 결과를 낸다 — 빈 칸이 되면 안 된다.
+
+  케이스 기간은 그대로 fmtMonth 다. 몇 년에 걸친 기간에 일까지 붙일 이유가 없다.
+*/
+export function fmtDay(d?: string): string {
+  if (!d) return ""
+  const [y, m, day] = parts(d)
+  if (!m) return y
+  return day ? `${y}.${m}.${day}` : `${y}.${m}`
 }
 
 /*

@@ -28,13 +28,14 @@ export default function SiteError({
         <button
           type="button"
           onClick={reset}
-          className="inline-flex items-center rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-accent/40"
+          className="inline-flex items-center rounded-[3px] bg-lime px-4 py-2 text-sm font-medium transition-colors hover:bg-[#CDEA55] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-lime"
+          style={{ color: "var(--lime-ink)" }}
         >
           다시 시도
         </button>
         <Link
           href="/"
-          className="inline-flex items-center rounded-lg border border-line px-4 py-2 text-sm font-medium text-fg transition-colors hover:bg-surface"
+          className="inline-flex items-center rounded-[3px] border border-line px-4 py-2 text-sm font-medium text-fg transition-colors hover:bg-surface"
         >
           홈으로
         </Link>

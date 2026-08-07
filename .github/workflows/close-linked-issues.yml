@@ -1,0 +1,195 @@
+name: Close linked issues
+
+# dev 대상 PR 이 병합되면 본문의 Closes/Fixes/Resolves #N 을 읽어 이슈를 닫는다.
+#
+# GitHub 는 이 키워드를 **기본 브랜치로 병합될 때만** 처리한다. 이 저장소의 기본
+# 브랜치는 main 이고 작업 PR 의 base 는 dev 라, 지금까지 병합된 PR 의 이슈가 열린 채
+# 남았다. 루프가 그 이슈를 다시 후보로 집어 같은 작업을 반복하는 일도 있었다 (#192).
+#
+# main 대상(승격) PR 은 GitHub 가 알아서 처리하므로 여기서 다루지 않는다.
+#
+# **등록과 실행은 다른 이야기다.** 둘을 섞어 읽지 말 것 (#243 에서 지적됨).
+#
+#   등록  GitHub 는 워크플로 목록을 **기본 브랜치(main)** 에서 만든다. 이 파일이 dev 에만
+#         있는 동안에는 목록에 없고, 목록에 없으면 어떤 이벤트로도 발화하지 않는다.
+#   실행  등록된 뒤에는 pull_request_target 이 **base 브랜치(dev)의 파일**로 돈다.
+#         그래서 PR 머리에 이 파일이 없어도 동작한다 — pull_request 에는 없는 성질이다.
+#
+#   관측: #236 이 dev 에 들어간 뒤 #237·#238·#240 이 병합됐는데 실행 0건이었고
+#   세 이슈 모두 열린 채 남았다. #240 은 19분 뒤였으므로 인덱싱 지연으로 설명되지 않는다.
+#   dev → main 승격(#188)으로 이 파일이 main 에 올라간 뒤부터 동작한다.
+#
+# PR 본문은 **신뢰할 수 없는 입력**이다. ${{ }} 로 run 안에 직접 끼워 넣으면 본문에 셸
+# 메타문자를 넣어 임의 명령을 실행시킬 수 있다. 아래처럼 env 로만 넘긴다.
+#
+# 이 파일을 고치면 scripts/test-close-linked-issues.sh 를 돌린다. CI 가 매 PR 에서 돌리고,
+# 그 하네스는 **이 파일에서 정규식과 run: 블록을 직접 뽑아** 검사한다.
+on:
+  pull_request_target:
+    types: [closed]
+    branches: [dev]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: close-linked-${{ github.event.pull_request.number }}
+
+jobs:
+  close:
+    name: Close issues referenced by the merged PR
+    # 닫히기만 하고 병합되지 않은 PR 은 건드리지 않는다.
+    #
+    # 포크에서 온 PR 도 제외한다 (#239). 이 저장소는 PUBLIC 이라 누구나 포크에서 dev 로
+    # PR 을 열 수 있고, 병합되면 그 본문이 어떤 이슈를 닫을지 정한다. 오타 수정 PR 본문
+    # 아래쪽에 Closes #1 … #50 을 숨겨 두면 diff 만 보고 병합하는 순간 전부 닫힌다.
+    if: >-
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Close referenced issues
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          # 신뢰할 수 없는 입력. run 안에 ${{ }} 로 끼워 넣지 않는다.
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          set -euo pipefail
+
+          # grep -P 가 없으면 아래 패턴이 통째로 실패한다. 조용히 0건이 되어 이슈가
+          # 안 닫히는 것보다 여기서 크게 죽는 편이 낫다.
+          echo "x" | grep -qP "x" || { echo "이 러너의 grep 에 -P(PCRE)가 없습니다."; exit 1; }
+
+          # GitHub 가 인정하는 키워드 전부. 대소문자를 가리지 않는다.
+          #
+          #   (?<![A-Za-z])        preclose 같은 단어 안의 close 를 거른다
+          #   (?![0-9A-Za-z]|\.\d) **번호가 거기서 끝나야 한다** (#239)
+          #
+          # 둘 다 **문자를 소비하지 않는** 탐색이다. ERE 로 [^0-9A-Za-z] 를 쓰면 그 문자를
+          # 먹어 버려, 그것이 다음 키워드의 앞 경계였을 때 매치가 끊긴다 —
+          # "Close #1 Closed #2 Closes #3" 에서 하나 걸러 놓친다. 실제로 그렇게 짰다가
+          # 테스트에서 잡혔다.
+          #
+          # 뒤쪽 경계가 없으면 부분 매치가 일어나 16진 색상값의 앞자리를 이슈 번호로
+          # 잘라낸다. 이 저장소 PR 본문에는 색상 표가 흔해서 가상의 위험이 아니다.
+          #
+          #   fix #8a857a → #6f6b62        경계 없이는 이슈 8 을 닫는다
+          #   resolved #1c1b18 대비        이슈 1
+          #   Fixes #16.2.10               이슈 16  (\.\d 로 버전 문자열도 막는다)
+          #
+          # GitHub 본체도 #8a857a 를 이슈 링크로 만들지 않으므로 패리티 손실도 아니다.
+          #
+          # 키워드 바로 뒤에 # 가 와야 하므로 owner/repo#N 과 전체 URL 은 잡히지 않는다
+          # — 다른 저장소의 이슈를 닫는 사고를 막는다.
+          # grep 은 줄 단위라 키워드와 #N 이 다른 줄이면 잡히지 않는다. 안 닫는 쪽이 안전하다.
+          #
+          # **한계**: 코드블록(```)이나 인용문(>) 안의 참조도 잡는다. 줄 단위 grep 으로는
+          # 블록 문맥을 알 수 없다. 이 워크플로 사용법을 코드블록으로 설명하는 PR 을 쓸 때는
+          # 예시에 실재하지 않는 번호를 쓸 것.
+          numbers="$(printf '%s' "${PR_BODY:-}" \
+            | grep -oiP '(?<![A-Za-z])(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s+#\d+(?![0-9A-Za-z]|\.\d)' \
+            | grep -oE '#[0-9]+' \
+            | tr -d '#' \
+            | sort -un || true)"
+
+          if [ -z "$numbers" ]; then
+            echo "PR #${PR_NUMBER} 본문에 닫을 이슈 참조가 없습니다."
+            exit 0
+          fi
+
+          echo "PR #${PR_NUMBER} 이 참조하는 이슈: $(echo "$numbers" | tr '\n' ' ')"
+
+          failed=0
+          for n in $numbers; do
+            # PR 번호도 #N 형태라 자기 자신이나 다른 PR 을 가리킬 수 있다.
+            # gh issue view 는 PR 에도 응답하므로 종류를 먼저 확인한다.
+            #
+            # **404 와 그 밖의 실패를 갈라야 한다** (#239). 예전에는 둘 다 "없는 번호"로
+            # 삼키고 초록으로 끝났다 — 레이트리밋·5xx·403 이 나면 이슈는 열린 채 남고
+            # 로그는 "없는 번호입니다"라는 거짓을 남긴다. #192 가 없애려던 실패가
+            # 아무 신호 없이 재현된다. 2>/dev/null 이 원인 진단까지 지웠다.
+            # **"HTTP 404" 만 '없는 번호'다** (#243). 예전에는 '404|not found' 를 stderr 에
+            # 부분일치시켰는데, GitHub 은 **권한 거부에도 "Not Found" 를 자주 쓴다.**
+            # 그런 403 이 조용히 skip 되고 초록으로 끝났다.
+            err="$(mktemp)"
+            if kind="$(gh api "repos/${GH_REPO}/issues/${n}" \
+                         --jq 'if .pull_request then "pr" else "issue" end' 2>"$err")"; then
+              :
+            elif grep -qF 'HTTP 404' "$err"; then
+              echo "  #${n} — 없는 번호입니다. 건너뜁니다"
+              rm -f "$err"; continue
+            else
+              echo "  #${n} — 조회 실패. 건너뛰지 않고 실패로 남깁니다:"
+              sed 's/^/      /' "$err"
+              rm -f "$err"; failed=1; continue
+            fi
+            rm -f "$err"
+
+            # 빈 출력도 실패다. exit 0 에 빈 값이 오면 아래 비교가 참이 되어
+            # "이미 닫힘" 으로 조용히 넘어간다 (#243).
+            if [ -z "${kind:-}" ]; then
+              echo "  #${n} — 종류 판별 실패(빈 응답). 실패로 남깁니다"
+              failed=1; continue
+            fi
+
+            if [ "$kind" = "pr" ]; then
+              echo "  #${n} — 이슈가 아니라 PR 입니다. 건너뜁니다"
+              continue
+            fi
+
+            # 상태 조회도 같은 방식으로 판정한다.
+            #
+            # **stderr 를 값에 섞지 않는다** (#243). 2>&1 로 받았더니 gh 의 업데이트 알림
+            # 한 줄이 $state 에 붙어, 성공인데 "이미 닫혀 있습니다 (OPEN⏎! A new release…)"
+            # 라고 찍고 초록으로 끝났다. 값과 진단은 분리해서 받는다.
+            serr="$(mktemp)"
+            if ! state="$(gh issue view "$n" --json state --jq .state 2>"$serr")"; then
+              echo "  #${n} — 상태 조회 실패. 실패로 남깁니다:"
+              sed 's/^/      /' "$serr"
+              rm -f "$serr"; failed=1; continue
+            fi
+            rm -f "$serr"
+
+            if [ -z "${state:-}" ]; then
+              echo "  #${n} — 상태가 비어 있습니다. 실패로 남깁니다"
+              failed=1; continue
+            fi
+            if [ "$state" != "OPEN" ]; then
+              echo "  #${n} — 이미 닫혀 있습니다 (${state})"
+              continue
+            fi
+
+            # 왜 닫혔는지 이슈에 남긴다. dev 대상 PR 은 GitHub 가 연결을 기록하지 않으므로
+            # 이 코멘트가 유일한 흔적이다.
+            #
+            # 코멘트는 파일로 넘긴다. YAML 리터럴 블록 안에서는 모든 줄이 블록 들여쓰기를
+            # 지켜야 하는데, 여러 줄 문자열을 인라인으로 쓰면 빈 줄·인용 줄이 블록을 끊는다.
+            #
+            # 제목의 백틱은 지운다 (#239). 코드스팬 안에 백틱이 들어가면 스팬이 거기서
+            # 끝나고 뒤가 마크다운으로 렌더된다 — 제목에 @멘션이나 링크를 넣어 이슈
+            # 코멘트로 알림을 보낼 수 있다. 셸 주입은 아니지만 남의 입력으로 마크다운을
+            # 그리게 두지 않는다. 개행도 지운다 — 코드스팬이 줄을 넘으면 깨진다.
+            safe_title="${PR_TITLE//\`/}"
+            safe_title="${safe_title//$'\n'/ }"
+            comment_file="$(mktemp)"
+            {
+              printf 'PR #%s (`%s`) 이 `dev` 에 병합되어 해결됐습니다.\n\n' "$PR_NUMBER" "$safe_title"
+              printf '> `dev` 대상 PR 은 기본 브랜치가 아니라 `Closes` 가 자동으로 동작하지 않습니다.\n'
+              printf '> 이 이슈는 `close-linked-issues` 워크플로가 닫았습니다 (#192).\n'
+            } > "$comment_file"
+
+            if gh issue close "$n" --comment "$(cat "$comment_file")"; then
+              echo "  #${n} — 닫았습니다"
+            else
+              echo "  #${n} — 닫기 실패"
+              failed=1
+            fi
+            rm -f "$comment_file"
+          done
+
+          exit "$failed"

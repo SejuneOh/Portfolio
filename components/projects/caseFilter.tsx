@@ -24,10 +24,15 @@ export default function CaseFilter({ groups }: { groups: ProjectGroup[] }) {
   const shown =
     active === ALL ? groups : groups.filter((g) => g.tags.some((t) => t.name === active))
 
+  /*
+    비선택 칩은 배경이 없어 테두리가 '누를 수 있다'의 유일한 단서다. border-line(1.38:1)은
+    WCAG 1.4.11(비텍스트 3:1)에 못 미쳐 그냥 글자로 보인다 — border-control 을 쓴다 (#229).
+    선택 상태는 라임 배경이라 상태 구분에는 원래 문제가 없었다.
+  */
   const chip = (on: boolean) =>
     on
-      ? "inline-flex items-center gap-1.5 rounded-full bg-ink px-4 py-1.5 text-[13.5px] font-semibold text-white transition-colors hover:bg-[#2A2B22]"
-      : "inline-flex items-center gap-1.5 rounded-full border border-line px-4 py-1.5 text-[13.5px] text-ink transition-colors hover:bg-surface-hover"
+      ? "inline-flex items-center gap-1.5 rounded-[3px] bg-lime px-4 py-1.5 text-[13.5px] font-semibold text-[color:var(--lime-ink)] transition-colors hover:bg-[#CDEA55]"
+      : "inline-flex items-center gap-1.5 rounded-[3px] border border-control px-4 py-1.5 text-[13.5px] text-ink transition-colors hover:bg-surface-hover"
 
   return (
     <>

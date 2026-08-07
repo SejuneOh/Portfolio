@@ -39,19 +39,28 @@ function periodOf(e: Experience) {
 }
 
 /*
-  계측 라인 — 라임 3px 좌측 보더. 세 값이 모두 있을 때만 낸다. 하나라도 비면
-  `91s → ` 처럼 화살표만 남는다. 값은 Notion 매핑이 들어와야 채워진다.
+  계측 리드아웃 — 라임 좌측 눈금. 세 값이 모두 있을 때만 낸다. 하나라도 비면
+  `91s → ` 처럼 화살표만 남으므로 통째로 빠뜨린다. 값은 Notion 매핑(#146)으로 들어온다.
+
+  목록(components/projects/caseRow.tsx)의 리드아웃과 같은 규격이다 — 라벨이 위,
+  수치가 아래, 개선 후 값에만 라임 배경. 같은 값이 화면마다 다르게 보이면 안 된다.
+  비례 막대를 그리지 않는 이유도 그쪽 주석에 적어 두었다.
 */
 function MetricLine({ e }: { e: Experience }) {
   if (!e.metricLabel || !e.metricBefore || !e.metricAfter) return null
   return (
-    <p
-      className="mt-5 border-l-[3px] border-lime py-1 pl-4 font-[family-name:var(--font-jbmono)] text-[15px] leading-relaxed text-ink"
-      style={{ borderLeftWidth: 3 }}
-    >
-      <span className="text-muted">{e.metricLabel} </span>
-      {e.metricBefore} → {e.metricAfter}
-    </p>
+    <div className="mt-5 border-l-2 border-lime pl-4">
+      {/* 라벨·값 모두 Notion 자유 문자열이다 (#214) */}
+      <p className="eyebrow break-words leading-[1.6] text-muted">{e.metricLabel}</p>
+      {/* 크기는 proof-sm 유틸이 정한다 (#222) — 이전에는 여기서 22px 을 직접 적었다 */}
+      <p className="proof-sm mt-2 break-words">
+        <span className="text-muted">{e.metricBefore}</span>
+        <span className="text-muted"> → </span>
+        <span className="rounded-[3px] bg-lime px-[5px]" style={{ color: "var(--lime-ink)" }}>
+          {e.metricAfter}
+        </span>
+      </p>
+    </div>
   )
 }
 
@@ -67,11 +76,11 @@ export default async function CaseDetail({ params }: { params: Promise<{ id: str
   const heroLead = group.summary?.trim() || lead?.impact?.trim() || ""
 
   /*
-    문제 / 접근 / 결과 3타일.
+    문제 / 접근 / 결과 3열 스코프박스.
 
-    "문제"와 "접근" 데이터가 아직 없다. 두 값이 모두 없으면 타일 전체를 렌더하지
-    않는다 — 결과 하나만 남으면 3열 그리드가 의미를 잃는다. 본문에서 추측해
-    채우거나 임시 문구를 넣지 않는다. 값이 들어오면 그대로 나타난다.
+    problem 과 approach 가 **둘 다** 비면 이 블록 전체를 렌더하지 않는다 —
+    결과 하나만 남으면 3열 그리드가 의미를 잃는다. 본문에서 추측해 채우거나
+    임시 문구를 넣지 않는다. 값이 들어오면 그대로 나타난다.
   */
   const problem = lead?.problem?.trim()
   const approach = lead?.approach?.trim()
@@ -94,37 +103,55 @@ export default async function CaseDetail({ params }: { params: Promise<{ id: str
           빼는 것은 사람 판단이라 임의로 지우지 않았다.
         */}
         {group.cover && (
-          <div className="relative mt-6 aspect-2/1 w-full overflow-hidden rounded-[18px] border border-line">
+          <div className="relative mt-6 aspect-2/1 w-full overflow-hidden rounded-[3px] border border-line">
             <Image src={group.cover} alt="" fill sizes="720px" unoptimized className="object-cover" priority />
           </div>
         )}
 
-        <h1 className="mt-6 text-[46px] font-bold leading-[1.08] tracking-[-0.03em] text-ink">
+        {/*
+          케이스 이름에는 `CloudHospital.Api.Gateway` 처럼 끊기지 않는 긴 토큰이 들어온다.
+          근본 원인은 글자 크기가 아니라 토큰이 안 끊긴다는 것이므로 break-words 로 끊는다.
+          clamp 는 큰 화면의 인상을 유지하면서 좁은 화면에서 줄이는 보조 장치다.
+        */}
+        <h1 className="mt-6 break-words text-[clamp(28px,8vw,46px)] font-bold leading-[1.08] tracking-[-0.03em] text-ink">
           {group.name}
         </h1>
 
         {heroLead && (
-          <p className="mt-4 text-[18px] font-medium leading-[1.7] text-ink">{heroLead}</p>
+          <p className="mt-4 break-words text-[18px] font-medium leading-[1.7] text-ink">
+            {heroLead}
+          </p>
         )}
 
         {showTiles && (
+          /*
+            문제·접근·결과 스코프박스. 각진 테두리에 라벨을 붙여 계기판의 관측 창처럼 읽히게 한다.
+            결과만 라임 좌측 눈금으로 강조한다 — 이 화면에서 가장 중요한 칸이다.
+          */
           <div className="mt-8 grid grid-cols-1 gap-[14px] sm:grid-cols-3">
             {[
-              { label: "문제", body: problem, lime: false },
-              { label: "접근", body: approach, lime: false },
-              { label: "결과", body: outcome, lime: true },
-            ].map((t) => (
-              <div
-                key={t.label}
-                className={`rounded-[18px] p-[18px] ${t.lime ? "bg-lime" : "bg-page"}`}
-                style={t.lime ? { color: "var(--lime-body)" } : undefined}
-              >
-                <p className="eyebrow" style={t.lime ? { color: "var(--lime-ink)" } : undefined}>
-                  {t.label}
-                </p>
-                {t.body && <p className="mt-2 text-[14px] leading-[1.7]">{t.body}</p>}
-              </div>
-            ))}
+              { label: "문제", body: problem, lit: false },
+              { label: "접근", body: approach, lit: false },
+              { label: "결과", body: outcome, lit: true },
+            ]
+              /*
+                값이 있는 칸만 낸다. 이전 타일은 테두리가 없어(bg-page) 빈 칸이 보이지 않았지만
+                스코프박스는 테두리를 그으므로, 셋 중 하나만 차면 빈 액자가 남는다.
+                특히 결과 칸은 라임 눈금이 붙은 채로 비어 "가장 중요한 칸이 비었다" 로 읽힌다.
+              */
+              .filter((t) => t.body)
+              .map((t) => (
+                <div
+                  key={t.label}
+                  /* 모양은 tile 유틸이 정한다 (#222) — 이전에는 같은 조합을 여기 직접 적었다 */
+                  className={`tile p-[18px] ${t.lit ? "border-l-2 border-l-lime" : ""}`}
+                >
+                  <p className={`eyebrow ${t.lit ? "text-lime" : "text-muted"}`}>{t.label}</p>
+                  <p className="mt-2 break-words text-[14px] leading-[1.7] text-[color:var(--text-body)]">
+                    {t.body}
+                  </p>
+                </div>
+              ))}
           </div>
         )}
 
@@ -132,20 +159,34 @@ export default async function CaseDetail({ params }: { params: Promise<{ id: str
         {group.experiences.map((e, i) => (
           <section key={e.id} className="mt-10 border-t border-line pt-[26px]">
             {group.count > 1 && (
-              <span className="inline-flex items-center rounded-full bg-ink px-3 py-1 text-[11px] font-semibold text-white">
+              <span
+                className="inline-flex items-center rounded-[3px] bg-lime px-3 py-1 text-[11px] font-semibold"
+                style={{ color: "var(--lime-ink)" }}
+              >
                 경험 {i + 1}
               </span>
             )}
 
-            <h2 className="mt-3 text-[26px] font-bold leading-[1.25] tracking-[-0.02em] text-ink">
+            <h2 className="mt-3 break-words text-[26px] font-bold leading-[1.25] tracking-[-0.02em] text-ink">
               {e.projectName}
             </h2>
 
+            {/*
+              이 두 문단은 아래 PostBody 와 같은 읽기 칼럼에 이어진다. #183 이 본문 문단을
+              세리프로 바꿨으므로 여기도 세리프여야 한다 — 고딕으로 두면 같은 칼럼 안에서
+              리드 문단만 서체가 달라 위계가 아니라 어긋남으로 읽힌다.
+
+              규칙은 "읽는 흐름의 산문은 세리프, 구조·메타·라벨은 고딕" 이다(app/layout.tsx).
+            */}
             {e.impact?.trim() && (
-              <p className="mt-3 text-[15.5px] leading-[1.8] text-ink">{e.impact.trim()}</p>
+              <p className="mt-3 break-words font-[family-name:var(--font-serif)] text-[15.5px] leading-[1.8] text-ink">
+                {e.impact.trim()}
+              </p>
             )}
             {e.description?.trim() && e.description.trim() !== e.impact?.trim() && (
-              <p className="mt-2 text-[15px] leading-[1.8] text-muted">{e.description.trim()}</p>
+              <p className="mt-2 break-words font-[family-name:var(--font-serif)] text-[15px] leading-[1.8] text-muted">
+                {e.description.trim()}
+              </p>
             )}
 
             <MetricLine e={e} />
@@ -176,8 +217,8 @@ export default async function CaseDetail({ params }: { params: Promise<{ id: str
 
       {/* 사이드 */}
       <aside className="flex flex-col gap-4 lg:sticky lg:top-6 lg:self-start">
-        {/* 세이지 메타 카드 */}
-        <div className="rounded-[26px] bg-page p-6">
+        {/* 메타 판 — 각진 테두리 */}
+        <div className="rounded-[3px] border border-line bg-surface p-6">
           <dl className="space-y-4">
             {groupPeriod && (
               <div>
@@ -218,12 +259,16 @@ export default async function CaseDetail({ params }: { params: Promise<{ id: str
           아니라 추측이다. 연결 데이터가 생기면 여기에 카드를 넣는다.
         */}
 
-        {/* 검정 CTA 카드 */}
-        <div className="card-ink p-6">
-          <p className="text-[14.5px] font-semibold leading-relaxed text-white">
+        {/* 한 단 올라온 CTA 판 */}
+        <div className="rounded-[3px] border border-line bg-surface-hover p-6">
+          <p className="text-[14.5px] font-semibold leading-relaxed text-ink">
             비슷한 문제를 겪고 있다면
           </p>
-          <p className="mt-2 text-[13px] leading-relaxed">
+          {/*
+            card-ink 유틸은 color: var(--text-body) 도 함께 주고 있었다. 각진 판으로 펴면서
+            그 선언이 사라져 이 문단이 --ink 를 상속해 제목과 같은 색이 됐다. 명시한다.
+          */}
+          <p className="mt-2 text-[13px] leading-relaxed text-[color:var(--text-body)]">
             어떤 상황인지 한 줄만 적어주셔도 됩니다.
           </p>
           <Link href="/contact" className="btn-lime mt-4">

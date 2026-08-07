@@ -51,6 +51,322 @@
 
 ## 실행 기록
 
+### 2026-08-05 19:18 — PR 생성
+
+- **회수:** `loop-reclaim.sh --apply`: 브랜치 `refactor/179-resume-dead-selectors` 회수
+  (PR #198 MERGED) / `loop-guard.sh --reap`: 락 걸린 이슈 없음
+- **게이트:** 통과 — 병합 대기 중인 `agent-loop` PR 없음
+- **후보:** #176 (유일). **2단계의 마지막 이슈다**
+- **선택:** #176 — 후보가 하나뿐
+  - 관문 1 제외: `backlog` #102 #128 #191 / `needs-human` #54 #85 #180~#186 #192 — **코멘트 없음**
+- **결과:** PR 생성 — `feat/176-ibm-plex-fonts`
+- **검증:** lint ✅ (경고 0) build ✅ (`Compiled successfully`)
+  - **한글 글리프가 실리는지가 이 이슈의 성패였다.** `next/font` 의 font-data 에
+    `IBM Plex Sans KR` 의 subsets 가 `["latin","latin-ext"]` 뿐이고 **`korean` 이 없다.**
+    그래서 "한글이 안 실릴 수 있다" 를 먼저 의심했다.
+    **결과: 실린다.** Google CSS 에 한글 unicode-range 블록이 함께 들어오고 next/font 가
+    그것을 전부 내보낸다 — 생성 CSS 에 `U+AC00` 포함 `@font-face` 6개 확인
+  - **대신 preload 가 폭증했다.** 첫 빌드에서 홈 HTML 의 폰트 preload 링크가 **378개**였다.
+    woff2 조각이 583개(7.4MB)로 쪼개지고 preload 기본값이 그 전부에 붙기 때문이다.
+    `preload: false` 를 한글 서체 둘에 걸어 **378 → 3** 으로 줄였고, 한글 범위는 6개 그대로다.
+    `lint`·`build` 는 양쪽 모두 통과하므로 **게이트로는 잡히지 않는 종류의 결함이었다**
+  - 생성 CSS 확인: `--font-display:"IBM Plex Sans KR"` · `--font-jbmono:"IBM Plex Mono"` ·
+    `--font-serif:"Gowun Batang"` · `.font-logo{font-family:var(--font-jbmono)…}` ·
+    헤딩 규칙이 `var(--font-display)` + `letter-spacing:-.01em`
+  - 빌드 CSS 에 `Fraunces`·`Space Grotesk`·`JetBrains` 0건
+- **산출물:** PR #200 (`feat/176-ibm-plex-fonts`)
+- **비고:**
+  - **`#179` 를 수동으로 닫았다** — `dev` 대상 `Closes` 미작동(#192). **5회째다**
+  - `--font-logo` 를 없애고 `tailwind.config.js` 의 `logo` 를 `--font-jbmono` 로 돌렸다.
+    변수를 지우기만 하면 `font-logo` 가 `ui-sans-serif` 로 조용히 폴백돼 워드마크가
+    정체성을 잃는다 — 사용처는 `topNav.tsx:34` · `mobileHeader.tsx:77` 두 곳이다
+  - `fontFamily.sans` 도 `--font-display` 를 먼저 두도록 바꿨다. Plex Sans KR 이 한글을
+    포함하므로 기존의 긴 한글 대체 목록(`Apple SD Gothic Neo`·`Pretendard`·`Malgun Gothic`)이
+    필요 없어졌다. `serif` 항목을 신설해 `--font-serif` 를 이었다
+  - **범위 밖에서 거짓이 된 서술 2곳을 발견해 #199 로 넘겼다** —
+    `mobileHeader.tsx:63` 와 `resumeDoc.tsx:381` 이 아직 "JetBrains Mono" 라고 적고 있다.
+    코드는 정상이고(변수 이름 유지) 서체 이름만 틀렸다
+  - **이력서 제목이 세리프에서 고딕으로 바뀌었다.** `resumeDoc.tsx` 가 4곳에서
+    `var(--font-display), serif` 를 쓰는데 그 변수가 이제 고딕이다. 사이트를 따르는 것이
+    #186 결정과 일관되지만 인쇄물이라 세리프가 맞다는 판단도 가능하다 — **#199 에서 사람이 정한다**
+  - **2단계 완료.** 다음 실행부터 후보는 0개가 되고 3단계(#180~#185)는 전부 `needs-human` 이다.
+    루프는 "처리 대상 없음" 으로 정상 종료하게 된다
+
+### 2026-08-05 18:52 — PR 생성
+
+- **회수:** `loop-reclaim.sh --apply`: 브랜치 `fix/175-shiki-dark-theme` 회수 (PR #197 MERGED) /
+  `loop-guard.sh --reap`: 락 걸린 이슈 없음
+- **게이트:** 통과 — 병합 대기 중인 `agent-loop` PR 없음
+- **후보:** #176 #179 (2개)
+- **선택:** #179 — 라벨 가중치에서 갈렸다. `refactor`(40) > `feat`(20)
+- **탈락:** #176 (`feat` 20). **2단계의 마지막 남은 이슈다**
+  - 관문 1 제외: `backlog` #102 #128 #191 / `needs-human` #54 #85 #180~#186 #192 — **코멘트 없음**
+- **결과:** PR 생성 — `refactor/179-resume-dead-selectors`
+- **검증:** lint ✅ (경고 0) build ✅ (`Compiled successfully`)
+  - `resumeDoc.tsx` 는 `"use client"` + `<style jsx global>` 이라 **스타일이 프리렌더 HTML 에
+    들어가지 않는다.** `.next/server/app/about/resume.html` 에는 `media print` 가 0건이다
+  - 스타일은 클라이언트 청크에 있다:
+    `.next/static/chunks/app/(site)/about/resume/page-*.js`.
+    **HTML 출력은 라우트 그룹 `(site)` 를 벗기지만 JS 청크 경로는 유지한다** — 둘을 혼동하면
+    "산출물에 없다" 는 잘못된 결론이 난다 (이 세션에서 이전에 같은 착오를 한 적이 있다)
+  - 청크에서 확인: `@media print{...}` 안이 `.resume-page` **단일 셀렉터**,
+    `--accent:#1c1b18;--accent-deep:#000000;--accent-wash:#f2f1ee`,
+    `.dark` 0건, 인디고(`4f46e5`·`4338ca`·`eef2ff`) 0건,
+    `html,body{background:#fff}` 와 `print-color-adjust:exact` 유지
+- **산출물:** PR #198 (`refactor/179-resume-dead-selectors`)
+- **비고:**
+  - **`#175` 를 수동으로 닫았다** — `dev` 대상 `Closes` 미작동(#192). 이번이 4회째다
+  - 인쇄용 강조색을 먹색으로 덮기 전에 `var(--accent*)` 사용처 14곳을 확인했다.
+    5×5px 리스트 불릿(`background: var(--accent)`)과 `.kbd` 칩
+    (`--accent-wash` 배경 + `--accent-deep` 글자)이 먹색으로도 읽힌다 —
+    `#f2f1ee` 바탕에 `#000000` 글자다
+  - 화면 모드는 건드리지 않았다. `--paper: var(--bg)` 등으로 사이트 토큰을 상속하는 구조가
+    의도된 것이다(#186 결정: 이력서는 화면에서 어둡게, 인쇄는 흰 종이)
+  - **더 나은 선택지를 발견했지만 하지 않았다** — 인쇄용 강조색을 먹색이 아니라
+    라임에서 파생한 어두운 올리브(예: `#4f5a1e`, 옛 `--lime-ink`)로 두면 종이에서도 읽히면서
+    사이트 정체성과 색상 관계가 이어진다. 이 이슈는 `refactor`(기능 변화 없음) + "인디고 잔재 제거"
+    라서 색을 새로 고르는 것은 범위를 넘는다. **PR 리뷰 지점으로 올렸다**
+  - 남은 후보: **#176 하나.** 그것이 끝나면 2단계 완료이고 3단계(#180~#185)는 전부
+    `needs-human` 이라 루프가 집을 수 없다
+
+### 2026-08-05 18:30 — PR 생성
+
+- **회수:** `loop-reclaim.sh --apply`: 브랜치 `fix/194-favicon-console-palette` 회수
+  (PR #196 MERGED) / `loop-guard.sh --reap`: 락 걸린 이슈 없음
+- **게이트:** 통과 — 병합 대기 중인 `agent-loop` PR 없음
+- **후보:** #175 #176 #179 (3개)
+- **선택:** #175 — 라벨 가중치에서 바로 갈렸다. `fix`(100) 는 #175 하나뿐이고
+  #179 는 `refactor`(40), #176 은 `feat`(20) 이다. 범위 비교까지 갈 필요가 없었다
+- **탈락:** #179 (`refactor` 40) · #176 (`feat` 20)
+  - 관문 1 제외: `backlog` #102 #128 #191 / `needs-human` #54 #85 #180~#186 #192 — **코멘트 없음**
+- **결과:** PR 생성 — `fix/175-shiki-dark-theme`
+- **검증:** lint ✅ (경고 0) build ✅ (`Compiled successfully`)
+  - **프리렌더 HTML 에는 코드블록이 없다** — 폴백 데이터에 코드 블록이 없고
+    `.env.local` 부재로 글이 0편이다. `class="shiki"` 가 어느 페이지에도 나오지 않는다
+  - 대신 컴포넌트가 실제로 쓰는 인자로 `codeToHtml` 을 직접 호출해 두 경로를 확인했다:
+    정상(`csharp`)·폴백(`text`) 모두 `<pre class="shiki vitesse-dark"
+    style="background-color:var(--bg);color:#dbd7caee">`
+- **산출물:** PR #197 (`fix/175-shiki-dark-theme`)
+- **비고:**
+  - **배경을 `.shiki` CSS 가 아니라 Shiki 의 `colorReplacements` 로 처리했다.**
+    이슈는 "필요하면 `.shiki` 에 `background` 를 지정한다"고 적었지만, Shiki 는 테마 배경을
+    `<pre>` **인라인 style** 로 넣으므로 클래스 규칙이 이기지 못하고 `!important` 가 필요해진다.
+    `colorReplacements: { "#121212": "var(--bg)" }` 로 치환하면 **하드코딩 없이 토큰이 유지된다** —
+    Shiki 가 값을 문자열로 그대로 넣기 때문에 CSS 변수가 통한다 (shiki 4.3.1 에서 확인)
+  - vitesse-dark 의 배경은 `#121212`(중성 회색)이고 우리 판넬은 청색 계열이라 색조가 어긋난다.
+    지면색(`--bg`)으로 바꿔 코드가 판보다 가라앉게 했다. 헤더 바는 `--surface-hover` 로 떠 있어
+    "라벨 붙은 홈" 으로 읽힌다
+  - `.shiki` 주석에 **배경을 여기서 지정하지 않는 이유**를 적었다. 다음 사람이 CSS 로
+    덮으려 시도하는 것을 막기 위한 것이다
+  - vitesse-dark 의 기본 글자색은 `#dbd7caee`(따뜻한 오프화이트)이고 `--ink` 는
+    `#dde8ec`(차가운 색)이다. **색조가 다르지만 바꾸지 않았다** — 코드 테마는 자기 팔레트를
+    갖는 것이 정상이고, 기본 글자색까지 치환하면 테마를 재설계하는 일이 된다
+  - 남은 후보: #176 #179. **둘을 처리하면 2단계가 끝나고 3단계는 전부 `needs-human` 이다**
+
+### 2026-08-05 18:20 — PR 생성
+
+- **회수:** `loop-reclaim.sh --apply`: 브랜치 `fix/178-admin-accent-buttons` 회수 (PR #195 MERGED) /
+  `loop-guard.sh --reap`: 락 걸린 이슈 없음
+- **게이트:** 통과 — 병합 대기 중인 `agent-loop` PR 없음
+- **후보:** #175 #176 #179 #194 (4개)
+- **선택:** #194 — `fix`(100) 2개(#175 #194). 둘 다 2개 파일이라 "단일 파일" 단계에서 동점이고,
+  다음 단계인 디렉터리 수에서 갈렸다: #194 는 `app/` 하나, #175 는 `components/`+`styles/` 둘
+- **탈락:** #175 (2개 디렉터리) · #179 (`refactor` 40) · #176 (`feat` 20)
+  - 관문 1 제외: `backlog` #102 #128 #191 / `needs-human` #54 #85 #180~#186 #192 — **코멘트 없음**
+- **결과:** PR 생성 — `fix/194-favicon-console-palette`
+- **검증:** lint ✅ (경고 0) build ✅ (`Compiled successfully`)
+  - 프로덕션 서버를 띄워 `/icon.svg` 응답 본문에서 `#070b0d`·`#d8f26a` 직접 확인
+  - `/apple-icon` PNG 픽셀 재확인 — `#070b0d` 91.3% / `#d8f26a` 6.8% (#177 과 동일).
+    이 PR 은 `apple-icon` 의 색을 바꾸지 않았고 주석만 고쳤으므로 값이 같아야 정상이다
+  - **두 아이콘의 색 리터럴이 정확히 일치함을 확인했다** — 이 이슈의 목적이 그것이다
+- **산출물:** PR #196 (`fix/194-favicon-console-palette`)
+- **비고:**
+  - **완료 조건을 착수 중에 좁혔다.** "저장소에 `#4f46e5` 가 남아 있지 않다"고 적었으나
+    `components/resumeDoc.tsx:572` 인쇄 블록의 `--accent: #4f46e5` 는 **#179 소관**이다.
+    두 이슈가 같은 파일을 만지면 충돌하므로 조건을 `app/` 로 한정했다. 근거는 #194 코멘트
+  - `apple-icon.tsx` 의 주석을 "파비콘은 아직 인디고다(#194)" → "색이 같아야 한다.
+    한쪽을 바꾸면 다른 쪽도 함께 바꾼다"로 고쳤다. **#177 에서 범위 초과로 되돌릴 때
+    남겨 둔 안내 문구이며, 이 PR 로 조건이 해소되었으므로 함께 정리해야 한다**
+  - **운영 실수 1건 기록**: #177 실행에서 띄운 테스트 서버(포트 3457)를 종료했다고 보고했으나
+    실제로는 살아 있었다. `pgrep` 결과가 자기 명령줄에 매칭된 것을 종료 근거로 잘못 읽었다.
+    이번 실행에서 포트로 PID 를 확인해(`ss -ltnp`) 3457·3458 두 개만 정리했다 —
+    같은 호스트에 사용자의 `next-server` 3개(3193·3194·4193)가 떠 있어 이름으로 죽이면 위험하다.
+    **테스트 서버를 띄우면 포트로 PID 를 확인해 종료하고, 종료를 응답으로 확인한다**
+  - 남은 후보: #175 #176 #179
+
+### 2026-08-05 18:06 — PR 생성
+
+- **회수:** `loop-reclaim.sh --apply`: 브랜치 `fix/177-og-console-palette` 회수 (PR #193 MERGED) /
+  `loop-guard.sh --reap`: 락 걸린 이슈 없음
+- **게이트:** 통과 — 병합 대기 중인 `agent-loop` PR 없음
+- **후보:** #175 #176 #178 #179 (+ `backlog` 해제한 #194)
+- **선택:** #178 — `fix`(100) 3개(#175 #178 #194) → 단일 디렉터리 2개(#178 `components/`,
+  #194 `app/`) → 번호 최소. **#194 를 풀어도 선택은 바뀌지 않았다**
+- **탈락:** #175 (2개 디렉터리) · #194 (동점, 번호 큼) · #179 (`refactor` 40) · #176 (`feat` 20)
+  - 관문 1 제외: `backlog` #102 #128 #191 / `needs-human` #54 #85 #180~#186 #192 — **코멘트 없음**
+- **결과:** PR 생성 — `fix/178-admin-accent-buttons`
+- **검증:** lint ✅ (경고 0) build ✅ (`Compiled successfully`)
+  - 관리자 라우트는 전부 `ƒ`(인증 필요 동적)라 프리렌더 HTML 이 없다. 대신
+    **컴파일된 서버 번들**(`.next/server/app/admin/**/page.js`)에서 라임 버튼 문자열을 확인하고,
+    **생성된 CSS** 에서 `.bg-lime` · `text-[color:var(--lime-ink)]` · `#CDEA55` 유틸이 실제로
+    나오는지 확인했다
+- **산출물:** PR #195 (`fix/178-admin-accent-buttons`)
+- **비고:**
+  - **`#194` 의 `backlog` 를 해제했다.** 선행 조건이 "#177 머지 후"였고 충족됐다
+  - **착수 전에 이슈 본문을 넓혔다 — 3곳 → 6곳.** 같은 `bg-accent text-white` 결함이
+    `app/admin/error.tsx:16` · `app/admin/projects/page.tsx:27` · `app/admin/blog/page.tsx:27`
+    에도 있었다. 절반만 고치면 관리자 화면에 **글자가 안 보이는 버튼이 남는다.**
+    `app/` + `components/` 두 디렉터리로 TRIAGE 상한 안이다.
+    **#177 에서 범위 초과로 반려된 경험 때문에, 고치기 전에 본문과 코멘트로 기록을 먼저 맞췄다**
+  - `--accent` 를 쓰지만 **깨지지 않은 3곳은 건드리지 않았다** —
+    `inquiryStatus.tsx:43`(선택 틴트) · `formFields.tsx:45`(성공 틴트) ·
+    `admin/blog/page.tsx:45`(공개 여부 점). 어두운 지면에서 밝은 잉크로 읽히고,
+    라임으로 바꾸는 것은 색 결정이라 이 이슈의 일이 아니다. 이슈 본문에 명시했다
+  - 오류 토스트 `bg-red-600 text-white` 는 유지했다 — 오류는 라임이 아니라 빨강이어야 한다
+  - 남은 후보: #175 #176 #179 #194
+
+### 2026-08-05 17:30 — PR 생성
+
+- **회수:** `loop-reclaim.sh --apply`: 브랜치 `fix/174-invert-surfaces-components` 회수
+  (PR #190 MERGED) / `loop-guard.sh --reap`: 락 걸린 이슈 없음
+- **게이트:** 통과 — 병합 대기 중인 `agent-loop` PR 없음
+- **후보:** #175 #176 #177 #178 #179 (5개)
+- **선택:** #177 — `fix`(100) 3개(#175 #177 #178) → 단일 디렉터리 2개(#177 `app/`, #178
+  `components/`) → 번호 최소
+- **탈락:** #175 (2개 디렉터리) · #178 (동점, 번호 큼) · #179 (`refactor` 40) · #176 (`feat` 20)
+  - 관문 1 제외: `backlog` #102 #128 #191 / `needs-human` #54 #85 #180~#186 #192 — **코멘트 없음**
+- **결과:** PR 생성 — `fix/177-og-console-palette`
+- **검증:** lint ✅ (경고 0) build ✅ (`Compiled successfully`)
+  - **이 이슈는 색이 전부라 grep 으로는 검증되지 않는다.** 프로덕션 서버를 띄워 실제 PNG 를
+    받아 캔버스로 픽셀을 셌다:
+    - `/apple-icon` 180×180 — `#070b0d` 91.3% · `#d8f26a` 6.8% (인디고·흰색 0)
+    - `/opengraph-image` 1200×630 — `#070b0d` 97.0% · `#dde8ec` 1.0% · `#7c8f9a` 0.7% ·
+      `#d8f26a` 0.2%
+    - `/icon.svg` — 응답 본문에서 `#070b0d`·`#d8f26a` 직접 확인
+  - **확인 못 한 것 1개**: `app/(site)/writing/[slug]/opengraph-image.tsx` 는 글이 있어야
+    도달한다. `.env.local` 부재로 글이 0편이라 부모 라우트가 404 다. 색 리터럴은 위 두 파일과
+    동일하며 diff 로만 확인했다
+- **산출물:** PR #193 (`fix/177-og-console-palette`)
+- **비고:**
+  - **`#174` 가 또 열린 상태였다** — `dev` 대상 PR 의 `Closes` 가 동작하지 않는 문제가 3회 반복.
+    이번에는 **후보 목록에 실제로 다시 나타났다.** 수동으로 닫았고,
+    절차 공백을 **#192** 로 이슈화했다(`needs-human` — 루프가 자기 절차를 고칠 수 없는 영역)
+  - **검사 1회 반려 → 재작업 1회.** 이슈에 없던 `app/icon.svg` 를 함께 고쳤는데
+    (파비콘도 같은 인디고였고 터치 아이콘만 바꾸면 탭과 홈스크린이 어긋난다)
+    검사가 **범위 초과로 반려**했다 — #177 이 "3개 파일"을 명시했기 때문이다.
+    판정이 맞다. `icon.svg` 를 되돌리고 파비콘은 **#194** 로 분리했다.
+    되돌리면서 `apple-icon.tsx` 주석이 거짓이 되므로("파비콘과 색을 맞춘다")
+    "파비콘은 아직 인디고이며 #194 에서 맞춘다"로 함께 고쳤다.
+    **교훈:** 값이 옳아도 선언한 범위를 넘으면 반려된다. 넘을 만한 것을 발견하면
+    고치지 말고 이슈로 분리하는 것이 빠르다
+  - `apple-icon.tsx` 주석의 "사이드바 브랜드 블록" 은 #135(사이드바 제거) 이후 죽은 서술이라
+    함께 고쳤다
+  - 남은 후보: #175 #176 #178 #179
+
+### 2026-08-05 17:07 — PR 생성
+
+- **회수:** `loop-reclaim.sh --apply`: 브랜치 `fix/173-invert-surfaces-app` 회수 (PR #189 MERGED) /
+  `loop-guard.sh --reap`: 락 걸린 이슈 없음
+- **게이트:** 통과 — 병합 대기 중인 `agent-loop` PR 없음
+- **후보:** #174 #175 #176 #177 #178 #179 (6개)
+- **선택:** #174 — `fix`(100) 4개 → 단일 디렉터리 3개(#174 #177 #178) → 번호 최소.
+  디렉터리 계수는 `CLAUDE.md` 의 `## 디렉터리` 어휘를 따랐다 (#173 실행 기록 참조)
+- **탈락:** #175 (2개 디렉터리) · #177 #178 (동점, 번호 큼) · #179 (`refactor` 40) · #176 (`feat` 20)
+  - 관문 1 제외: `backlog` #102 #128 / `needs-human` #54 #85 #180~#186 — **코멘트 없음**
+- **결과:** PR 생성 — `fix/174-invert-surfaces-components`
+- **검증:** lint ✅ (경고 0) build ✅ (`Compiled successfully`, 정적 17개)
+  - 프리렌더 HTML 5개 페이지 전부에서 `text-white` **0건** (#173 이후 남아 있던 `topNav` 2곳이 사라짐)
+  - 확인된 것: `topNav` 활성 내비·Contact / `caseFilter` 활성 칩 / `contactForm` 제출 버튼 /
+    `caseRow` 메타·제목·보더(각 3건) / `blogIndex` RSS 판 문구
+  - **확인 못 한 것 3곳** — `blogIndex.tsx:92·115·124` 는 라임 Pinned 카드 안이고
+    `.env.local` 부재로 글이 0편이라 카드가 렌더되지 않았다 (`Pinned` 문자열 0건).
+    #173 의 홈 라임 카드와 **같은 종류의 한계**다
+- **산출물:** PR #190 (`fix/174-invert-surfaces-components`)
+- **비고:**
+  - `#173` 은 사람이 이미 닫아 두었다 — 수동 처리가 필요 없었다
+  - 이슈 조건 "`ink ?` 삼항 분기 제거"를 **전부가 아니라 색 반전분만** 적용했다.
+    `caseRow.tsx` 의 `ink = data.inProgress` 는 **진행 중/완료 구분**이라 색 반전과 무관하다.
+    남긴 것 3개: 카드 변형(`card-ink` vs `card`) · 상태 배지(진행 중/완료) · CTA(`btn-lime` vs 아웃라인).
+    걷어낸 것 7개: 제목색·요약색·메타색·태그 스타일·보더색·계측 수치색·계측 라벨색.
+    **`ink` prop 은 존재하지 않았다** — 로컬 `const` 이므로 타입에서 뗄 것이 없었다
+  - `--on-ink-*` 세 변수는 `components/` 에서 사라졌지만 **`app/(site)/page.tsx`(210·219)와
+    `app/(site)/contact/page.tsx`(29·49)에 아직 남아 있다.** #172 본문은 제거를 #173·#174 로
+    넘겼는데 #173 조건에 그 항목이 없어 `app/` 쪽이 빠졌다. 두 파일은 #181(홈)·#184(문의)가
+    재조판하므로 그때 사라진다. **변수 자체의 삭제는 그 뒤에 별도로 해야 한다** — 후속 이슈로 남겼다
+  - 라임 카드 위 대비 요소는 #173 에서 정한 규칙(`bg-page`+`text-ink`, 칩은 `bg-black/10`)을 그대로 따랐다
+
+### 2026-08-05 16:36 — PR 생성
+
+- **회수:** `loop-reclaim.sh --apply`: 브랜치 `feat/172-console-tokens` 회수 (PR #187 MERGED).
+  워크트리 회수 0개 / `loop-guard.sh --reap`: `#172` 락 유지(0시간 경과) → **수동 처리**, 아래 참조
+- **게이트:** 통과 — 병합 대기 중인 `agent-loop` PR 없음 (#187 머지 완료)
+- **후보:** #173 #174 #175 #176 #177 #178 #179 (7개)
+- **선택:** #173 — `fix`(100) 5개 중, 변경 범위 **단일 디렉터리** 4개(#173 #174 #177 #178)로
+  좁혀지고 그중 이슈 번호가 가장 오래된 것.
+  - **디렉터리 계수 기준:** `CLAUDE.md` 의 `## 디렉터리` 절이 이 저장소의 어휘를 정의한다 —
+    `app/` `components/` `lib/` `config/` `class/` `styles/` 를 디렉터리로 놓고 그 하위는
+    괄호로 표기한다. 그 기준으로 #173은 `app/` 하나다.
+    **경로 단위로 세면 3개(`app/(site)`, `app/(site)/about`, `app/(site)/work/[id]`)가 되어
+    관문 2에 걸린다.** 이 해석은 다투어질 수 있다 — 기준을 조이려면 TRIAGE에 계수 단위를
+    명시해야 한다
+- **탈락:** #175 #177 (2개 디렉터리) · #174 #178 (동점이나 번호가 큼) · #176 (`feat` 20) ·
+  #179 (`refactor` 40) — 모두 다음 실행의 후보로 남는다.
+  관문 1 제외: `backlog` #102 #128 / `needs-human` #54 #85 #180~#186 (**코멘트 없음**)
+- **결과:** PR 생성 — `fix/173-invert-surfaces-app`
+- **검증:** lint ✅ (경고 0) build ✅ (`Compiled successfully`, 정적 17개)
+  - 빌드 경고 `Using edge runtime on a page…` 는 **기존 경고**다.
+    `app/opengraph-image.tsx` 와 `app/(site)/writing/[slug]/opengraph-image.tsx` 의
+    `export const runtime = "edge"` 에서 나오며 이 이슈에서 건드리지 않았다 (#177 소관)
+  - 프리렌더 HTML에서 5곳 확인: `about:69` `about:100` `work/[id]:135` `work/[id]:223` `page:214`
+  - **3곳은 확인하지 못했다** — `page.tsx:120·144·153` 은 라임 최신 글 카드 안에 있고
+    그 카드는 글이 1편 이상일 때만 렌더된다. 이 워크트리에 `.env.local` 이 없어
+    `getPosts()` 가 비어 카드 자체가 나오지 않았다. `error.tsx:31` 은 에러 바운더리라
+    프리렌더 대상이 아니다. 타입 검사는 통과했다
+- **산출물:** PR #189 (`fix/173-invert-surfaces-app`)
+- **비고:**
+  - **#172 를 수동으로 닫았다.** PR #187 이 `dev` 에 머지됐지만 기본 브랜치가 `main` 이라
+    `Closes #172` 가 자동 닫기를 발동하지 않는다. 그대로 두면 2시간 뒤 `--reap` 이 락을
+    회수하고(연결된 열린 PR 없음) #172 가 다시 후보가 되어 **이미 머지된 작업을 반복**한다.
+    `dev` 대상 PR 을 쓰는 이 저장소에서는 **머지 후 이슈를 수동으로 닫아야 한다**
+  - **#173~#179 의 `backlog` 를 해제했다.** 잠금 조건이 "#172 머지 전까지"였고 충족됐다
+  - 이슈 본문의 치환 규칙(`bg-ink`+`text-white` → `bg-lime`)이 **라임 카드 위에서는 틀렸다.**
+    라임 위 라임이 되어 요소가 사라진다. 바탕에 따라 세 갈래로 나눠 적용했다 —
+    라임 위는 `bg-page`+`text-ink`, 어두운 지면 위 강조는 `bg-lime`+`--lime-ink`,
+    `card-ink` 안의 흰 글자는 `text-ink`. 근거는 PR 본문에 적었다
+  - `topNav.tsx` 의 활성 내비·Contact 버튼에 `text-white` 가 남아 있다 — **#174 소관**이며
+    사이트 레이아웃에 있어 모든 페이지 HTML에 1건씩 나타난다
+
+### 2026-08-05 16:05 — PR 생성
+
+- **회수:** 없음 (`loop-reclaim.sh`: 루프 워크트리 0개, 회수 대상 브랜치 0개 /
+  `loop-guard.sh --reap`: 락 걸린 이슈 없음)
+- **게이트:** 통과 — 병합 대기 중인 `agent-loop` PR 없음
+- **후보:** #172 (유일)
+- **선택:** #172 — 후보가 하나뿐. `priority` 라벨 없음 → 일반 경로(base `dev`).
+  관문 2 재확인: 단일 파일(`styles/globals.css`), 완료 조건 4개(5개 미만),
+  색 값이 이슈 본문에 전부 명시돼 있어 디자인 판단이 남아 있지 않음
+- **탈락:** 열린 이슈 18개 중 17개가 관문 1에서 즉시 제외
+  - `backlog` (9개): #102 #128 #173 #174 #175 #176 #177 #178 #179 —
+    #173~#179는 **#172 머지 전까지 의도적으로 잠근 것**이다. 라벨을 스스로 떼지 말 것
+  - `needs-human` (8개): #54 #85 #180 #181 #182 #183 #184 #185 #186 —
+    리디자인 v3의 셸·화면 조판은 TRIAGE상 사람 작업이다
+  - 이미 라벨이 있는 이슈이므로 **중복 코멘트를 달지 않았다**
+- **결과:** PR 생성 — `feat/172-console-tokens`
+- **검증:** lint ✅ (경고 0) build ✅ (`Compiled successfully`, 라우트 27개)
+  - 빌드 산출 CSS에서 콘솔 값 12종이 모두 확인되고 세이지 값 10종은 0건
+  - `::selection{background:var(--lime);color:var(--lime-ink)}` ·
+    `focus-visible{outline:2px solid var(--lime)}` 확인
+- **비고:** 착수 중 이슈 본문을 한 번 정정했다. 원래 `--on-ink-*` 3개를 **제거**하라고
+  적었으나 이 변수들은 `app/(site)/page.tsx`·`app/(site)/contact/page.tsx`·
+  `components/projects/caseRow.tsx`·`components/blogIndex.tsx`에서 인라인 `style`로
+  10곳이 참조한다. 제거하면 단일 파일 범위를 넘으므로 **값만 본문 토큰과 맞추고**
+  제거는 #173·#174로 넘겼다. 정정 근거는 #172 코멘트에 남겼다.
+
+  이 PR만 머지된 상태에서는 `bg-ink`가 밝은 배경이 되어 그 위의 `text-white`가
+  보이지 않는다. **의도된 중간 상태다** — #173·#174가 정리한다.
+  `dev` → `main` 승격은 리디자인 v3 전 단계 완료 후 한 번에 하기로 정해져 있다
+  (#186 참조). 승격 PR을 지금 병합하면 이 중간 상태가 프로덕션에 나간다.
+
 ### 2026-07-31 15:44 — PR 생성
 
 - **회수:** 없음 (`loop-reclaim.sh`: 워크트리 0개 회수. 열린 PR이 달린 브랜치

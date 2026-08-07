@@ -53,15 +53,20 @@ export default function MobileHeader() {
   return (
     <div className="md:hidden print:hidden">
       {/*
-        배경은 흰 표면에 맞춘다 — 이 헤더는 표면 안에 놓이므로 세이지를 쓰면 색이 어긋난다.
-        표면이 rounded-[28px] 라 고정 헤더가 상단 곡선을 덮으므로 sticky 는 쓰지 않는다.
+        데스크톱 TopNav 와 같은 계측기 라벨 바. 흰 표면 프레임이 없어졌으므로(#180)
+        이 헤더가 스스로 테두리와 판 배경을 갖는다.
+
+        sticky 는 쓰지 않는다 — 계측 배경이 fixed 로 깔려 있어 고정 헤더까지 겹치면
+        스크롤 중 레이어가 셋이 된다. 모바일에서 그 비용을 낼 이유가 없다.
       */}
-      <header className="flex items-center justify-between border-b border-line bg-surface py-3">
+      <header className="flex items-center justify-between rounded-[3px] border border-line bg-surface px-3 py-2.5">
         {/* 좌 — 하위 페이지면 백링크, 아니면 로고 */}
         {parent ? (
           /*
-            고정폭은 JetBrains Mono(--font-jbmono)를 쓴다. Tailwind 의 font-mono 는
-            기본 테마의 시스템 고정폭 스택이라 이 디자인의 고정폭이 아니다.
+            고정폭은 IBM Plex Mono(--font-jbmono)를 쓴다. 변수 이름은 JetBrains Mono
+            시절 그대로다 — 이유는 globals.css·app/layout.tsx 주석에 있다.
+            Tailwind 의 font-mono 는 기본 테마의 시스템 고정폭 스택이라
+            이 디자인의 고정폭이 아니다.
 
             색은 잉크다. 이 컴포넌트는 md:hidden 이라 hover 가 도달하지 않는 터치 환경이
             기본이고, 이 링크가 하위 페이지에서 상위로 가는 유일한 경로다.

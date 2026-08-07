@@ -9,7 +9,7 @@ const nav = [...NAV, CONTACT]
   `//` 구분자와 두꺼운 여백은 이전 디자인 요소라 걷어냈다.
 
   같이 없앤 문구: `협업·채용·면접 제안은 언제든 환영합니다.`
-  새 규격의 우측 블록은 이메일과 문의 필만 두므로 들어갈 자리가 없다. 같은 뜻은
+  새 규격의 우측 블록은 이메일과 문의 버튼만 두므로 들어갈 자리가 없다. 같은 뜻은
   /contact 화면의 리드와 "이런 제안을 기다립니다" 카드가 더 구체적으로 말한다.
   전 페이지 공통 컴포넌트에서 지운 것이라 여기 근거를 남긴다.
 
@@ -21,7 +21,8 @@ export default function Footer() {
     <footer className="border-t border-line pt-6 pb-10 print:hidden">
       <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
         <div className="min-w-0">
-          <nav className="flex flex-wrap gap-x-5 gap-y-2 text-[13px] font-semibold text-ink">
+          {/* 상단 라벨 바와 같은 고정폭 표기로 맞춘다 — 크롬의 어법을 한 벌로 둔다 */}
+          <nav className="flex flex-wrap gap-x-5 gap-y-2 font-[family-name:var(--font-jbmono)] text-[12px] tracking-[0.08em] text-ink">
             {nav.map((n) => (
               <Link key={n.href} href={n.href} className="hover:text-muted">
                 {n.label}

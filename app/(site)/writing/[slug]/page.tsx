@@ -113,12 +113,17 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
             ← Writing
           </Link>
 
-          {/* 메타 행 — 카테고리만 라임 필 */}
+          {/* 메타 행 — 카테고리만 라임 칩 (#208 이후 각진 3px 이다) */}
           <div className="mt-6 flex flex-wrap items-center gap-2 font-[family-name:var(--font-jbmono)] text-[11.5px] text-muted">
             {meta[0] && <span>{meta[0]}</span>}
+            {/*
+              분류는 Notion select 의 자유 문자열이다. 이 span 은 flex 컨테이너의 자식이라
+              flex 아이템으로 블록화되고 min-width: auto 가 min-content 로 풀린다 —
+              칩과 같은 이유로 break-words 가 아니라 overflow-wrap:anywhere 여야 한다 (#214).
+            */}
             {post.category && (
               <span
-                className="rounded-full bg-lime px-2.5 py-0.5 font-semibold"
+                className="rounded-[3px] bg-lime px-2.5 py-0.5 font-semibold [overflow-wrap:anywhere]"
                 style={{ color: "var(--lime-ink)" }}
               >
                 {post.category}
@@ -127,7 +132,8 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
             {meta[1] && <span>{meta[1]}</span>}
           </div>
 
-          <h1 className="mt-3 text-[40px] font-bold leading-[1.12] tracking-[-0.032em] text-ink">
+          {/* 글 제목도 Notion 자유 문자열이다 — 긴 토큰을 끊는다 (#214) */}
+          <h1 className="mt-3 break-words text-[40px] font-bold leading-[1.12] tracking-[-0.032em] text-ink">
             {post.title}
           </h1>
 
@@ -135,10 +141,20 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
             TL;DR — 글 자체의 요약(summary)을 쓴다. Notion 에서 따로 적는 필드라
             본문 첫 문단을 자른 것이 아니다. 비어 있으면 박스를 내지 않는다.
           */}
+          {/*
+            채움이 bg-page 였다 — 지면과 같은 색이고 테두리가 없어 명암비 1.0:1 로
+            박스가 보이지 않았다. 밝은 지면 시절에는 흰 표면 위 지면색이 박스로 읽혔다.
+
+            채움을 올리는 대신 라임 좌측 눈금으로 바꾼다. 케이스의 계측 리드아웃
+            (caseRow 의 border-l-2 border-lime pl-4)과 같은 어법이고, 요약은 상자에
+            담긴 것이 아니라 축에 표시된 값에 가깝다.
+
+            요약도 읽는 자리이므로 세리프다.
+          */}
           {post.summary && (
-            <div className="mt-6 flex flex-col gap-2 rounded-[16px] bg-page px-5 py-[18px] sm:flex-row sm:gap-5">
+            <div className="mt-6 flex flex-col gap-2 border-l-2 border-lime pl-5 sm:flex-row sm:gap-5">
               <span className="eyebrow shrink-0 text-muted sm:pt-1">TL;DR</span>
-              <p className="text-[14px] leading-[1.8] text-[color:var(--text-body)]">
+              <p className="break-words font-[family-name:var(--font-serif)] text-[14px] leading-[1.8] text-[color:var(--text-body)]">
                 {post.summary}
               </p>
             </div>
@@ -164,7 +180,11 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
             데이터가 생기면 이 자리에 3열 타일(가운데만 라임)이 들어간다.
           */}
 
-          {/* 이어서 읽기 — 2열 세이지 타일 */}
+          {/*
+            이어서 읽기 — 2열 타일.
+            bg-page 였다. TL;DR 과 같은 이유로 보이지 않았다(명암비 1.0:1).
+            card 유틸(테두리 + --surface)로 맞춘다.
+          */}
           {related.length > 0 && (
             <section className="mt-16 border-t border-line pt-8">
               <p className="eyebrow text-muted">이어서 읽기</p>
@@ -173,10 +193,10 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
                   <Link
                     key={r.slug}
                     href={`/writing/${r.slug}`}
-                    className="group rounded-[16px] bg-page p-5 transition-colors hover:bg-surface-hover"
+                    className="card group p-5 hover:bg-surface-hover"
                   >
                     <p className="eyebrow text-muted">같은 태그 · {shared.slice(0, 2).join(" · ")}</p>
-                    <p className="mt-2 text-[15px] font-semibold leading-snug text-ink underline-offset-4 group-hover:underline group-hover:decoration-lime group-hover:decoration-2">
+                    <p className="mt-2 break-words text-[15px] font-semibold leading-snug text-ink underline-offset-4 group-hover:underline group-hover:decoration-lime group-hover:decoration-2">
                       {r.title}
                     </p>
                   </Link>

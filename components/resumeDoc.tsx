@@ -9,10 +9,11 @@ const instrument = Instrument_Sans({ subsets: ["latin"], weight: ["400", "500", 
 /**
  * 정식 이력서 페이지 (/about/resume)
  * 홈/글이 "개성 있는 에디토리얼"이라면, 이 페이지는 정규화된 공식 문서다.
- * - 화면에서는 (site) 레이아웃(상단 내비·흰 표면·푸터) 안에 놓인다
+ * - 화면에서는 (site) 레이아웃(계측 배경 위의 라벨 바·본문·푸터) 안에 놓인다.
+ *   #180 이전에는 흰 표면 프레임(rounded bg-surface) 안이었으나 지금은 그 프레임이 없다
  * - 인쇄할 때는 그 크롬을 숨기고 문서만 남긴다. 규칙은 이 파일이 아니라 크롬 쪽에 있다 —
  *   components/{topNav,mobileHeader,footer}.tsx 의 print:hidden 과
- *   app/(site)/layout.tsx 의 print:* (표면 여백·라운드·최대폭 해제)
+ *   app/(site)/layout.tsx 의 print:* (여백·최대폭 해제. 벗길 표면도 라운드도 이제 없다)
  * - 디스플레이·고정폭 서체는 app/layout.tsx 의 전역 인스턴스를 상속받는다.
  *   본문 서체(Instrument Sans)만 이 문서 고유라 여기서 로드한다
  * - PDF 다운로드 = 브라우저 인쇄(A4 최적화 print CSS)
@@ -269,7 +270,11 @@ export default function ResumeDoc() {
 
       <style jsx global>{`
         .resume-page {
-          /* 사이트(Notion) 팔레트에 매핑 — --accent 는 사이트 :root/.dark 값을 그대로 상속(라이트/다크 자동) */
+          /*
+            사이트 팔레트에 매핑한다. --accent·--ink 는 선언하지 않고 사이트 :root 값을 상속한다.
+            사이트는 단일 다크 테마이므로 화면에서는 이력서도 함께 어두워진다.
+            인쇄는 아래 @media print 가 흰 종이 + 먹색으로 덮는다.
+          */
           --paper: var(--bg);
           --paper-2: var(--surface);
           --ink-soft: var(--text-muted);
@@ -282,7 +287,7 @@ export default function ResumeDoc() {
           min-height: 100vh;
           background: var(--paper);
           color: var(--ink);
-          font-family: var(--font-instrument), -apple-system, sans-serif;
+          font-family: var(--font-instrument), ui-sans-serif, -apple-system, sans-serif;
           line-height: 1.55;
           font-size: 15px;
           letter-spacing: 0.005em;
@@ -320,7 +325,7 @@ export default function ResumeDoc() {
           margin-bottom: 16px;
         }
         .resume-page h1 {
-          font-family: var(--font-display), serif;
+          font-family: var(--font-display), ui-sans-serif, -apple-system, sans-serif;
           font-weight: 600;
           font-size: clamp(48px, 8vw, 88px);
           line-height: 0.94;
@@ -337,7 +342,7 @@ export default function ResumeDoc() {
           margin-top: 10px;
         }
         .resume-page .tagline {
-          font-family: var(--font-display), serif;
+          font-family: var(--font-display), ui-sans-serif, -apple-system, sans-serif;
           font-size: clamp(18px, 2.6vw, 23px);
           line-height: 1.45;
           font-weight: 400;
@@ -374,7 +379,8 @@ export default function ResumeDoc() {
         .resume-page .metric { background: var(--paper); padding: 20px 18px 18px; }
         .resume-page .metric .big {
           font-family: var(--font-jbmono), monospace;
-          /* 전역 JetBrains Mono 인스턴스가 로드하는 굵기는 400·500·600 이다.
+          /* 전역 IBM Plex Mono 인스턴스가 로드하는 굵기는 400·500·600 이다.
+             (변수 이름 --font-jbmono 는 JetBrains Mono 시절 그대로 유지한 것이다)
              자체 인스턴스를 지우면서 700 을 쓰면 합성 볼드로 떨어지므로 600 으로 맞춘다. */
           font-weight: 600;
           font-size: clamp(20px, 3vw, 27px);
@@ -405,7 +411,7 @@ export default function ResumeDoc() {
           letter-spacing: 0.1em;
         }
         .resume-page .sec-title {
-          font-family: var(--font-display), serif;
+          font-family: var(--font-display), ui-sans-serif, -apple-system, sans-serif;
           font-weight: 600;
           font-size: 20px;
           line-height: 1.15;
@@ -436,7 +442,7 @@ export default function ResumeDoc() {
 
         .resume-page .job { margin-bottom: 6px; }
         .resume-page .job-top { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 4px 16px; }
-        .resume-page .job-org { font-family: var(--font-display), serif; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+        .resume-page .job-org { font-family: var(--font-display), ui-sans-serif, -apple-system, sans-serif; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
         .resume-page .job-when { font-family: var(--font-jbmono), monospace; font-size: 11.5px; color: var(--ink-faint); white-space: nowrap; }
         .resume-page .job-role { font-size: 13.5px; color: var(--accent-deep); margin-top: 3px; font-weight: 500; }
         .resume-page .job-note { font-size: 13px; color: var(--ink-soft); margin-top: 8px; font-style: italic; line-height: 1.5; }
@@ -519,7 +525,7 @@ export default function ResumeDoc() {
           color: var(--paper);
           border: none;
           padding: 13px 20px;
-          border-radius: 100px;
+          border-radius: 3px;
           cursor: pointer;
           display: flex;
           align-items: center;
@@ -560,23 +566,31 @@ export default function ResumeDoc() {
         @media print {
           @page { size: A4; margin: 14mm 13mm; }
           html, body { background: #fff; }
-          /* 다크 모드에서 인쇄해도 항상 라이트(흰 종이 + 먹색) 고정 */
-          .resume-page,
-          .dark .resume-page {
+          /*
+            화면이 어두워도 인쇄는 항상 흰 종이 + 먹색으로 고정한다.
+            강조색도 먹색 계열로 덮는다 — 사이트 강조색인 라임(#d8f26a)은 흰 종이에서 읽히지 않는다.
+          */
+          .resume-page {
             --paper: #ffffff;
             --paper-2: #f7f6f3;
             --ink: #1c1b18;
             --ink-soft: #4a4740;
-            --ink-faint: #8a857a;
+            /*
+              #8a857a 는 흰 종이 대비 3.67:1 로 AA(4.5:1)에 못 미쳤다 (#225).
+              이 색이 쓰이는 23곳은 근무 기간·프로젝트 설명·학력 연도처럼 읽어야 하는
+              정보이고, 8~12px 로 작기까지 하다. 5.31:1 로 올린다.
+              --ink-soft 와의 단계 차는 2.52 → 1.75:1 로 좁아지지만 세 단계는 유지된다.
+            */
+            --ink-faint: #6f6b62;
             --rule: #e2e0db;
-            --accent: #4f46e5;
-            --accent-deep: #4338ca;
-            --accent-wash: #eef2ff;
+            --accent: #1c1b18;
+            --accent-deep: #000000;
+            --accent-wash: #f2f1ee;
           }
           .resume-page {
             padding: 0;
             font-size: 10.2px;
-            line-height: 1.42;
+            line-height: 1.36;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
             background: #fff;
@@ -586,25 +600,44 @@ export default function ResumeDoc() {
           .resume-page .dl { display: none; }
           .resume-page .sheet { max-width: none; padding: 0; animation: none; }
           .resume-page * { animation: none !important; }
-          .resume-page header { margin-bottom: 18px; }
-          .resume-page h1 { font-size: 36px; }
-          .resume-page h1 .en { font-size: 12px; margin-top: 5px; }
-          .resume-page .tagline { font-size: 12px; margin: 12px 0 12px; max-width: none; }
+          /*
+            아래 여백 값들은 A4 두 쪽에 맞추려고 조인 것이다 (#226).
+            세 쪽이 나오면서 마지막 쪽이 27%만 차 종이 한 장이 거의 비었다.
+
+            글자 크기는 건드리지 않는다 — 이미 10.2px 이라 더 줄이면 읽기 어려워진다.
+            대신 반복되는 선언(li 26개 · proj 9개 · skill-row 7개)의 여백을 줄인다.
+            한 곳을 1px 줄이면 개수만큼 곱해져 돌아온다.
+          */
+          .resume-page header { margin-bottom: 8px; }
+          .resume-page h1 { font-size: 30px; }
+          .resume-page h1 .en { font-size: 12px; margin-top: 4px; }
+          .resume-page .tagline { font-size: 12px; margin: 6px 0 6px; max-width: none; }
           .resume-page .contacts { font-size: 9.5px; gap: 4px 16px; }
-          .resume-page .metrics { margin: 16px 0 18px; }
-          .resume-page .metric { padding: 11px 12px; }
+          /*
+            성과 격자는 3칸이다. 그런데 @media (max-width: 720px) 가 2칸으로 접는데,
+            A4 인쇄 폭이 184mm ≒ 695px 이라 인쇄에서도 그 규칙이 걸린다.
+            지표가 3개라 2칸에서는 넷째 칸이 빈 회색 상자로 남는다 — 인쇄본에서 실수처럼 보인다.
+            폭 조건이 아니라 매체 조건으로 다시 3칸을 지정한다. 덤으로 한 줄이 줄어 높이도 준다.
+          */
+          .resume-page .metrics { margin: 4px 0 6px; grid-template-columns: repeat(3, 1fr); }
+          .resume-page .metric { padding: 5px 12px; }
           .resume-page .metric .big { font-size: 16px; }
-          .resume-page .metric .lbl { font-size: 9px; margin-top: 5px; }
-          .resume-page section { padding: 15px 0; grid-template-columns: 130px 1fr; gap: 0 26px; break-inside: avoid; }
+          .resume-page .metric .lbl { font-size: 9px; margin-top: 4px; }
+          /*
+            section 의 break-inside: avoid 는 뗀다. 경력 섹션은 1100px 이 넘어 한 쪽에
+            들어갈 수 없고, 들어갈 수 없는 블록의 avoid 는 지켜지지 않는다.
+            지켜야 할 것은 프로젝트 하나가 쪽 사이에서 잘리지 않는 것이고 그건 .proj 가 맡는다.
+          */
+          .resume-page section { padding: 3px 0; grid-template-columns: 130px 1fr; gap: 0 26px; }
           .resume-page .sec-title { font-size: 15px; position: static; }
           .resume-page .job-org { font-size: 16px; }
-          .resume-page .proj { margin-top: 13px; break-inside: avoid; }
+          .resume-page .proj { margin-top: 4px; break-inside: avoid; }
           .resume-page .proj-name { font-size: 12px; }
-          .resume-page .proj-desc { font-size: 10px; margin-bottom: 5px; }
-          .resume-page li { font-size: 10px; margin: 3px 0; line-height: 1.4; }
+          .resume-page .proj-desc { font-size: 10px; margin-bottom: 2px; }
+          .resume-page li { font-size: 10px; margin: 1px 0; line-height: 1.38; }
           .resume-page li::before { top: 0.5em; }
-          .resume-page .skill-row { padding: 5px 0; }
-          .resume-page footer { margin-top: 22px; font-size: 8.5px; }
+          .resume-page .skill-row { padding: 1px 0; }
+          .resume-page footer { margin-top: 10px; font-size: 8.5px; }
           .resume-page a { color: var(--ink) !important; border: none !important; }
         }
       `}</style>

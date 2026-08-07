@@ -23,7 +23,12 @@ export default function CopyButton({ code }: { code: string }) {
       type="button"
       onClick={copy}
       aria-label="코드 복사"
-      className="shrink-0 rounded-full border border-line bg-surface px-3 py-1 font-[family-name:var(--font-jbmono)] text-[11px] text-ink transition-colors hover:bg-page"
+      /*
+        머리 바(--surface-hover) 위에 --surface 배경이라 배경만으로는 1.07:1 밖에 구분되지
+        않는다. 테두리가 유일한 단서인데 border-line 은 1.23:1 로 WCAG 1.4.11(3:1)에
+        못 미친다 — border-control 을 쓴다 (#229).
+      */
+      className="shrink-0 rounded-[3px] border border-control bg-surface px-3 py-1 font-[family-name:var(--font-jbmono)] text-[11px] text-ink transition-colors hover:bg-page"
     >
       {copied ? "복사됨 ✓" : "복사"}
     </button>

@@ -187,8 +187,11 @@ export default function InstrumentBg() {
 
       {/*
         비네트 — 상단에 청록·라임 광원.
-        --glow1/--glow2 를 그대로 쓰지 않는다. 그 값은 알파가 .42·.34 로 강조용이라
-        전면에 깔면 지면이 뜬다. color-mix 로 같은 토큰에서 약한 알파를 만든다.
+        --ch2/--lime 에서 color-mix 로 약한 알파를 만들어 쓴다.
+
+        예전에는 --glow1/--glow2 라는 토큰이 있었는데 알파가 .42·.34 로 강조용이라
+        전면에 깔면 지면이 떴다. 그래서 여기서 쓰지 않았고, 결국 참조가 0이 되어
+        #222 에서 토큰을 지웠다.
       */}
       <div
         className="absolute inset-0"

@@ -52,7 +52,8 @@ function MetricLine({ e }: { e: Experience }) {
     <div className="mt-5 border-l-2 border-lime pl-4">
       {/* 라벨·값 모두 Notion 자유 문자열이다 (#214) */}
       <p className="eyebrow break-words leading-[1.6] text-muted">{e.metricLabel}</p>
-      <p className="mt-2 break-words font-[family-name:var(--font-jbmono)] text-[22px] leading-none">
+      {/* 크기는 proof-sm 유틸이 정한다 (#222) — 이전에는 여기서 22px 을 직접 적었다 */}
+      <p className="proof-sm mt-2 break-words">
         <span className="text-muted">{e.metricBefore}</span>
         <span className="text-muted"> → </span>
         <span className="rounded-[3px] bg-lime px-[5px]" style={{ color: "var(--lime-ink)" }}>

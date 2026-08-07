@@ -325,7 +325,7 @@ export default function ResumeDoc() {
           margin-bottom: 16px;
         }
         .resume-page h1 {
-          font-family: var(--font-display), ui-sans-serif, sans-serif;
+          font-family: var(--font-display), ui-sans-serif, -apple-system, sans-serif;
           font-weight: 600;
           font-size: clamp(48px, 8vw, 88px);
           line-height: 0.94;
@@ -342,7 +342,7 @@ export default function ResumeDoc() {
           margin-top: 10px;
         }
         .resume-page .tagline {
-          font-family: var(--font-display), ui-sans-serif, sans-serif;
+          font-family: var(--font-display), ui-sans-serif, -apple-system, sans-serif;
           font-size: clamp(18px, 2.6vw, 23px);
           line-height: 1.45;
           font-weight: 400;
@@ -411,7 +411,7 @@ export default function ResumeDoc() {
           letter-spacing: 0.1em;
         }
         .resume-page .sec-title {
-          font-family: var(--font-display), ui-sans-serif, sans-serif;
+          font-family: var(--font-display), ui-sans-serif, -apple-system, sans-serif;
           font-weight: 600;
           font-size: 20px;
           line-height: 1.15;
@@ -442,7 +442,7 @@ export default function ResumeDoc() {
 
         .resume-page .job { margin-bottom: 6px; }
         .resume-page .job-top { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 4px 16px; }
-        .resume-page .job-org { font-family: var(--font-display), ui-sans-serif, sans-serif; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+        .resume-page .job-org { font-family: var(--font-display), ui-sans-serif, -apple-system, sans-serif; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
         .resume-page .job-when { font-family: var(--font-jbmono), monospace; font-size: 11.5px; color: var(--ink-faint); white-space: nowrap; }
         .resume-page .job-role { font-size: 13.5px; color: var(--accent-deep); margin-top: 3px; font-weight: 500; }
         .resume-page .job-note { font-size: 13px; color: var(--ink-soft); margin-top: 8px; font-style: italic; line-height: 1.5; }

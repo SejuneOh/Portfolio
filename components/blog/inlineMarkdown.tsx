@@ -12,7 +12,15 @@ const RULES: { kind: Kind; re: RegExp }[] = [
 ]
 
 function renderMatch(kind: Kind, m: RegExpMatchArray, key: number): React.ReactNode {
-  // 인라인 코드 — 세이지 배경. 라임은 코드 영역에 쓰지 않는다.
+  /*
+    인라인 코드. 라임은 코드 영역에 쓰지 않는다.
+
+    "세이지 배경" 이라고 적혀 있었다 — v2(SAGE) 시절의 서술이고 지금은 거짓이다 (#199).
+    실제로는 bg-page(--bg)를 깐다. 지면과 같은 색이지만 불투명이라 뒤에 깔린 계측 배경
+    캔버스를 이 자리에서만 가리고, 그래서 판에서 파낸 자국처럼 읽힌다.
+    (#230 에서 "채움이 아무 일도 하지 않는다"고 판단해 바꾸려 했으나, 프리뷰를 눈으로
+     보고 전제가 틀렸음을 확인해 그 이슈는 닫았다. 여기 남은 것은 주석 정정뿐이다)
+  */
   if (kind === "code")
     return (
       <code

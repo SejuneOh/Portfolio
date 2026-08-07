@@ -19,10 +19,10 @@ function renderMatch(kind: Kind, m: RegExpMatchArray, key: number): React.ReactN
     실제로 까는 것은 bg-page(--bg)다.
 
     **이 채움은 상자를 만들지 못한다.** bg-page 는 --bg 이고 본문도 --bg 위에 있으므로
-    CSS 상 명암비가 1.0:1 이다. 불투명이라 뒤에 깔린 계측 캔버스를 가리기는 하지만,
-    그 캔버스는 격자선 1px 이 76px 간격이고 위에서 아래로 사라지는 마스크가 걸려 있다
-    (components/console/instrumentBg.tsx 에서 --grid 를 쓰는 backgroundImage 와
-     그 아래 maskImage 참조).
+    CSS 상 명암비가 1.0:1 이다. 불투명이라 뒤에 깔린 계측 배경을 가리기는 하지만,
+    그 배경은 네 겹이고 겹마다 다르다 — 격자는 --grid 1px 선이 76px 간격인 CSS 이고
+    위에서 옅어지는 마스크가 걸려 있다. 파형만 캔버스로 그린다
+    (components/console/instrumentBg.tsx 머리 주석과 backgroundImage·maskImage 참조).
     한 줄 높이의 조각이 무엇을 가릴지는 자리마다 다르다 — 기댈 수 없다.
 
     그런데도 이 조각이 본문과 구분되는 이유는 채움이 아니라 **모노 서체와 text-ink**

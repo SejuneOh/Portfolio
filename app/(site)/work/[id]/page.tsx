@@ -143,9 +143,8 @@ export default async function CaseDetail({ params }: { params: Promise<{ id: str
               .map((t) => (
                 <div
                   key={t.label}
-                  className={`rounded-[3px] border border-line bg-surface p-[18px] ${
-                    t.lit ? "border-l-2 border-l-lime" : ""
-                  }`}
+                  /* 모양은 tile 유틸이 정한다 (#222) — 이전에는 같은 조합을 여기 직접 적었다 */
+                  className={`tile p-[18px] ${t.lit ? "border-l-2 border-l-lime" : ""}`}
                 >
                   <p className={`eyebrow ${t.lit ? "text-lime" : "text-muted"}`}>{t.label}</p>
                   <p className="mt-2 break-words text-[14px] leading-[1.7] text-[color:var(--text-body)]">

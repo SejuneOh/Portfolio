@@ -53,9 +53,14 @@ export default function Toc({ items }: { items: TocItem[] }) {
         const on = active === it.id
         return (
           <li key={it.id} className="relative">
+            {/*
+              눈금은 폭과 색이 함께 바뀐다. transition-all 이었는데 여기서 실제로 움직이는
+              것은 이 둘뿐이므로 둘만 적는다 (#227). all 로 두면 반응형 분기가 걸릴 때
+              위치·여백까지 따라 움직인다 — 의도한 적 없는 움직임이다.
+            */}
             <span
               aria-hidden
-              className={`absolute -left-[18px] top-[0.6em] h-px transition-all ${
+              className={`absolute -left-[18px] top-[0.6em] h-px transition-[width,background-color] duration-200 ${
                 on ? "w-[12px] bg-lime" : "w-[6px] bg-line"
               }`}
             />

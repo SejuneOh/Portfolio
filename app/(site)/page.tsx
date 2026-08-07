@@ -161,16 +161,18 @@ export default async function Home() {
         flex 가 표시등을 0 까지 줄여 없애 버린다 — Live 의 라임 점이 "진행 중이 있다"를
         말하는 유일한 신호인데 그것이 사라졌다.
 
-        3열이 성립하는 최소 폭을 5px 간격으로 재보니 **340px** 이다. 그 아래에서는
-        라벨이 상자를 넘긴다(320px 에서 「Cases」가 +7.1px). 340px 에 딱 맞추지 않고
-        360px 에서 3열로 올리는 이유는 서체 스왑 구간의 폴백 폭 차이만큼 여유를 두려는
-        것이다 — 흔한 기기 폭(360·375·390·412·428)은 모두 한 줄을 유지한다.
+        좁은 폭에서는 세로로 쌓는다. Work 목록·Writing 목록과 같은 sm:(640px) 을 쓴다.
 
-        Work 목록은 같은 처리를 sm:(640px) 에서 한다. 라벨 「Experiences」의 자연 폭이
-        87px 이라 훨씬 넓은 폭까지 3열이 성립하지 않기 때문이다. 임계 폭이 다른 것은
-        내용이 다르기 때문이고, 동작 규칙("좁으면 쌓고 들어가면 3열")은 같다.
+        처음에는 min-[360px] 로 잡았다. 3열이 성립하는 최소 폭을 재서 340px 이 나왔고
+        여유를 둔 값이었다. **그 측정이 틀렸다** — 로컬 데이터는 값이 한 자리(Cases 3)인데
+        프로덕션은 두 자리(Cases 10)다. 값 칸이 shrink-0 이라 자릿수가 늘면 라벨 자리가
+        그만큼 줄고, 실데이터 기준 임계는 365px 이었다. 360px 에서 「Cases」가 +1.8px 넘쳤다.
+
+        그래서 자릿수에 흔들리지 않는 값을 쓴다. 640px 이면 값이 세 자리가 돼도 남는다.
+        세 스트립(홈·Work·Writing)의 임계가 같아지는 이점도 있다 —
+        "좁으면 쌓고 넓으면 3열" 이 한 지점에서 갈린다.
       */}
-      <div className="mt-9 grid grid-cols-1 border border-line bg-surface font-[family-name:var(--font-jbmono)] min-[360px]:grid-cols-3">
+      <div className="mt-9 grid grid-cols-1 border border-line bg-surface font-[family-name:var(--font-jbmono)] sm:grid-cols-3">
         {[
           { label: "Cases", value: caseCount },
           { label: "Posts", value: postCount },
@@ -179,7 +181,7 @@ export default async function Home() {
           <div
             key={ch.label}
             className={`flex items-center gap-2 px-4 py-2.5 ${
-              i < 2 ? "border-b border-line min-[360px]:border-b-0 min-[360px]:border-r" : ""
+              i < 2 ? "border-b border-line sm:border-b-0 sm:border-r" : ""
             }`}
           >
             <span

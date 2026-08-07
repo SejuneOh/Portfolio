@@ -27,7 +27,24 @@ export default async function CodeBlock({ code, lang }: { code: string; lang?: s
     vitesse-dark 의 배경은 #121212(중성 회색)이고 우리 판넬은 청색 계열이라 색조가 어긋난다.
     지면색(--bg)으로 바꿔 코드가 판보다 가라앉게 만든다 — 헤더 바는 --surface-hover 로 떠 있다.
   */
-  const colorReplacements = { "#121212": "var(--bg)" }
+  /*
+    토큰 3색이 지면 대비 AA(4.5:1)를 넘지 못해 함께 치환한다 (#224).
+    vitesse-dark 는 자기 배경 #121212 를 기준으로 만들어졌고, 이 셋은 거기서도 여유가 없었다.
+
+      #c98a7d77  따옴표   2.33:1   punctuation.definition.string
+      #666666    구두점   3.44:1   delimiter, keyword.operator
+      #758575dd  주석     4.05:1   comment
+
+    색상(hue)과 채도는 바꾸지 않는다 — 색을 갈면 테마의 색 관계가 무너진다.
+    vitesse-dark 는 '가라앉히기'를 알파로 하므로 알파를 먼저 올리고,
+    알파 1.0 으로도 모자란 무채색 하나만 명도를 올렸다. 목표는 반올림 여유를 둬 4.6:1.
+  */
+  const colorReplacements = {
+    "#121212": "var(--bg)",
+    "#c98a7d77": "#c98a7dc8",
+    "#666666": "#7a7a7a",
+    "#758575dd": "#758575f1",
+  }
 
   let html: string
   try {

@@ -48,19 +48,25 @@ git rev-parse --show-toplevel
 
 ```bash
 MAIN="$(git worktree list --porcelain | awk '/^worktree /{print $2; exit}')"
-[ -n "$MAIN" ] && git -C "$MAIN" rev-parse --git-dir >/dev/null 2>&1 \
-  || { echo "주 체크아웃을 찾지 못했습니다. 검사를 중단합니다."; exit 1; }
+[ -n "$MAIN" ] \
+  && git -C "$MAIN" rev-parse --git-dir >/dev/null 2>&1 \
+  && git -C "$MAIN" remote get-url origin | grep -q 'SejuneOh/Portfolio' \
+  || { echo "이 저장소의 주 체크아웃을 찾지 못했습니다. 검사를 중단합니다."; exit 1; }
 ```
 
-**세 가지를 지킨다.**
+**네 가지를 지킨다.**
 
 1. **`cd`를 쓰지 않는다.** 시작 위치가 고정돼 `cd`가 막힌 것이 `#215`의 원인이다.
    계산식 자체가 `cd`면 그 상황에서 계산이 실패한다. 이 방식은 `cd` 없이 돌고,
    `scripts/loop-reclaim.sh`가 이미 같은 관용구를 쓴다.
-2. **비었으면 멈춘다.** 저장소 밖에서 돌면 값이 비는데, **`git -C ""`는 에러가 아니라
-   cwd에서 실행된다**(실측: `exit 0`). 검증 없이 두면 `MAIN`이 빈 채로
-   `git -C "$MAIN" fetch`가 **남의 워크트리에서 조용히 실행된다.**
-3. **매 블록에서 다시 구한다.** 셸은 명령 호출마다 새로 뜬다 — **변수는 다음 호출로
+2. **비었으면 멈춘다.** 저장소 밖에서 돌면 값이 빈다. 그리고 **빈 `-C`는 에러가 아니라
+   cwd에서 실행된다** — 저장소 안에서 변수가 비면(다음 항목) `git -C "$MAIN" fetch`가
+   **남의 워크트리에서 조용히 돈다.** 값이 비는 경로와 조용히 도는 경로는 다르지만,
+   막는 방법은 같은 한 줄이다.
+3. **이 저장소인지 확인한다.** 셸이 **다른 저장소**에서 시작하면 위 두 검사를 통과한다.
+   `gh`는 `--repo`로 고정돼 있는데 git 쪽만 앵커가 없으면, 엉뚱한 저장소에서 `fetch`와
+   `worktree add`가 돈다.
+4. **매 블록에서 다시 구한다.** 셸은 명령 호출마다 새로 뜬다 — **변수는 다음 호출로
    넘어가지 않는다.** 아래 각 절차의 블록은 자기완결로 쓰여 있다. 앞 블록에서 세운
    변수가 살아 있다고 가정하지 마라.
 
@@ -97,7 +103,9 @@ gh pr view <PR번호> --repo SejuneOh/Portfolio \
 
 ```bash
 MAIN="$(git worktree list --porcelain | awk '/^worktree /{print $2; exit}')"
-[ -n "$MAIN" ] && git -C "$MAIN" rev-parse --git-dir >/dev/null 2>&1 || { echo "주 체크아웃 없음"; exit 1; }
+[ -n "$MAIN" ] && git -C "$MAIN" rev-parse --git-dir >/dev/null 2>&1 \
+  && git -C "$MAIN" remote get-url origin | grep -q 'SejuneOh/Portfolio' \
+  || { echo "이 저장소의 주 체크아웃 없음"; exit 1; }
 REVIEW="$MAIN/.claude/worktrees/review-<PR번호>"
 
 git -C "$MAIN" fetch origin <headRefName>
@@ -142,13 +150,22 @@ gh pr diff <PR번호> --repo SejuneOh/Portfolio
 
 ```bash
 MAIN="$(git worktree list --porcelain | awk '/^worktree /{print $2; exit}')"
-cd "$MAIN/.claude/worktrees/review-<PR번호>"
+[ -n "$MAIN" ] && git -C "$MAIN" rev-parse --git-dir >/dev/null 2>&1 \
+  && git -C "$MAIN" remote get-url origin | grep -q 'SejuneOh/Portfolio' \
+  || { echo "이 저장소의 주 체크아웃 없음"; exit 1; }
+cd "$MAIN/.claude/worktrees/review-<PR번호>" || { echo "검사 워크트리 없음"; exit 1; }
 npm ci && npm run lint && npm run build
 ```
 
 `npm`은 cwd를 보므로 여기서만 `cd`한다 — **`cd`가 허용되는 유일한 자리이고, 대상은 항상
 자기 검사 워크트리다.** 상대 경로(`.claude/worktrees/...`)를 쓰지 않는다 — cwd가 어디인지
 보장되지 않는다 (#215).
+
+**`cd` 뒤에 `||`를 빼지 않는다.** 검사 워크트리가 없으면 `cd`가 실패하고 셸은 그 자리에
+그대로 남는다. 그 자리가 작성 쪽 워크트리면 **`npm ci`가 남의 `node_modules`를 지우고
+다시 깐다** — "절대 실행하지 않는 것"의 작성 쪽 워크트리 접근이고, CLAUDE.md 의
+"다른 브랜치의 작업 공간 수정"이다. 이전 검사가 정리에 실패해 절차 2의 `worktree add`가
+실패하면 실제로 도달한다.
 
 ### 4. 판정
 
@@ -245,6 +262,9 @@ gh pr comment <PR번호> --repo SejuneOh/Portfolio --body "..."
 
 ```bash
 MAIN="$(git worktree list --porcelain | awk '/^worktree /{print $2; exit}')"
+[ -n "$MAIN" ] && git -C "$MAIN" rev-parse --git-dir >/dev/null 2>&1 \
+  && git -C "$MAIN" remote get-url origin | grep -q 'SejuneOh/Portfolio' \
+  || { echo "이 저장소의 주 체크아웃 없음"; exit 1; }
 git -C "$MAIN" worktree remove --force "$MAIN/.claude/worktrees/review-<PR번호>"
 ```
 

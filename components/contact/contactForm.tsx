@@ -23,7 +23,7 @@ const DEFAULT_TYPE: (typeof TYPES)[number] = "면접 요청"
 /*
   필드 경계는 --control-border(구 --field-border) 를 쓴다. --border 는 지면 대비 1.38:1 이라
   어두운 지면에서 필드가 어디부터 어디까지인지 보이지 않는다 (WCAG 1.4.11 비텍스트 3:1 미달).
-  #229 에서 같은 토큰을 필터 칩·필 버튼·복사 버튼까지 넓히면서 이름을 바꿨다.
+  #229 에서 같은 토큰을 필터 칩·아웃라인 버튼·복사 버튼까지 넓히면서 이름을 바꿨다.
 
   포커스는 전역 :focus-visible 이 라임 외곽선을 그린다(globals.css). 여기서는 경계색까지
   라임으로 올려 신호를 둘로 만든다 — :focus-visible 이 아니라 :focus 를 쓰는 이유는
@@ -69,7 +69,7 @@ export default function ContactForm() {
         </label>
       </div>
 
-      {/* 문의 유형 — select 가 아니라 필 라디오. 전송 필드는 여전히 name="type" 이다 */}
+      {/* 문의 유형 — select 가 아니라 라디오 칩. 전송 필드는 여전히 name="type" 이다 */}
       <fieldset>
         <legend className={labelCls}>문의 유형</legend>
         <div className="mt-2 flex flex-wrap gap-2">

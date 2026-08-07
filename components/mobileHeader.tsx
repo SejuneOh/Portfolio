@@ -64,9 +64,9 @@ export default function MobileHeader() {
         {parent ? (
           /*
             고정폭은 IBM Plex Mono(--font-jbmono)를 쓴다. 변수 이름은 JetBrains Mono
-            시절 그대로다 — 참조하는 자리가 13개 파일에 걸쳐 있어 유지한다(globals.css).
-            Tailwind 의 font-mono 는
-            기본 테마의 시스템 고정폭 스택이라 이 디자인의 고정폭이 아니다.
+            시절 그대로다 — 이유는 globals.css·app/layout.tsx 주석에 있다.
+            Tailwind 의 font-mono 는 기본 테마의 시스템 고정폭 스택이라
+            이 디자인의 고정폭이 아니다.
 
             색은 잉크다. 이 컴포넌트는 md:hidden 이라 hover 가 도달하지 않는 터치 환경이
             기본이고, 이 링크가 하위 페이지에서 상위로 가는 유일한 경로다.

@@ -33,10 +33,18 @@ const plexSansKr = IBM_Plex_Sans_KR({
 /*
   계측·코드·메타·eyebrow 용 고정폭. --font-jbmono 변수로 노출 → globals.css 유틸에서 사용.
 
-  변수 이름을 유지한다. 이 이름을 참조하는 자리가 13개 파일에 걸쳐 있고
+  변수 이름을 유지한다. 이 이름을 참조하는 자리가 여러 파일에 흩어져 있고
   globals.css 의 eyebrow·proof·proof-sm 유틸도 여기에 걸려 있다 — 이름을 바꾸면
   전부 고쳐야 한다. Tailwind 4 가 기본 테마에 --font-mono 를 이미 정의하므로
   그 이름은 여전히 피한다.
+
+  파일 수를 적어 두지 않는다 (#199). "13개 파일" 이라고 적어 뒀는데 그 뒤 늘어
+  세 곳의 주석이 한꺼번에 거짓이 됐다. 지금 수가 궁금하면 세면 된다:
+
+    git grep -l -- "--font-jbmono" -- app components lib styles tailwind.config.js
+
+  경로를 한정하는 이유는 docs/loop/STATE.md 같은 실행 기록이 이 이름을 언급하기
+  때문이다 — 고칠 대상이 아니므로 세는 데서도 뺀다.
 */
 const plexMono = IBM_Plex_Mono({
   subsets: ["latin"],

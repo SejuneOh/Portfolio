@@ -573,7 +573,13 @@ export default function ResumeDoc() {
             --paper-2: #f7f6f3;
             --ink: #1c1b18;
             --ink-soft: #4a4740;
-            --ink-faint: #8a857a;
+            /*
+              #8a857a 는 흰 종이 대비 3.67:1 로 AA(4.5:1)에 못 미쳤다 (#225).
+              이 색이 쓰이는 23곳은 근무 기간·프로젝트 설명·학력 연도처럼 읽어야 하는
+              정보이고, 8~12px 로 작기까지 하다. 5.31:1 로 올린다.
+              --ink-soft 와의 단계 차는 2.52 → 1.75:1 로 좁아지지만 세 단계는 유지된다.
+            */
+            --ink-faint: #6f6b62;
             --rule: #e2e0db;
             --accent: #1c1b18;
             --accent-deep: #000000;
@@ -582,7 +588,7 @@ export default function ResumeDoc() {
           .resume-page {
             padding: 0;
             font-size: 10.2px;
-            line-height: 1.42;
+            line-height: 1.36;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
             background: #fff;
@@ -592,25 +598,38 @@ export default function ResumeDoc() {
           .resume-page .dl { display: none; }
           .resume-page .sheet { max-width: none; padding: 0; animation: none; }
           .resume-page * { animation: none !important; }
-          .resume-page header { margin-bottom: 18px; }
-          .resume-page h1 { font-size: 36px; }
-          .resume-page h1 .en { font-size: 12px; margin-top: 5px; }
-          .resume-page .tagline { font-size: 12px; margin: 12px 0 12px; max-width: none; }
+          /*
+            아래 여백 값들은 A4 두 쪽에 맞추려고 조인 것이다 (#226).
+            세 쪽이 나오면서 마지막 쪽이 27%만 차 종이 한 장이 거의 비었다.
+
+            글자 크기는 건드리지 않는다 — 이미 10.2px 이라 더 줄이면 읽기 어려워진다.
+            대신 반복되는 선언(li 26개 · proj 9개 · skill-row 7개)의 여백을 줄인다.
+            한 곳을 1px 줄이면 개수만큼 곱해져 돌아온다.
+          */
+          .resume-page header { margin-bottom: 8px; }
+          .resume-page h1 { font-size: 30px; }
+          .resume-page h1 .en { font-size: 12px; margin-top: 4px; }
+          .resume-page .tagline { font-size: 12px; margin: 6px 0 6px; max-width: none; }
           .resume-page .contacts { font-size: 9.5px; gap: 4px 16px; }
-          .resume-page .metrics { margin: 16px 0 18px; }
-          .resume-page .metric { padding: 11px 12px; }
+          .resume-page .metrics { margin: 4px 0 6px; }
+          .resume-page .metric { padding: 5px 12px; }
           .resume-page .metric .big { font-size: 16px; }
-          .resume-page .metric .lbl { font-size: 9px; margin-top: 5px; }
-          .resume-page section { padding: 15px 0; grid-template-columns: 130px 1fr; gap: 0 26px; break-inside: avoid; }
+          .resume-page .metric .lbl { font-size: 9px; margin-top: 4px; }
+          /*
+            section 의 break-inside: avoid 는 뗀다. 경력 섹션은 1100px 이 넘어 한 쪽에
+            들어갈 수 없고, 들어갈 수 없는 블록의 avoid 는 지켜지지 않는다.
+            지켜야 할 것은 프로젝트 하나가 쪽 사이에서 잘리지 않는 것이고 그건 .proj 가 맡는다.
+          */
+          .resume-page section { padding: 3px 0; grid-template-columns: 130px 1fr; gap: 0 26px; }
           .resume-page .sec-title { font-size: 15px; position: static; }
           .resume-page .job-org { font-size: 16px; }
-          .resume-page .proj { margin-top: 13px; break-inside: avoid; }
+          .resume-page .proj { margin-top: 4px; break-inside: avoid; }
           .resume-page .proj-name { font-size: 12px; }
-          .resume-page .proj-desc { font-size: 10px; margin-bottom: 5px; }
-          .resume-page li { font-size: 10px; margin: 3px 0; line-height: 1.4; }
+          .resume-page .proj-desc { font-size: 10px; margin-bottom: 2px; }
+          .resume-page li { font-size: 10px; margin: 1px 0; line-height: 1.38; }
           .resume-page li::before { top: 0.5em; }
-          .resume-page .skill-row { padding: 5px 0; }
-          .resume-page footer { margin-top: 22px; font-size: 8.5px; }
+          .resume-page .skill-row { padding: 1px 0; }
+          .resume-page footer { margin-top: 10px; font-size: 8.5px; }
           .resume-page a { color: var(--ink) !important; border: none !important; }
         }
       `}</style>

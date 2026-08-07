@@ -9,10 +9,11 @@ const instrument = Instrument_Sans({ subsets: ["latin"], weight: ["400", "500", 
 /**
  * 정식 이력서 페이지 (/about/resume)
  * 홈/글이 "개성 있는 에디토리얼"이라면, 이 페이지는 정규화된 공식 문서다.
- * - 화면에서는 (site) 레이아웃(상단 내비·흰 표면·푸터) 안에 놓인다
+ * - 화면에서는 (site) 레이아웃(계측 배경 위의 라벨 바·본문·푸터) 안에 놓인다.
+ *   #180 이전에는 흰 표면 프레임(rounded bg-surface) 안이었으나 지금은 그 프레임이 없다
  * - 인쇄할 때는 그 크롬을 숨기고 문서만 남긴다. 규칙은 이 파일이 아니라 크롬 쪽에 있다 —
  *   components/{topNav,mobileHeader,footer}.tsx 의 print:hidden 과
- *   app/(site)/layout.tsx 의 print:* (표면 여백·라운드·최대폭 해제)
+ *   app/(site)/layout.tsx 의 print:* (여백·최대폭 해제. 벗길 표면도 라운드도 이제 없다)
  * - 디스플레이·고정폭 서체는 app/layout.tsx 의 전역 인스턴스를 상속받는다.
  *   본문 서체(Instrument Sans)만 이 문서 고유라 여기서 로드한다
  * - PDF 다운로드 = 브라우저 인쇄(A4 최적화 print CSS)
@@ -324,7 +325,7 @@ export default function ResumeDoc() {
           margin-bottom: 16px;
         }
         .resume-page h1 {
-          font-family: var(--font-display), serif;
+          font-family: var(--font-display), ui-sans-serif, sans-serif;
           font-weight: 600;
           font-size: clamp(48px, 8vw, 88px);
           line-height: 0.94;
@@ -341,7 +342,7 @@ export default function ResumeDoc() {
           margin-top: 10px;
         }
         .resume-page .tagline {
-          font-family: var(--font-display), serif;
+          font-family: var(--font-display), ui-sans-serif, sans-serif;
           font-size: clamp(18px, 2.6vw, 23px);
           line-height: 1.45;
           font-weight: 400;
@@ -378,7 +379,8 @@ export default function ResumeDoc() {
         .resume-page .metric { background: var(--paper); padding: 20px 18px 18px; }
         .resume-page .metric .big {
           font-family: var(--font-jbmono), monospace;
-          /* 전역 JetBrains Mono 인스턴스가 로드하는 굵기는 400·500·600 이다.
+          /* 전역 IBM Plex Mono 인스턴스가 로드하는 굵기는 400·500·600 이다.
+             (변수 이름 --font-jbmono 는 JetBrains Mono 시절 그대로 유지한 것이다)
              자체 인스턴스를 지우면서 700 을 쓰면 합성 볼드로 떨어지므로 600 으로 맞춘다. */
           font-weight: 600;
           font-size: clamp(20px, 3vw, 27px);
@@ -409,7 +411,7 @@ export default function ResumeDoc() {
           letter-spacing: 0.1em;
         }
         .resume-page .sec-title {
-          font-family: var(--font-display), serif;
+          font-family: var(--font-display), ui-sans-serif, sans-serif;
           font-weight: 600;
           font-size: 20px;
           line-height: 1.15;
@@ -440,7 +442,7 @@ export default function ResumeDoc() {
 
         .resume-page .job { margin-bottom: 6px; }
         .resume-page .job-top { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 4px 16px; }
-        .resume-page .job-org { font-family: var(--font-display), serif; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+        .resume-page .job-org { font-family: var(--font-display), ui-sans-serif, sans-serif; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
         .resume-page .job-when { font-family: var(--font-jbmono), monospace; font-size: 11.5px; color: var(--ink-faint); white-space: nowrap; }
         .resume-page .job-role { font-size: 13.5px; color: var(--accent-deep); margin-top: 3px; font-weight: 500; }
         .resume-page .job-note { font-size: 13px; color: var(--ink-soft); margin-top: 8px; font-style: italic; line-height: 1.5; }

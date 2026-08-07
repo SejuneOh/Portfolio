@@ -2,7 +2,7 @@ import Link from "next/link"
 import { getProjectGroups } from "../../lib/notion"
 import { getPosts } from "../../lib/postsData"
 import { readingMinutes } from "../../lib/posts"
-import { fmtMonth, periodLabel } from "../../lib/date"
+import { fmtDay, periodLabel } from "../../lib/date"
 import JsonLd from "../../components/jsonLd"
 import { SITE_URL, SITE_DESCRIPTION, AUTHOR } from "../../lib/site"
 
@@ -58,7 +58,8 @@ export default async function Home() {
     summary: p.summary,
     when: p.date,
     // 케이스는 periodLabel 로 `2025.01 — 2026.07` 이 된다. 한 축의 같은 칸이므로 표기를 맞춘다.
-    dateLabel: fmtMonth(p.date),
+    // 글은 일까지 낸다. 케이스 기간은 아래에서 periodLabel(월 단위)을 그대로 쓴다 (#204)
+    dateLabel: fmtDay(p.date),
     tags: p.tags,
     live: false,
     // 카테고리는 이전 홈의 라임 카드가 배지로 내던 정보다. 축에서는 메타 줄에 남긴다.

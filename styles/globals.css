@@ -180,6 +180,21 @@
     outline-offset: 2px;
     border-radius: 3px;
   }
+
+  /*
+    라임 면 안에서는 위 규칙이 무효가 된다 (#228).
+
+    outline-offset 이 양수라 외곽선은 요소 바깥, 즉 **부모 배경 위**에 그려진다.
+    부모가 라임이면 라임 외곽선이 라임 위에 얹혀 대비 1:1 — 포커스가 사라진다.
+    (요소 자기 배경이 라임인 것은 문제가 아니다. 내비 활성 필의 외곽선은
+     헤더 판넬 #0c1216 위에 그려져 15:1 이다)
+
+    자리마다 고치지 않고 규칙 하나로 덮는다. 라임 면이 더 생겨도 따라온다.
+    --lime-ink 는 그 면의 글자색이고 라임 대비 15.43:1 이다.
+  */
+  .bg-lime :where(a, button, input, textarea, select, summary):focus-visible {
+    outline-color: var(--lime-ink);
+  }
 }
 
 @layer utilities {

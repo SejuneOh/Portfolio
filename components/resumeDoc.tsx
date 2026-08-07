@@ -611,7 +611,13 @@ export default function ResumeDoc() {
           .resume-page h1 .en { font-size: 12px; margin-top: 4px; }
           .resume-page .tagline { font-size: 12px; margin: 6px 0 6px; max-width: none; }
           .resume-page .contacts { font-size: 9.5px; gap: 4px 16px; }
-          .resume-page .metrics { margin: 4px 0 6px; }
+          /*
+            성과 격자는 3칸이다. 그런데 @media (max-width: 720px) 가 2칸으로 접는데,
+            A4 인쇄 폭이 184mm ≒ 695px 이라 인쇄에서도 그 규칙이 걸린다.
+            지표가 3개라 2칸에서는 넷째 칸이 빈 회색 상자로 남는다 — 인쇄본에서 실수처럼 보인다.
+            폭 조건이 아니라 매체 조건으로 다시 3칸을 지정한다. 덤으로 한 줄이 줄어 높이도 준다.
+          */
+          .resume-page .metrics { margin: 4px 0 6px; grid-template-columns: repeat(3, 1fr); }
           .resume-page .metric { padding: 5px 12px; }
           .resume-page .metric .big { font-size: 16px; }
           .resume-page .metric .lbl { font-size: 9px; margin-top: 4px; }

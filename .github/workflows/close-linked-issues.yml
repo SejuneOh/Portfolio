@@ -1,0 +1,103 @@
+name: Close linked issues
+
+# dev 대상 PR 이 병합되면 본문의 Closes/Fixes/Resolves #N 을 읽어 이슈를 닫는다.
+#
+# GitHub 는 이 키워드를 **기본 브랜치로 병합될 때만** 처리한다. 이 저장소의 기본
+# 브랜치는 main 이고 작업 PR 의 base 는 dev 라, 지금까지 병합된 PR 의 이슈가 열린 채
+# 남았다. 루프가 그 이슈를 다시 후보로 집어 같은 작업을 반복하는 일도 있었다 (#192).
+#
+# main 대상(승격) PR 은 GitHub 가 알아서 처리하므로 여기서 다루지 않는다.
+#
+# pull_request_target 을 쓰는 이유:
+#   pull_request 는 PR 머리(head)의 워크플로 파일로 돈다. 이 파일이 없던 시점에
+#   만들어진 브랜치의 PR 에서는 동작하지 않는다. pull_request_target 은 base(dev)의
+#   파일로 돌므로 그런 구멍이 없고, 병합 시점에 쓰기 토큰도 받는다.
+#
+#   대신 PR 본문은 **신뢰할 수 없는 입력**이다. ${{ }} 로 run 안에 직접 끼워 넣으면
+#   본문에 셸 메타문자를 넣어 임의 명령을 실행시킬 수 있다. 아래처럼 env 로만 넘긴다.
+on:
+  pull_request_target:
+    types: [closed]
+    branches: [dev]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: close-linked-${{ github.event.pull_request.number }}
+
+jobs:
+  close:
+    name: Close issues referenced by the merged PR
+    # 닫히기만 하고 병합되지 않은 PR 은 건드리지 않는다
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Close referenced issues
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          # 신뢰할 수 없는 입력. run 안에 ${{ }} 로 끼워 넣지 않는다.
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          set -euo pipefail
+
+          # GitHub 가 인정하는 키워드 전부. 대소문자를 가리지 않는다.
+          #   앞의 (^|[^a-zA-Z]) 는 preclose 같은 단어 안의 close 를 거른다.
+          #   키워드 바로 뒤에 # 가 와야 하므로 owner/repo#N 과 전체 URL 은 잡히지 않는다
+          #   — 다른 저장소의 이슈를 닫는 사고를 막는다.
+          #   grep 은 줄 단위라 키워드와 #N 이 다른 줄이면 잡히지 않는다. 안 닫는 쪽이 안전하다.
+          numbers="$(printf '%s' "${PR_BODY:-}" \
+            | grep -oiE '(^|[^a-zA-Z])(close[sd]?|fix(e[sd])?|resolve[sd]?)[[:space:]]+#[0-9]+' \
+            | grep -oE '#[0-9]+' \
+            | tr -d '#' \
+            | sort -un || true)"
+
+          if [ -z "$numbers" ]; then
+            echo "PR #${PR_NUMBER} 본문에 닫을 이슈 참조가 없습니다."
+            exit 0
+          fi
+
+          echo "PR #${PR_NUMBER} 이 참조하는 이슈: $(echo "$numbers" | tr '\n' ' ')"
+
+          failed=0
+          for n in $numbers; do
+            # PR 번호도 #N 형태라 자기 자신이나 다른 PR 을 가리킬 수 있다.
+            # gh issue view 는 PR 에도 응답하므로 종류를 먼저 확인한다.
+            kind="$(gh api "repos/${GH_REPO}/issues/${n}" --jq 'if .pull_request then "pr" else "issue" end' 2>/dev/null || echo "none")"
+            case "$kind" in
+              none) echo "  #${n} — 없는 번호입니다. 건너뜁니다"; continue;;
+              pr)   echo "  #${n} — 이슈가 아니라 PR 입니다. 건너뜁니다"; continue;;
+            esac
+
+            state="$(gh issue view "$n" --json state --jq .state 2>/dev/null || echo "")"
+            if [ "$state" != "OPEN" ]; then
+              echo "  #${n} — 이미 닫혀 있습니다 (${state:-불명})"
+              continue
+            fi
+
+            # 왜 닫혔는지 이슈에 남긴다. dev 대상 PR 은 GitHub 가 연결을 기록하지 않으므로
+            # 이 코멘트가 유일한 흔적이다.
+            #
+            # 코멘트는 파일로 넘긴다. YAML 리터럴 블록 안에서는 모든 줄이 블록 들여쓰기를
+            # 지켜야 하는데, 여러 줄 문자열을 인라인으로 쓰면 빈 줄·인용 줄이 블록을 끊는다.
+            comment_file="$(mktemp)"
+            {
+              printf 'PR #%s (`%s`) 이 `dev` 에 병합되어 해결됐습니다.\n\n' "$PR_NUMBER" "$PR_TITLE"
+              printf '> `dev` 대상 PR 은 기본 브랜치가 아니라 `Closes` 가 자동으로 동작하지 않습니다.\n'
+              printf '> 이 이슈는 `close-linked-issues` 워크플로가 닫았습니다 (#192).\n'
+            } > "$comment_file"
+
+            if gh issue close "$n" --comment "$(cat "$comment_file")"; then
+              echo "  #${n} — 닫았습니다"
+            else
+              echo "  #${n} — 닫기 실패"
+              failed=1
+            fi
+          done
+
+          exit "$failed"

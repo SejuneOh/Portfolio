@@ -12,12 +12,22 @@ const RULES: { kind: Kind; re: RegExp }[] = [
 ]
 
 function renderMatch(kind: Kind, m: RegExpMatchArray, key: number): React.ReactNode {
-  // 인라인 코드 — 세이지 배경. 라임은 코드 영역에 쓰지 않는다.
+  /*
+    인라인 코드. 라임은 코드 영역에 쓰지 않는다.
+
+    채움이 bg-page 였다 (#230). 밝은 지면 시절에는 흰 표면 위의 지면색이 상자로 읽혔지만
+    지면이 어두워지면서 채움과 주변이 같은 색(1:1)이 됐고, 테두리도 없어 상자가 통째로
+    보이지 않았다. rounded-[3px] 과 px-[5px] 도 함께 죽어 있었다 — 보이지 않는 상자에
+    준 모서리와 여백이다.
+
+    --surface 는 지면 대비 1.05:1 이라 채움만으로는 여전히 약하다. 테두리를 함께 둬야
+    상자가 성립한다. 태그 칩(@utility chip)이 쓰는 것과 같은 조합이라 어법도 맞는다.
+  */
   if (kind === "code")
     return (
       <code
         key={key}
-        className="rounded-[3px] bg-page px-[5px] py-px font-[family-name:var(--font-jbmono)] text-[0.88em] text-ink"
+        className="rounded-[3px] border border-line bg-surface px-[5px] py-px font-[family-name:var(--font-jbmono)] text-[0.88em] text-ink"
       >
         {m[1]}
       </code>

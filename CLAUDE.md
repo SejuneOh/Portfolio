@@ -164,3 +164,10 @@ chore(deps): Tailwind CSS 3 → 4 (#111)
 5. **막히면 넘긴다.** 해결 못 하는 이슈는 이유를 코멘트로 남기고 `needs-human` 라벨을 단다.
    이것은 실패가 아니라 정상 종료 경로다
 6. 판정 기준은 `docs/loop/TRIAGE.md`, 우선순위는 `docs/loop/PRIORITY.md`를 따른다
+7. **Next.js 16 은 학습 데이터와 다르다.** API·규약·파일 구조가 바뀌었다.
+   Next 관련 코드를 쓰기 전에 `node_modules/next/dist/docs/` 의 해당 가이드를 읽고,
+   빌드 출력의 deprecation 경고를 무시하지 않는다. 이미 바뀐 것들:
+   `middleware.ts` → `proxy.ts`, `next lint` 제거(`eslint` 직접 호출), Edge Runtime deprecated
+
+   Next 16 은 `next dev` 때 이 파일에 같은 취지의 블록을 스스로 써 넣으려 한다.
+   그 자동 쓰기는 `next.config.js` 의 `agentRules: false` 로 껐다 — 이유는 그쪽 주석에 있다.

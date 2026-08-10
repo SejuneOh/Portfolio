@@ -28,22 +28,37 @@ export default async function CodeBlock({ code, lang }: { code: string; lang?: s
     지면색(--bg)으로 바꿔 코드가 판보다 가라앉게 만든다 — 헤더 바는 --surface-hover 로 떠 있다.
   */
   /*
-    토큰 3색이 지면 대비 AA(4.5:1)를 넘지 못해 함께 치환한다 (#224).
-    vitesse-dark 는 자기 배경 #121212 를 기준으로 만들어졌고, 이 셋은 거기서도 여유가 없었다.
+    지면 대비 AA(4.5:1)를 넘지 못하는 토큰색을 치환한다.
+    vitesse-dark 는 자기 배경 #121212 를 기준으로 만들어졌고, 이 일곱은 거기서도 여유가 없었다.
 
-      #c98a7d77  따옴표   2.33:1   punctuation.definition.string
-      #666666    구두점   3.44:1   delimiter, keyword.operator
-      #758575dd  주석     4.05:1   comment
+    **테마를 정본으로 센다.** #224 는 내가 훑은 글 7개·케이스 10개에 실제로 나타난
+    토큰만 세서 3개만 고쳤다. 그 17개에 없던 스코프는 보이지 않았고, 승격 뒤 프로덕션에서
+    property-name 따옴표가 2.61:1 로 잡혔다 (#246). 렌더 결과가 아니라 정의를 세야 했다.
+
+    scripts/test-shiki-contrast.mjs 가 테마의 토큰색 전부를 재고 미달이 남으면 실패한다.
+    CI 가 매 PR 에서 돌린다 — 이 목록이 다시 뒤처지지 않게 하는 장치다.
+
+      #24292e     1.35:1   carriage-return
+      #2f363d     1.61:1   markup.ignored, markup.untracked
+      #c98a7d77   2.33:1   punctuation.definition.string
+      #b8a96577   2.61:1   punctuation.support.type.property-name   ← 프로덕션에서 잡힌 것
+      #666666     3.44:1   delimiter, keyword.operator
+      #758575dd   4.04:1   comment
+      #6872ab     4.31:1   type.identifier, regexp character-class
 
     색상(hue)과 채도는 바꾸지 않는다 — 색을 갈면 테마의 색 관계가 무너진다.
-    vitesse-dark 는 '가라앉히기'를 알파로 하므로 알파를 먼저 올리고,
-    알파 1.0 으로도 모자란 무채색 하나만 명도를 올렸다. 목표는 반올림 여유를 둬 4.6:1.
+    vitesse-dark 는 '가라앉히기'를 알파로 하므로 알파를 먼저 올리고, 알파 1.0 으로도
+    모자란 것만 명도를 올렸다. 목표는 반올림 여유를 둬 4.6:1.
   */
   const colorReplacements = {
     "#121212": "var(--bg)",
+    "#24292e": "#6d7c8b",
+    "#2f363d": "#6c7c8c",
     "#c98a7d77": "#c98a7dc8",
+    "#b8a96577": "#b8a965b4",
     "#666666": "#7a7a7a",
     "#758575dd": "#758575f1",
+    "#6872ab": "#6d77ae",
   }
 
   let html: string

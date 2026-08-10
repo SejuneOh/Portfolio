@@ -51,3 +51,11 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      # 코드 블록 토큰색이 지면 대비 AA 를 넘는지, 테마를 정본으로 검사한다 (#246).
+      # 렌더된 글을 훑어 세면 그 표본에 없는 스코프를 놓친다 — #224 가 그렇게 3개만
+      # 고쳤고 승격 뒤 프로덕션에서 네 번째가 잡혔다.
+      #
+      # shiki 를 import 하므로 npm ci 뒤에 둔다.
+      - name: Test code block contrast
+        run: node scripts/test-shiki-contrast.mjs

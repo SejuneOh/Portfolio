@@ -277,6 +277,24 @@ PR 본문에 반드시 포함:
 PR을 연 뒤 **`issue-reviewer` 서브에이전트에게 검사를 맡긴다.**
 직접 검사하지 않는다 — 자기가 쓴 코드를 자기가 검사하면 옹호하게 된다.
 
+**위임 전에 작성 워크트리 밖으로 나온다.** 서브에이전트의 셸이 네 cwd를 물려받기 때문이다.
+`.claude/worktrees/issue-<N>` 안에서 위임하면 검사자가 **작성 쪽 작업 공간에 고정된 채로**
+시작하고, 그 경로는 검사자가 접근하면 안 되는 곳이다 (#215).
+
+```bash
+MAIN="$(git worktree list --porcelain | awk '/^worktree /{print $2; exit}')"
+[ -n "$MAIN" ] && cd "$MAIN" || { echo "주 체크아웃을 찾지 못했습니다"; exit 1; }
+pwd    # 여기가 .claude/worktrees/issue-<N> 이 아니어야 한다
+```
+
+**`ExitWorktree`를 쓰지 않는다.** 그 툴은 `EnterWorktree`로 만든 워크트리에만 동작하고,
+이 스킬의 워크트리는 절차 5에서 **`git worktree add`로 직접** 만든 것이다.
+그런 워크트리에는 문서상 **no-op** — 아무것도 하지 않고 끝난다.
+`cd`로 직접 옮겨야 실제로 위치가 바뀐다.
+
+워크트리 자체는 절차 10에서 정리한다. 여기서는 **위치만** 옮긴다.
+검사자 쪽에도 방어가 있지만(그쪽 절차 0), 물려주지 않는 것이 먼저다.
+
 Agent 툴로 `subagent_type: issue-reviewer`를 호출한다. 프롬프트는 **이것만** 담는다:
 
 ```
@@ -304,10 +322,15 @@ PR #<번호>를 검사해라. 이 변경이 왜 틀렸는지 찾는 자세로 �
 2. 작업 공간은 5번에서 만든 워크트리를 그대로 쓴다. 이미 지웠다면 다시 만든다
 
    ```bash
-   git worktree add .claude/worktrees/issue-<N> <PR브랜치>
+   MAIN="$(git worktree list --porcelain | awk '/^worktree /{print $2; exit}')"
+   git -C "$MAIN" worktree add "$MAIN/.claude/worktrees/issue-<N>" <PR브랜치>
+   cd "$MAIN/.claude/worktrees/issue-<N>"
    ```
 
-   `-b`를 쓰지 않는다. 브랜치는 이미 있다
+   `-b`를 쓰지 않는다. 브랜치는 이미 있다.
+
+   **8-1에서 워크트리 밖으로 나왔으므로 다시 들어와야 한다.** `npm`은 cwd를 보므로
+   3번의 검증이 여기서 돌지 않으면 엉뚱한 곳에서 빌드한다 (#215).
 3. 7번(검증)을 다시 통과시킨 뒤 같은 브랜치에 푸시한다
 4. `review-changes` 라벨은 **제거하지 않는다.** 반려 이력은 사람이 참고할 정보다
 5. 8-1번으로 돌아가 다시 위임한다

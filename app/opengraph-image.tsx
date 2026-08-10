@@ -6,7 +6,6 @@ import { SITE_URL } from "../lib/site"
 export const size = { width: 1200, height: 630 }
 export const contentType = "image/png"
 export const alt = "Sejune Oh — Backend Engineer"
-export const runtime = "edge"
 
 export default function OpengraphImage() {
   const domain = SITE_URL.replace(/^https?:\/\//, "")

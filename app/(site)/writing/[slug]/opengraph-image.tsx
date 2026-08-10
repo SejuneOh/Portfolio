@@ -8,7 +8,6 @@ import { SITE_URL, SITE_NAME } from "../../../../lib/site"
 export const size = { width: 1200, height: 630 }
 export const contentType = "image/png"
 export const alt = "Sejune Oh — Writing"
-export const runtime = "edge"
 
 async function loadKoreanFont(text: string): Promise<ArrayBuffer | null> {
   try {

@@ -1,6 +1,21 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Next 16 은 `next dev` 시작 시 AI 에이전트를 검출하면 CLAUDE.md 에 자기 관리 블록을
+  // 써 넣는다(기본값 true). 이 저장소에서 검출은 실제로 참이다.
+  //
+  //   node -e "require('next/dist/compiled/@vercel/detect-agent').determineAgent().then(r=>console.log(r))"
+  //   → { isAgent: true, agent: { name: 'claude-code_…' } }
+  //
+  // 즉 켜 두면 CLAUDE.md 가 저절로 더러워진다 — 이 저장소는 사람 없이 도는 루프가
+  // 있어서 그 변경이 조용히 커밋되거나 워크트리 회수를 막을 수 있다. 그래서 끈다.
+  // 대신 블록이 알리려던 내용(Next 16 은 학습 데이터와 다르니 번들 문서를 먼저 읽어라)은
+  // CLAUDE.md 에 우리 문장으로 직접 적었다.
+  //
+  // 동작은 node_modules/next/dist/server/lib/start-server.js 의 `agentRules !== false`
+  // 분기와 server/lib/generate-agent-files.js 에서 확인할 수 있다. `next build` 는
+  // 해당 없다 — isDev 안쪽에서만 돈다.
+  agentRules: false,
   // Next.js는 워크스페이스 루트를 파일시스템에서 lockfile을 찾아 추정한다. 주변에 다른
   // lockfile(예: 실수로 놓인 pnpm-lock.yaml)이나 git worktree의 중복 package-lock.json이
   // 있으면 엉뚱한 디렉터리가 루트로 잡히고, 빌드 출력 파일 추적 범위가 환경마다 달라진다.

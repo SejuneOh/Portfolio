@@ -28,10 +28,21 @@ export default function MobileHeader() {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
 
-  // 라우트 변경 시 닫기
-  useEffect(() => {
+  /*
+    라우트가 바뀌면 닫는다. **effect 가 아니라 렌더 중에 조정한다** (#102).
+
+    useEffect 로 하면 화면이 두 번 그려진다 — 새 경로를 열린 상태로 한 번 그리고,
+    effect 가 돈 뒤 닫힌 상태로 다시 그린다. 그 사이가 눈에 보일 수 있다.
+    렌더 중에 바꾸면 React 가 그리기 전에 즉시 다시 실행한다.
+
+    eslint-config-next 16 이 react-hooks/set-state-in-effect 로 이것을 잡았다.
+    규칙을 끄지 않고 React 문서의 "Adjusting some state when a prop changes" 를 따른다.
+  */
+  const [prevPathname, setPrevPathname] = useState(pathname)
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname)
     setOpen(false)
-  }, [pathname])
+  }
 
   // 열렸을 때: body 스크롤 잠금 + Esc 로 닫기
   useEffect(() => {

@@ -1,0 +1,118 @@
+name: Check upgrade blockers
+
+# ESLint 10 · TypeScript 7 을 막던 상류가 풀렸는지 주기적으로 확인하고,
+# 풀리면 #253 에 알린다 (#253).
+#
+# CI 에 넣지 않는 이유: 이 검사는 후보 버전을 실제로 설치하고 eslint 를 돌린 뒤
+# npm ci 로 되돌리므로 몇 분이 걸린다. PR 마다 낼 비용이 아니고, 결과가 바뀌는 주기도
+# 몇 주 단위다.
+#
+# 예약 실행은 **기본 브랜치(main)에 있는 정의만 등록된다.** dev 에만 있으면 영영 돌지
+# 않는다 (#192 에서 같은 것에 걸렸다). 승격 전까지는 workflow_dispatch 로 수동 실행한다.
+
+on:
+  schedule:
+    # 매주 월요일 09:00 KST (00:00 UTC). 상류 릴리스를 놓치지 않을 만큼만 자주 돈다.
+    - cron: "0 0 * * 1"
+  workflow_dispatch:
+
+# 이슈에 코멘트만 남긴다. 코드를 건드리지 않는다.
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: check-upgrade-blockers
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Probe upstream
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # 판별기가 후보를 설치했다가 npm ci 로 되돌린다. 러너는 일회용이라 잔여물이
+      # 남아도 다음 실행에 영향이 없지만, 스크립트 자체가 되돌리기를 보장한다.
+      - name: Probe
+        id: probe
+        run: |
+          node scripts/check-upgrade-blockers.mjs | tee probe.txt
+          node scripts/check-upgrade-blockers.mjs --json > probe.json
+          echo "--- json ---"
+          cat probe.json
+
+      - name: Report cleared blockers
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE: "253"
+        run: |
+          set -euo pipefail
+
+          # node -p 는 값을 검사기(inspect)로 찍으므로 TTY 에서 ANSI 색을 입힌다.
+          # 그러면 "true" 비교가 항상 어긋나 상류가 풀려도 영영 침묵한다.
+          # 색이 붙는지는 환경마다 다르므로 -e + process.stdout.write 로 원문만 낸다.
+          control="$(node -e 'process.stdout.write(String(require("./probe.json").controlOk))')"
+          if [ "$control" != "true" ]; then
+            echo "대조군이 실패했습니다 — 판별 불능이므로 알리지 않습니다."
+            echo "저장소의 lint 가 먼저 통과해야 합니다."
+            exit 0
+          fi
+
+          cleared="$(node -e 'process.stdout.write(
+            require("./probe.json").results.filter(r => r.cleared).map(r => r.id).join(" ")
+          )')"
+
+          if [ -z "$cleared" ]; then
+            echo "둘 다 아직 막혀 있습니다 — 정상 상태입니다. 알리지 않습니다."
+            exit 0
+          fi
+
+          # 이미 알린 것은 다시 알리지 않는다. 매주 같은 코멘트가 쌓이면 알림이
+          # 의미를 잃는다. 표지는 코멘트 본문에 숨겨 둔 HTML 주석으로 찾는다.
+          existing="$(gh api "repos/${GH_REPO}/issues/${ISSUE}/comments" --paginate \
+            --jq '.[].body' 2>/dev/null || true)"
+
+          for id in $cleared; do
+            marker="<!-- upgrade-blocker-cleared:${id} -->"
+            if printf '%s' "$existing" | grep -qF "$marker"; then
+              echo "${id}: 이미 알렸습니다. 건너뜁니다."
+              continue
+            fi
+
+            # id 는 스크립트가 정한 고정 문자열이라 셸 주입 여지가 없지만,
+            # 값은 인자로 넘겨 문자열 조립 자체를 피한다.
+            label="$(ID="$id" node -e 'process.stdout.write(
+              require("./probe.json").results.find(r => r.id === process.env.ID).label
+            )')"
+            watch="$(ID="$id" node -e 'process.stdout.write(
+              require("./probe.json").results.find(r => r.id === process.env.ID).watch
+            )')"
+
+            {
+              printf '%s\n\n' "$marker"
+              printf '## %s — 상류가 풀렸습니다\n\n' "$label"
+              printf '후보 버전을 실제로 설치하고 `eslint` 를 돌려 통과했습니다.\n'
+              printf '대조군(현재 의존성)도 통과했으므로 저장소 상태 탓이 아닙니다.\n\n'
+              printf '풀린 조건: %s\n\n' "$watch"
+              printf '### 판별 결과 전문\n\n```\n'
+              cat probe.txt
+              printf '```\n\n'
+              printf '이제 올릴 수 있습니다. 올린 뒤 `npm run lint && npm run build` 로 확인하세요.\n'
+            } > comment.md
+
+            gh issue comment "$ISSUE" --repo "$GH_REPO" --body-file comment.md
+            echo "${id}: 알렸습니다."
+          done

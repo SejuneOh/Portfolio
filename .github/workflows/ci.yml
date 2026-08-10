@@ -43,6 +43,15 @@ jobs:
           node-version: "22"
           cache: npm
 
+      # check-upgrade-blockers 워크플로의 보고 판단을 검사한다 (#253).
+      # 그 워크플로는 주 1회만 돌므로 로직이 깨져도 몇 주 뒤에나 드러난다 —
+      # 실제로 node -p 의 ANSI 색 때문에 영영 침묵하는 결함이 여기서 잡혔다.
+      #
+      # 판별기 본체는 후보 버전을 실제로 설치하므로 몇 분이 걸린다. 여기서는 돌리지
+      # 않고 문법과 보고 판단만 본다 — npm ci 없이 몇 초에 끝난다.
+      - name: Test upgrade-blocker reporting
+        run: bash scripts/test-check-upgrade-blockers.sh
+
       - name: Install dependencies
         run: npm ci
 

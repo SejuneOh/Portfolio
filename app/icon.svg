@@ -1,4 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-  <rect width="32" height="32" rx="6" fill="#070b0d"/>
+  <!--
+    rx=3 이다 (#212). rx=6 이었는데 #208 이 모양 토큰을 3px 로 통일할 때 빠졌다 —
+    그때 스윕이 Tailwind 클래스와 CSS border-radius 만 세고 SVG 의 rx 속성은
+    세지 않았다.
+
+    **숫자를 맞춘 것이 아니라 비율을 맞춘 것이다.** 32 캔버스의 rx 3 과 400px 카드의
+    3px 은 같은 숫자지만 전혀 다른 인상이다. 요소 대비 반경 비율로 봐야 한다.
+
+      chip      짧은 변 22px   반경 3px   13.6%
+      btn-pill         38px        3px    7.9%     작은 요소 대역
+      rx=3 (32 캔버스)                     9.4%     그 대역 한가운데
+      rx=6 (이전)                         18.8%     대역 밖
+      rx=1 (#212 가 제안한 값)             3.1%     대역 밖 — 사이트보다 더 각지다
+
+    이슈는 "rx=1 로 낮추면 사이트와 맞는다" 고 적었는데 실측은 반대였다.
+    숫자를 맞추면 비율이 어긋난다.
+
+    16·32·64px 로 렌더해 눈으로도 확인했다. 탭 바탕(밝은 회색) 위에서 봐야 한다 —
+    지면색 위에 놓으면 아이콘 배경과 같은 색이라 모서리가 아예 보이지 않는다.
+
+    apple-icon.tsx 에는 반경이 없다. iOS 가 자체 마스크를 씌우므로 그쪽이 맞다.
+  -->
+  <rect width="32" height="32" rx="3" fill="#070b0d"/>
   <text x="16" y="16" fill="#d8f26a" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="15" font-weight="800" letter-spacing="-1" text-anchor="middle" dominant-baseline="central">SO</text>
 </svg>

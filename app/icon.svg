@@ -1,4 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-  <rect width="32" height="32" rx="6" fill="#070b0d"/>
+  <!--
+    rx 는 사이트 모양 토큰과 같은 3 이다 (#212). rx=6 이었는데 #208 이 전부 3px 로
+    통일할 때 빠졌다 — 그때 스윕이 Tailwind 클래스와 CSS border-radius 만 세고
+    SVG 의 rx 속성은 세지 않았다.
+
+    캔버스가 32 이고 탭에서는 보통 16px 로 축소되므로 보이는 반경은 절반이다.
+    16·32·64px 로 렌더해 비교했다 — rx=4 는 아직 둥글고, rx=2 이하는 사실상
+    정사각형이라 '각진 3px' 보다 더 나간다.
+
+    apple-icon.tsx 에는 반경이 없다. iOS 가 자체 마스크를 씌우므로 그쪽이 맞다.
+  -->
+  <rect width="32" height="32" rx="3" fill="#070b0d"/>
   <text x="16" y="16" fill="#d8f26a" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="15" font-weight="800" letter-spacing="-1" text-anchor="middle" dominant-baseline="central">SO</text>
 </svg>

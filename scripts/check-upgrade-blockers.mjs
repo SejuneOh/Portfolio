@@ -4,6 +4,11 @@
 //
 //   node scripts/check-upgrade-blockers.mjs
 //   node scripts/check-upgrade-blockers.mjs --json
+//   node scripts/check-upgrade-blockers.mjs --json-out probe.json   사람용 + 기계용 동시
+//
+// --json-out 이 있는 이유: 워크플로가 사람이 읽을 표와 기계가 읽을 JSON 을 둘 다 쓴다.
+// 두 번 실행하면 시간이 두 배로 들고, 그 사이에 상류가 배포되면 두 결과가 어긋난다.
+// 한 번 재고 두 형태로 낸다.
 //
 // **설치가 아니라 실행으로 판별한다.** `npm install --dry-run` 은 판별력이 없다 —
 // 막힌 쪽도 "해석 성공"이 나온다. 두 패키지 모두 eslint-config-next 아래의 중첩
@@ -26,9 +31,12 @@
 // 이것으로 CI 를 빨갛게 만들지 않는다. 결과는 --json 으로 워크플로가 읽는다.
 
 import { execFileSync } from "node:child_process"
-import { readFileSync } from "node:fs"
+import { readFileSync, writeFileSync } from "node:fs"
 
 const JSON_OUT = process.argv.includes("--json")
+// --json-out <path> : 사람용 표는 stdout, 기계용 JSON 은 파일로. 한 번만 잰다.
+const jsonOutIdx = process.argv.indexOf("--json-out")
+const JSON_FILE = jsonOutIdx !== -1 ? process.argv[jsonOutIdx + 1] : null
 
 // 지켜보는 두 벽. why 는 사람이 읽을 설명이고, watch 는 풀렸을 때 무엇이 바뀌는지다.
 const WALLS = [
@@ -146,8 +154,14 @@ if (controlOk) {
 }
 
 // ── 출력 ────────────────────────────────────────────────────────────────
+const payload = { controlOk, restored, results }
+
+if (JSON_FILE) {
+  writeFileSync(JSON_FILE, `${JSON.stringify(payload, null, 2)}\n`)
+}
+
 if (JSON_OUT) {
-  console.log(JSON.stringify({ controlOk, restored, results }, null, 2))
+  console.log(JSON.stringify(payload, null, 2))
 } else {
   console.log("═ 업그레이드 상류 판별 (#253) ═\n")
   console.log(`  대조군 — 현재 의존성에서 eslint 통과: ${controlOk ? "예" : "아니오"}`)

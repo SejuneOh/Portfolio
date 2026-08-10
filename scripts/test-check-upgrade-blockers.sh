@@ -40,6 +40,25 @@ grep -qF 'process.stdout.write' "$WF" || {
   echo "✗ 워크플로에서 process.stdout.write 를 찾지 못했습니다 — 검사가 낡았습니다"
   exit 1
 }
+
+# 판별기를 두 번 돌리면 시간이 두 배가 되고, 그 사이에 상류가 배포되면 사람이 읽는
+# 표와 기계가 읽는 JSON 이 어긋난다. 한 번 재고 두 형태로 내야 한다.
+n_probe="$(grep -cE 'node scripts/check-upgrade-blockers\.mjs' "$WF")"
+if [ "$n_probe" -ne 1 ]; then
+  echo "✗ 워크플로가 판별기를 ${n_probe} 번 실행합니다 — 1 번이어야 합니다"
+  echo "  --json-out 으로 표와 JSON 을 한 번에 내십시오"
+  exit 1
+fi
+grep -qF -- '--json-out' "$WF" || {
+  echo "✗ 워크플로가 --json-out 을 쓰지 않습니다 — 두 번 실행으로 되돌아간 것 같습니다"
+  exit 1
+}
+
+# 코멘트 조회 실패를 삼키면 표지를 못 찾아 매주 같은 알림을 다시 단다.
+if grep -qE 'gh api .*issues/.*comments.*\|\| true' "$WF"; then
+  echo "✗ 워크플로가 코멘트 조회 실패를 '|| true' 로 삼킵니다 — 중복 알림이 됩니다"
+  exit 1
+fi
 grep -qF 'filter(r => r.cleared)' "$WF" || {
   echo "✗ 워크플로에서 cleared 필터를 찾지 못했습니다 — 검사가 낡았습니다"
   exit 1

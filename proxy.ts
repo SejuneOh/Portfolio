@@ -1,4 +1,4 @@
-// 미들웨어 2역할:
+// 프록시 2역할 (Next 16 에서 middleware 규약이 proxy 로 바뀌었다 — #102):
 //  1) /api/auth/* (로그인·콜백·세션) 레이트리밋 — auth 엔드포인트 남용/무차별 완화.
 //     Upstash 설정 시 내구성, 미설정 시 in-memory 폴백(lib/rateLimit.ts).
 //  2) /admin/* 인증 강제 — 미인증 접근은 NextAuth 로그인 페이지로 리다이렉트.

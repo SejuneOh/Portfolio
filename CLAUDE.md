@@ -11,7 +11,7 @@
 |---|---|
 | 프레임워크 | Next.js (App Router), React, TypeScript |
 | 스타일 | Tailwind CSS, `next-themes` |
-| 인증 | NextAuth (`auth.ts`, `middleware.ts`) |
+| 인증 | NextAuth (`auth.ts`, `proxy.ts`) |
 | 콘텐츠 | Notion API (`lib/notion.ts`, `lib/posts.ts`) |
 | 코드 하이라이팅 | Shiki |
 | 레이트리밋 | Upstash + in-memory 폴백 (`lib/rateLimit.ts`) |

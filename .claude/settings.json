@@ -71,7 +71,11 @@
       "Bash(dirname *)",
       "Bash(test *)",
       "Bash(mktemp *)",
-      "Bash(echo *)"
+      "Bash(echo *)",
+      "Bash(git -C * rev-parse *)",
+      "Bash(git -C * remote get-url *)",
+      "Bash(git -C * fetch *)",
+      "Bash(git -C * worktree *)"
     ],
     "deny": [
       "Bash(gh pr merge*)",
@@ -93,7 +97,14 @@
       "Edit(./.env)",
       "Edit(./.env.*)",
       "Write(./.env)",
-      "Write(./.env.*)"
+      "Write(./.env.*)",
+      "Bash(git -C * push --force*)",
+      "Bash(git -C * push -f*)",
+      "Bash(git -C * push --delete*)",
+      "Bash(git -C * reset --hard*)",
+      "Bash(git -C * stash*)",
+      "Bash(git -C * filter-branch*)",
+      "Bash(git -C * update-ref*)"
     ]
   }
 }

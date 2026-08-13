@@ -27,6 +27,12 @@ export default async function AdminResume() {
 
       <div className="mt-4">
         <h1 className="text-2xl font-semibold text-fg">이력서</h1>
+        {/*
+          "두 화면이 같이 갱신된다"는 말은 /about 도 getResume() 을 부를 때에만 참이다.
+          한동안 /about 이 컴파일된 lib/resumeData.ts 를 읽고 있어서 이 안내가 거짓이었다
+          (#266 검사에서 잡힘). 지금은 둘 다 같은 출처를 읽는다 —
+          app/(site)/about/page.tsx 를 고칠 때 이 문구도 함께 본다.
+        */}
         <p className="mt-2 text-sm text-muted">
           <code>/about/resume</code> 와 <code>/about</code> 의 스킬 목록이 이 내용을 함께
           읽습니다. 저장하면 두 화면이 같이 갱신됩니다.

@@ -200,23 +200,29 @@ export function resumeToBlocks(data: ResumeData): Record<string, unknown>[] {
   const json = JSON.stringify(data, null, 2)
   const LIMIT = 2000
 
+  /*
+    **이어 붙이면 원문이 글자 하나까지 복원되게 자른다.**
+
+    읽는 쪽(joinCodeText)은 블록을 `""` 로 이어 붙인다. 그래서 조각이 원문을 그대로 나눈 것이
+    아니면 복원되지 않는다. 전에는 줄 단위로 모으면서 **조각 사이의 개행을 버렸다** — JSON 은
+    공백에 관대하니 파싱은 됐지만, 두 번째 블록부터 줄 중간처럼 시작해 Notion 에서 읽기 어려웠다.
+    검사도 `"\n"` 으로 이어 붙여 프로덕션과 다른 것을 재고 있었다(둘 다 검사에서 지적됨).
+
+    지금은 원문을 훑어 자르고, 가능하면 **개행 바로 뒤**에서 끊는다. 개행이 조각에 포함되므로
+    join("") 이 원문과 같다. 한 줄이 혼자 2000자를 넘으면(아주 긴 항목 본문) 어쩔 수 없이
+    글자 수로 자른다 — 그때도 join("") 은 여전히 원문이다.
+  */
   const chunks: string[] = []
-  let buf = ""
-  for (const line of json.split("\n")) {
-    // 한 줄이 혼자 2000자를 넘는 경우(아주 긴 항목 본문)는 글자 수로 자른다.
-    if (line.length >= LIMIT) {
-      if (buf) (chunks.push(buf), (buf = ""))
-      for (let i = 0; i < line.length; i += LIMIT) chunks.push(line.slice(i, i + LIMIT))
-      continue
+  let at = 0
+  while (at < json.length) {
+    let end = Math.min(at + LIMIT, json.length)
+    if (end < json.length) {
+      const lastBreak = json.lastIndexOf("\n", end - 1)
+      if (lastBreak > at) end = lastBreak + 1 // 개행을 조각에 포함시킨다
     }
-    if (buf.length + line.length + 1 > LIMIT) {
-      chunks.push(buf)
-      buf = line
-    } else {
-      buf = buf ? `${buf}\n${line}` : line
-    }
+    chunks.push(json.slice(at, end))
+    at = end
   }
-  if (buf) chunks.push(buf)
 
   return chunks.map((c) => ({
     object: "block",
@@ -228,11 +234,24 @@ export function resumeToBlocks(data: ResumeData): Record<string, unknown>[] {
   }))
 }
 
+/*
+  쓸 행을 찾는다. **읽기와 규칙이 다르다 — 일부러 다르다.**
+
+  읽기는 제목이 맞는 행이 없으면 첫 행을 본다. 엉뚱한 행을 읽어도 결과는 폴백이라 손해가 없다.
+  쓰기는 그럴 수 없다 — `replaceChildren` 이 그 페이지의 본문을 **전부 지우고** 이력서 JSON 으로
+  덮는다. DB 에 메모 행이 하나 있었다는 이유로 그 메모가 사라지면 되돌릴 수 없다.
+  검사에서 지적된 것이고, 그래서 쓰기는 **제목이 정확히 맞는 행만** 쓴다.
+
+  제목으로 걸러 조회하므로 행이 많아도(읽기의 page_size 20 창 밖에 있어도) 찾는다.
+*/
 async function findOrCreateRow(): Promise<string> {
   const res = await fetch(`${NOTION_API}/databases/${RESUME_DATABASE_ID}/query`, {
     method: "POST",
     headers: headers(),
-    body: JSON.stringify({ page_size: 20 }),
+    body: JSON.stringify({
+      filter: { property: RESUME_PROPS.title, title: { equals: RESUME_ROW_TITLE } },
+      page_size: 5,
+    }),
     cache: "no-store",
   })
   if (!res.ok) throw new Error(`DB 조회 실패 (${res.status})`)
@@ -240,10 +259,9 @@ async function findOrCreateRow(): Promise<string> {
   const rows = json.results || []
   const found = rows.find((r) => readTitle(r).trim().toLowerCase() === RESUME_ROW_TITLE)
   if (found) return found.id
-  if (rows.length) return rows[0].id
 
-  // DB 는 만들었지만 행이 없는 경우. 첫 저장에서 만들어 준다 —
-  // 사람이 Notion 에서 행을 만들어야 저장이 된다면 그걸 아는 방법이 없다.
+  // 제목이 맞는 행이 없으면 **만든다.** 아무 행이나 덮어쓰지 않는다.
+  // 사람이 Notion 에서 행을 먼저 만들어야 저장이 된다면 그것을 알 방법이 없다.
   const created = await fetch(`${NOTION_API}/pages`, {
     method: "POST",
     headers: headers(),

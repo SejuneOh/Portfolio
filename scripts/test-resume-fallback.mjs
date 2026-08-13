@@ -12,6 +12,7 @@
 // 이 검사는 소스를 정규식으로 읽지 않고 **실제로 실행한다.** 그래서 tsc 로 먼저 컴파일한다
 // (test-shiki-contrast.mjs 처럼 텍스트만 보면 폴백이 실제로 도는지는 알 수 없다).
 
+import { readFileSync } from "node:fs"
 import { createRequire } from "node:module"
 import path from "node:path"
 import process from "node:process"
@@ -353,8 +354,16 @@ async function run() {
       "모든 블록이 code · json 이다",
       blocks.every((b) => b.type === "code" && b.code.language === "json")
     )
-    // 이어 붙이면 다시 원본이 되어야 한다. 줄 경계로 자르므로 개행이 사라지지 않아야 한다.
-    const joined = blocks.map((b) => b.code.rich_text[0].text.content).join("\n")
+    /*
+      **읽는 쪽과 같은 방식으로 이어 붙인다.**
+
+      전에는 여기서 `"\n"` 으로 이어 붙였는데 실제 코드(joinCodeText)는 `""` 로 붙인다.
+      그래서 이 검사는 진짜 복원 경로를 재지 않았고, 긴 줄이 글자 수로 잘리는 경우에는
+      **올바른 코드에서 오히려 실패**했다(문자열 안에 개행이 끼어 든다). 검사에서 지적된 것이다.
+    */
+    const join = (bs) => bs.map((b) => b.code.rich_text[0].text.content).join("")
+    const joined = join(blocks)
+    check("이어 붙이면 원문이 글자 하나까지 복원된다", joined === JSON.stringify(resumeData, null, 2))
     let parsed = null
     try {
       parsed = JSON.parse(joined)
@@ -363,6 +372,26 @@ async function run() {
     }
     check("이어 붙이면 다시 읽힌다", parsed !== null)
     check("이어 붙인 내용이 원본과 같다", JSON.stringify(parsed) === JSON.stringify(resumeData))
+
+    // 한 줄이 혼자 2000자를 넘는 경우 — 줄 경계로 자를 수 없어 글자 수로 자른다.
+    const long = JSON.parse(JSON.stringify(resumeData))
+    long.career[1].bullets[0].text = `아주 긴 항목 ${"가".repeat(2600)} 끝`
+    const longBlocks = notionResume.resumeToBlocks(long)
+    check(
+      "긴 줄도 모든 블록이 2000자 이하다",
+      longBlocks.every((b) => b.code.rich_text[0].text.content.length <= 2000)
+    )
+    check(
+      "긴 줄도 이어 붙이면 복원된다",
+      join(longBlocks) === JSON.stringify(long, null, 2)
+    )
+    let longParsed = null
+    try {
+      longParsed = JSON.parse(join(longBlocks))
+    } catch {
+      /* 아래 check 에서 잡는다 */
+    }
+    check("긴 줄도 다시 읽힌다", JSON.stringify(longParsed) === JSON.stringify(long))
   }
 
   // ── 14. 저장 (#262 3단계) ─────────────────────────────────────────────────
@@ -456,6 +485,132 @@ async function run() {
     const res = await notionResume.saveResume(resumeData)
     check("행을 만든다", calls.some((c) => c === "POST /pages"), calls.join(" · "))
     check("만든 행에 쓴다", res.pageId === "made", JSON.stringify(res))
+  }
+
+  // ── 18~21. 검사(#266)에서 지적된 것들 ────────────────────────────────────
+  console.log("\n18. 칸이 넘치면 버리지 않고 알린다 (내용에 `|` 를 쓴 경우)")
+  {
+    const { text, resumeData } = loadFresh()
+    const base = text.encodeResume(resumeData)
+    const over = [
+      ["항목 본문", { career: "## 회사\n# P\n- 2024 | A/B 테스트 | 전환율 12% 개선" }],
+      ["스킬", { skills: "Backend | C# | EF | Kafka" }],
+      ["학력", { education: "학교 | 2020 – 2024 | 전공 | 남는 칸" }],
+      ["연락처", { contacts: "메일 | mailto:a@b.c | 남는 칸" }],
+      ["회사", { career: "## 회사 | 기간 | 역할 | 남는 칸\n# P\n- 항목" }],
+      ["프로젝트", { career: "## 회사\n# P | 기간 | 설명 | 남는 칸\n- 항목" }],
+    ]
+    for (const [name, patch] of over) {
+      const r = text.decodeResume({ ...base, ...patch })
+      const said = !r.ok && r.problems.some((p) => p.includes("칸이"))
+      check(`알린다: ${name} 에 칸이 많다`, said, r.ok ? "통과해 버렸다" : r.problems.join(" / "))
+    }
+  }
+
+  console.log("\n19. 연락처 주소는 허용된 형태만 받는다")
+  {
+    const { text, schema, resumeData } = loadFresh()
+    const base = text.encodeResume(resumeData)
+    for (const bad of ["javascript:alert(1)", "data:text/html,x", "JavaScript:alert(1)"]) {
+      const r = text.decodeResume({ ...base, contacts: `이름 | ${bad}` })
+      check(`막는다: ${bad}`, r.ok === false, "통과해 버렸다")
+    }
+    for (const good of ["mailto:a@b.c", "https://x.dev", "http://x.dev", "/about/resume"]) {
+      const r = text.decodeResume({ ...base, contacts: `이름 | ${good}` })
+      check(`허용한다: ${good}`, r.ok === true, r.ok ? "" : r.problems.join(" / "))
+    }
+    // 폼을 거치지 않고 Notion 에서 직접 넣은 값도 막아야 한다 — 읽기 경로 검사.
+    const evil = JSON.parse(JSON.stringify(resumeData))
+    evil.header.contacts[0].href = "javascript:alert(1)"
+    check("읽기 경로에서도 막는다", schema.validateResume(evil).ok === false)
+  }
+
+  console.log("\n20. 저장은 제목이 맞는 행에만 쓴다 (엉뚱한 행을 덮지 않는다)")
+  {
+    const { notionResume, resumeData } = loadFresh()
+    const calls = []
+    globalThis.fetch = async (url, init) => {
+      const u = String(url)
+      const method = init?.method || "GET"
+      calls.push(`${method} ${u.replace("https://api.notion.com/v1", "")}`)
+      if (u.includes("/databases/") && method === "POST") {
+        // 제목으로 걸러 조회하므로 메모 행은 결과에 오지 않는다.
+        const body = JSON.parse(init.body)
+        check("제목으로 걸러 조회한다", Boolean(body.filter), JSON.stringify(body).slice(0, 120))
+        return { ok: true, status: 200, json: async () => ({ results: [] }) }
+      }
+      if (u.endsWith("/pages") && method === "POST")
+        return { ok: true, status: 200, json: async () => ({ id: "made" }) }
+      return { ok: true, status: 200, json: async () => ({ results: [], has_more: false }) }
+    }
+    const res = await notionResume.saveResume(resumeData)
+    check("메모 행을 덮지 않고 새로 만든다", res.pageId === "made", calls.join(" · "))
+  }
+
+  console.log("\n21. 옛 블록을 지우지 못하면 알린다 (조용히 성공하지 않는다)")
+  {
+    const { notionResume, resumeData } = loadFresh()
+    globalThis.fetch = async (url, init) => {
+      const u = String(url)
+      const method = init?.method || "GET"
+      if (u.includes("/databases/") && method === "POST")
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            results: [{ id: "row-1", properties: { Title: { title: [{ plain_text: "resume" }] } } }],
+          }),
+        }
+      if (u.includes("/blocks/row-1/children") && method === "GET")
+        return { ok: true, status: 200, json: async () => ({ results: [{ id: "old-1" }] }) }
+      if (method === "DELETE") return { ok: false, status: 429 } // 지우기 실패
+      return { ok: true, status: 200, json: async () => ({}) }
+    }
+    let threw = null
+    try {
+      await notionResume.saveResume(resumeData)
+    } catch (e) {
+      threw = e
+    }
+    check("던진다", threw !== null)
+    check(
+      "무엇을 해야 하는지 알려 준다",
+      threw !== null && /지우지 못했습니다/.test(String(threw.message)),
+      threw ? String(threw.message).slice(0, 140) : ""
+    )
+  }
+
+  /*
+    22. /about 이 이력서와 같은 출처를 읽는지 — **소스를 읽어서** 확인한다.
+
+    이것만 실행으로 잡을 수 없다. /about 이 컴파일된 lib/resumeData.ts 를 읽어도 env 가 없는
+    환경에서는 폴백과 값이 같아 렌더 비교로는 구별되지 않는다. 실제로 그래서 놓쳤고,
+    저장한 뒤에야 갈라지는 결함이었다(#266 검사에서 잡힘).
+
+    그래서 test-shiki-contrast.mjs 처럼 정본(소스)을 직접 센다.
+  */
+  console.log("\n22. /about 이 이력서와 같은 출처를 읽는다 (소스 확인)")
+  {
+    const raw = readFileSync("app/(site)/about/page.tsx", "utf8")
+
+    /*
+      **주석을 걷어내고 센다.** 처음에는 걷지 않아서, 이 파일에 적어 둔 설명 문구
+      ("이제 이곳도 getResume() 을 부른다")가 호출로 잡혔다 — 호출을 지워도 검사가 통과했다.
+      돌연변이를 태워서 알아냈다. 자기 설명에 속는 검사는 아무것도 지키지 못한다.
+    */
+    const src = raw.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "")
+
+    check("await getResume() 를 부른다", /await\s+getResume\s*\(/.test(src))
+    check(
+      "resumeData 를 값으로 가져오지 않는다",
+      !/import\s+(?!type\b)[^\n]*from\s+["'][^"']*lib\/resumeData["']/.test(src),
+      "값으로 가져오면 저장해도 /about 이 안 바뀐다 (타입 import 는 괜찮다)"
+    )
+    check(
+      "컴파일된 배열에서 스킬을 만들지 않는다",
+      !/resumeData\s*\.\s*skills/.test(src),
+      "resumeData.skills 를 쓰면 Notion 값이 아니라 코드 값이 나온다"
+    )
   }
 
   console.log("\n17. 저장 — env 가 없으면 부르기 전에 막는다")

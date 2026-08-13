@@ -187,14 +187,40 @@ async function appendChildren(pageId: string, children: Record<string, unknown>[
   }
 }
 
-// 배치 병렬 삭제(동시성 제한 — 왕복 지연 완화).
+/*
+  배치 병렬 삭제(동시성 제한 — 왕복 지연 완화).
+
+  **응답을 확인한다.** 전에는 결과를 보지 않고 넘어갔다. 블로그 본문에서는 남은 블록이
+  '본문 중복'이라 눈으로 보고 고칠 수 있었지만, 이력서에서는 다르다 — 남은 옛 블록이 있으면
+  읽을 때 JSON 두 개가 이어 붙어 파싱이 깨지고, **화면이 조용히 폴백으로 돌아간다.**
+  사용자는 "저장되었습니다" 를 봤으므로 무엇이 잘못됐는지 알 수 없다. 검사에서 지적된 것이다.
+
+  실패를 몇 개인지 세어 알린다. 이 시점에는 새 블록이 이미 붙어 있으므로 유실은 없고,
+  남은 것은 '지우지 못한 옛 블록' 이다 — 그 사실을 말해야 사람이 손으로 정리할 수 있다.
+*/
 async function deleteBlocks(ids: string[]) {
   const CONCURRENCY = 8
+  const failed: string[] = []
   for (let i = 0; i < ids.length; i += CONCURRENCY) {
-    await Promise.all(
-      ids.slice(i, i + CONCURRENCY).map((id) =>
-        fetch(`${NOTION_API}/blocks/${id}`, { method: "DELETE", headers: headers() })
-      )
+    const results = await Promise.all(
+      ids.slice(i, i + CONCURRENCY).map(async (id) => {
+        try {
+          const res = await fetch(`${NOTION_API}/blocks/${id}`, {
+            method: "DELETE",
+            headers: headers(),
+          })
+          return res.ok ? null : `${id} (${res.status})`
+        } catch {
+          return `${id} (요청 실패)`
+        }
+      })
+    )
+    for (const r of results) if (r) failed.push(r)
+  }
+  if (failed.length) {
+    throw new Error(
+      `새 내용은 저장했지만 옛 블록 ${failed.length}개를 지우지 못했습니다. ` +
+        `Notion 에서 중복된 블록을 지워 주세요 — ${failed.slice(0, 3).join(", ")}`
     )
   }
 }

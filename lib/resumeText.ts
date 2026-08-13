@@ -43,6 +43,7 @@ import type {
   ResumeEduItem,
   ResumeSkillRow,
 } from "./resumeData"
+import { isSafeHref } from "./resumeSchema"
 
 /** 글상자로 펼친 이력서. 지표는 칸으로 받으므로 여기 없다. */
 export interface ResumeTextForm {
@@ -54,6 +55,31 @@ export interface ResumeTextForm {
 }
 
 const splitCells = (line: string) => line.split("|").map((c) => c.trim())
+
+/*
+  칸이 예상보다 많으면 **버리지 않고 알린다.**
+
+  전에는 `const [a, b, c] = splitCells(...)` 로 받아 네 번째 칸부터 조용히 사라졌다. 저장하면
+  Notion 이 정본이 되므로 사라진 글자는 되찾을 수 없는데, 이 파일 머리 주석은 "쓰이면 decode 가
+  줄 번호와 함께 문제를 돌려준다"고 적고 있었다 — 문서가 거짓이었다. 검사에서 잡혔다.
+
+  본문에 `|` 를 쓰고 싶은 경우가 실제로 있다("A/B 테스트 | 전환율 12% 개선"처럼). 그래서 조용히
+  버리는 대신 어디가 문제인지 알려 주고, 사람이 그 줄을 고치게 한다.
+*/
+function tooManyCells(
+  cells: string[],
+  max: number,
+  where: string,
+  n: number,
+  out: string[]
+): boolean {
+  if (cells.length <= max) return false
+  out.push(
+    `${where} ${n}번째 줄: 칸이 ${cells.length}개다 (최대 ${max}개). ` +
+      `내용에 \`|\` 가 들어가면 칸으로 읽힌다 — 다른 기호로 바꾸라`
+  )
+  return true
+}
 const lines = (src: string) =>
   src
     .split("\n")
@@ -100,15 +126,23 @@ export function decodeResume(form: ResumeTextForm): ResumeDecode {
 
   const contacts: ResumeContact[] = []
   for (const { n, text } of lines(form.contacts)) {
-    const [label, href] = splitCells(text)
+    const cells = splitCells(text)
+    if (tooManyCells(cells, 2, "연락처", n, problems)) continue
+    const [label, href] = cells
     if (!label) problems.push(`연락처 ${n}번째 줄: 글자가 비어 있다`)
+    else if (href && !isSafeHref(href))
+      problems.push(
+        `연락처 ${n}번째 줄: 주소는 mailto: · https: · http: 또는 \`/\` 로 시작해야 한다`
+      )
     else contacts.push({ text: label, ...(href ? { href } : {}) })
   }
   if (contacts.length === 0) problems.push("연락처: 최소 한 줄이 있어야 한다")
 
   const skills: ResumeSkillRow[] = []
   for (const { n, text } of lines(form.skills)) {
-    const [group, primary, also] = splitCells(text)
+    const cells = splitCells(text)
+    if (tooManyCells(cells, 3, "핵심 역량", n, problems)) continue
+    const [group, primary, also] = cells
     if (!group || !primary)
       problems.push(`핵심 역량 ${n}번째 줄: \`그룹 | 주로 쓰는 것\` 은 비울 수 없다`)
     else skills.push({ group, primary, ...(also ? { also } : {}) })
@@ -120,7 +154,9 @@ export function decodeResume(form: ResumeTextForm): ResumeDecode {
 
   const education: ResumeEduItem[] = []
   for (const { n, text } of lines(form.education)) {
-    const [name, meta, desc] = splitCells(text)
+    const cells = splitCells(text)
+    if (tooManyCells(cells, 3, "학력", n, problems)) continue
+    const [name, meta, desc] = cells
     if (!name || !meta)
       problems.push(`학력 ${n}번째 줄: \`이름 | 기간\` 은 비울 수 없다`)
     else education.push({ name, meta, ...(desc ? { desc } : {}) })
@@ -131,13 +167,17 @@ export function decodeResume(form: ResumeTextForm): ResumeDecode {
   for (const { n, text } of lines(form.career)) {
     // `##` 를 `#` 보다 먼저 본다 — 순서를 바꾸면 회사가 프로젝트로 읽힌다.
     if (text.startsWith("##")) {
-      const [org, when, role] = splitCells(text.slice(2))
+      const cells = splitCells(text.slice(2))
+      if (tooManyCells(cells, 3, "경력", n, problems)) continue
+      const [org, when, role] = cells
       if (!org) problems.push(`경력 ${n}번째 줄: 회사 이름이 비어 있다`)
       else career.push({ kind: "job", org, ...(when ? { when } : {}), ...(role ? { role } : {}) })
       continue
     }
     if (text.startsWith("#")) {
-      const [rawName, when, desc] = splitCells(text.slice(1))
+      const cells = splitCells(text.slice(1))
+      if (tooManyCells(cells, 3, "경력", n, problems)) continue
+      const [rawName, when, desc] = cells
       const star = rawName.startsWith("◆")
       const name = star ? rawName.slice(1).trim() : rawName
       /*
@@ -164,6 +204,7 @@ export function decodeResume(form: ResumeTextForm): ResumeDecode {
         continue
       }
       const cells = splitCells(text.slice(1))
+      if (tooManyCells(cells, 2, "경력", n, problems)) continue
       // `- 본문` 처럼 칸이 하나면 연도가 없는 것으로 본다.
       const [year, body] = cells.length >= 2 ? cells : ["", cells[0] || ""]
       if (!body) problems.push(`경력 ${n}번째 줄: 항목 본문이 비어 있다`)

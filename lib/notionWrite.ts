@@ -187,24 +187,58 @@ async function appendChildren(pageId: string, children: Record<string, unknown>[
   }
 }
 
-// 배치 병렬 삭제(동시성 제한 — 왕복 지연 완화).
+/*
+  배치 병렬 삭제(동시성 제한 — 왕복 지연 완화).
+
+  **응답을 확인한다.** 전에는 결과를 보지 않고 넘어갔다. 블로그 본문에서는 남은 블록이
+  '본문 중복'이라 눈으로 보고 고칠 수 있었지만, 이력서에서는 다르다 — 남은 옛 블록이 있으면
+  읽을 때 JSON 두 개가 이어 붙어 파싱이 깨지고, **화면이 조용히 폴백으로 돌아간다.**
+  사용자는 "저장되었습니다" 를 봤으므로 무엇이 잘못됐는지 알 수 없다. 검사에서 지적된 것이다.
+
+  실패를 몇 개인지 세어 알린다. 이 시점에는 새 블록이 이미 붙어 있으므로 유실은 없고,
+  남은 것은 '지우지 못한 옛 블록' 이다 — 그 사실을 말해야 사람이 손으로 정리할 수 있다.
+*/
 async function deleteBlocks(ids: string[]) {
   const CONCURRENCY = 8
+  const failed: string[] = []
   for (let i = 0; i < ids.length; i += CONCURRENCY) {
-    await Promise.all(
-      ids.slice(i, i + CONCURRENCY).map((id) =>
-        fetch(`${NOTION_API}/blocks/${id}`, { method: "DELETE", headers: headers() })
-      )
+    const results = await Promise.all(
+      ids.slice(i, i + CONCURRENCY).map(async (id) => {
+        try {
+          const res = await fetch(`${NOTION_API}/blocks/${id}`, {
+            method: "DELETE",
+            headers: headers(),
+          })
+          return res.ok ? null : `${id} (${res.status})`
+        } catch {
+          return `${id} (요청 실패)`
+        }
+      })
+    )
+    for (const r of results) if (r) failed.push(r)
+  }
+  if (failed.length) {
+    throw new Error(
+      `새 내용은 저장했지만 옛 블록 ${failed.length}개를 지우지 못했습니다. ` +
+        `Notion 에서 중복된 블록을 지워 주세요 — ${failed.slice(0, 3).join(", ")}`
     )
   }
 }
 
-// 본문 교체: 유실 방지를 위해 **새 블록을 먼저 append → 성공 후 옛 블록 삭제** 순서.
+// 하위 블록 교체: 유실 방지를 위해 **새 블록을 먼저 append → 성공 후 옛 블록 삭제** 순서.
 // 중간 실패 시 최악은 '본문 중복'(복구 가능)이며, 유실은 발생하지 않는다.
-async function replaceBody(pageId: string, bodyText: string) {
+//
+// 이력서 저장(lib/notionResume.ts)도 이것을 쓴다 (#262 3단계). 블록을 만드는 방식만 다르다 —
+// 블로그는 산문(textToBlocks), 이력서는 JSON 코드 블록. **순서의 안전성은 한 곳에 둔다** —
+// 복사해 두면 한쪽에서 순서가 뒤집혀도 눈에 띄지 않고, 그 결과는 내용 유실이다.
+export async function replaceChildren(pageId: string, children: Record<string, unknown>[]) {
   const oldIds = await listChildIds(pageId) // 1) 옛 블록 파악(페이지네이션)
-  await appendChildren(pageId, textToBlocks(bodyText)) // 2) 새 본문 먼저 추가(≤100 청크)
+  await appendChildren(pageId, children) // 2) 새 블록 먼저 추가(≤100 청크)
   await deleteBlocks(oldIds) // 3) 성공한 뒤에만 옛 블록 삭제
+}
+
+async function replaceBody(pageId: string, bodyText: string) {
+  await replaceChildren(pageId, textToBlocks(bodyText))
 }
 
 export interface BlogInput {

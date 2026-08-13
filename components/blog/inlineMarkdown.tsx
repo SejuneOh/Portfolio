@@ -1,17 +1,16 @@
 import React from "react"
 
+import { tokenizeInline, type InlineToken } from "../../lib/inlineTokens"
+
 // 본문 텍스트의 인라인 마크다운을 React 노드로 변환한다.
 // 지원: 인라인 코드 `code`, 볼드 **bold**, 링크 [text](url).
 // (블록 레벨 — 헤딩/코드펜스/목록 — 은 상위 Block 렌더러가 처리)
+//
+// 표기를 쪼개는 일은 lib/inlineTokens.ts 가 한다 (#262). 이력서가 같은 문법을 쓰지만
+// styled-jsx 로 그려서 클래스가 다르기 때문이다 — 스캔은 공유하고 아래 매핑만 이 파일 것이다.
+// 여기서 그리는 결과는 갈라내기 전과 같다.
 
-type Kind = "code" | "bold" | "link"
-const RULES: { kind: Kind; re: RegExp }[] = [
-  { kind: "code", re: /`([^`]+)`/ },
-  { kind: "bold", re: /\*\*([^*]+?)\*\*/ },
-  { kind: "link", re: /\[([^\]]+)\]\(([^)\s]+)\)/ },
-]
-
-function renderMatch(kind: Kind, m: RegExpMatchArray, key: number): React.ReactNode {
+function renderToken(token: InlineToken, key: number): React.ReactNode {
   /*
     인라인 코드. 라임은 코드 영역에 쓰지 않는다.
 
@@ -36,58 +35,37 @@ function renderMatch(kind: Kind, m: RegExpMatchArray, key: number): React.ReactN
     rounded-[3px] 과 px-[5px] 는 보이지 않는 상자에 준 모서리와 여백이다. 남겨 두지만
     무엇을 하고 있는지는 위와 같다.
   */
-  if (kind === "code")
+  if (token.kind === "code")
     return (
       <code
         key={key}
         className="rounded-[3px] bg-page px-[5px] py-px font-[family-name:var(--font-jbmono)] text-[0.88em] text-ink"
       >
-        {m[1]}
+        {token.text}
       </code>
     )
-  if (kind === "bold")
+  if (token.kind === "bold")
     return (
       <strong key={key} className="font-semibold text-ink">
-        {m[1]}
+        {token.text}
       </strong>
     )
+  if (token.kind === "text") return token.text
   // 링크는 색이 아니라 라임 밑줄로 구분한다(디자인 시스템의 link-underline 규칙).
-  const external = /^https?:\/\//.test(m[2])
+  const href = token.href ?? ""
+  const external = /^https?:\/\//.test(href)
   return (
     <a
       key={key}
-      href={m[2]}
+      href={href}
       className="link-underline"
       {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
     >
-      {m[1]}
+      {token.text}
     </a>
   )
 }
 
 export function renderInline(text: string): React.ReactNode {
-  const nodes: React.ReactNode[] = []
-  let rest = text
-  let key = 0
-
-  while (rest.length) {
-    // 남은 문자열에서 가장 앞선 매치를 찾는다(코드 > 볼드 > 링크는 동일 위치일 때 우선순위).
-    let best: { kind: Kind; index: number; m: RegExpMatchArray } | null = null
-    for (const rule of RULES) {
-      const m = rest.match(rule.re)
-      if (m && m.index !== undefined && (best === null || m.index < best.index)) {
-        best = { kind: rule.kind, index: m.index, m }
-      }
-    }
-
-    if (!best) {
-      nodes.push(rest)
-      break
-    }
-    if (best.index > 0) nodes.push(rest.slice(0, best.index))
-    nodes.push(renderMatch(best.kind, best.m, key++))
-    rest = rest.slice(best.index + best.m[0].length)
-  }
-
-  return nodes
+  return tokenizeInline(text).map((token, i) => renderToken(token, i))
 }

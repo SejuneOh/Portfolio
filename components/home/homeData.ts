@@ -1,14 +1,30 @@
 /*
   정적 소개 콘텐츠. 원래 홈에서 쓰던 것이라 이 경로에 있다.
 
-  현재 사용처는 `/about` 하나이고 `intro`(소개 2단락)와 `skills`(Skills 카드)를 읽는다.
+  현재 사용처는 `/about` 하나이고 `intro`(소개 2단락)만 읽는다.
   홈이 최신 글 중심으로 바뀌면서 이 데이터를 렌더하던 사이드 레일이 없어졌다.
   `whatIDo` 는 export 만 되어 있고 읽는 곳이 없다.
+
+  `skills` 는 여기 없다 — **lib/resumeData.ts 로 옮겼다** (#262 1단계).
+  이력서와 따로 적혀 있어서 실제로 갈라졌고(#259 에서 손으로 맞췄다), 손으로 맞춘 것은 또
+  갈라진다. 지금은 `/about` 도 이력서와 같은 배열을 읽는다.
+
+  `intro` 는 옮기지 않았다 — 이력서 소개는 세 문장이고 이곳은 더 말할 자리라 같은 문자열을
+  공유할 수 없다. 그 관계를 어떻게 둘지는 #262 4단계에서 정한다.
 */
 
+/*
+  이력서(`components/resumeDoc.tsx`)의 소개 문단과 **같은 어법**을 쓴다 (#259).
+  전에는 이력서가 담백한 어법으로 바뀐 뒤에도 이쪽이 옛 어법("주도적으로 설계·소유하고
+  있으며" · "좋아합니다")을 들고 있어서, 두 화면이 같은 사람을 다르게 소개했다.
+
+  같은 문자열을 공유하지는 않는다 — 이력서 소개는 세 문장이고 이곳은 더 말할 자리다.
+  대신 마지막 문장은 이력서와 같은 문장을 쓴다. 규칙: **짧은 쪽이 긴 쪽의 요약**이다.
+  둘을 한 곳에서 읽게 하는 것은 #260 에서 다룬다.
+*/
 export const intro: string[] = [
-  "Java/Spring으로 개발을 시작해 금융권 이미지 솔루션 SI에서 C#/.NET으로 3년 이상 개발했습니다. 이후 병원 도메인 SaaS에 프론트엔드로 합류했다가 백엔드로 전환했습니다.",
-  "최근 2년 이상 멀티플랫폼 채팅/메시징 백엔드를 주도적으로 설계·소유하고 있으며, React 프론트엔드까지 직접 개발합니다. 성능·안정성 문제를 원리부터 이해해 정량적으로 풀어가는 것을 좋아합니다.",
+  "Java/Spring으로 개발을 시작해, 금융권 이미지 솔루션 SI에서 C#/.NET으로 3년 넘게 일했습니다. 이후 병원 도메인 SaaS에 프론트엔드로 합류했다가 백엔드로 옮겼습니다.",
+  "지금은 그 SaaS의 메시징 백엔드를 맡고 있습니다. 맡은 기능은 설계부터 운영까지 직접 봅니다. 성능과 안정성 문제는 짐작하지 않고 재서 확인한 뒤 고칩니다.",
 ]
 
 export interface WhatIDoItem {
@@ -31,15 +47,8 @@ export const whatIDo: WhatIDoItem[] = [
   },
 ]
 
-export interface SkillGroup {
-  group: string
-  items: string
-}
-
-export const skills: SkillGroup[] = [
-  { group: "Backend", items: "C#, ASP.NET Core, .NET 10, EF Core, SignalR, MassTransit, RabbitMQ, Hangfire, Polly" },
-  { group: "Database", items: "Azure SQL / MSSQL, Cosmos DB, Redis, Azure Cognitive Search" },
-  { group: "Architecture", items: "DDD, Clean Architecture, CQRS(MediatR), 이벤트 기반, 멀티테넌시" },
-  { group: "Cloud", items: "Azure Container Apps, .NET Aspire, GitHub Actions, Docker" },
-  { group: "Frontend", items: "React, TypeScript, Next.js, SWR" },
-]
+/*
+  skills 와 SkillGroup 은 lib/resumeData.ts 로 옮겼다 (#262). 위 머리 주석 참조.
+  타입도 함께 지웠다 — 쓰는 곳이 없어진 export 는 남겨 두면 다음 사람이 어느 쪽이 정본인지
+  헷갈린다. `/about` 은 resumeData.skills 를 그 화면에 맞게 매핑해 쓴다.
+*/

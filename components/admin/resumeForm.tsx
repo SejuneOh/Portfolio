@@ -68,6 +68,12 @@ export default function ResumeForm({ data, source }: { data: ResumeData; source:
   const router = useRouter()
   const { show, node } = useToast()
   const [saving, setSaving] = useState(false)
+  /*
+    막지는 않지만 알릴 것 (#262 4단계). 토스트는 사라지므로 분량 경고처럼 **읽고 판단할**
+    내용은 화면에 남긴다. 저장은 이미 끝났으니 지우는 버튼은 두지 않는다 — 다음 저장 때
+    다시 계산된다.
+  */
+  const [warnings, setWarnings] = useState<string[]>([])
   const text = encodeResume(data)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -77,6 +83,7 @@ export default function ResumeForm({ data, source }: { data: ResumeData; source:
     setSaving(true)
     try {
       const res = await saveResumeAction(formData)
+      setWarnings(res.warnings ?? [])
       show(res.ok ? "success" : "error", res.message || "저장에 실패했습니다.")
       if (res.ok) router.refresh()
     } catch {
@@ -99,6 +106,23 @@ export default function ResumeForm({ data, source }: { data: ResumeData; source:
           ? "Notion 에서 읽은 내용입니다. 저장하면 Notion 이 갱신되고 화면이 즉시 반영됩니다."
           : `아직 Notion 에서 읽지 못했습니다 (${source}). 아래는 코드 폴백 내용이며, 저장하면 이 내용이 Notion 에 처음 기록됩니다.`}
       </p>
+
+      {warnings.length > 0 && (
+        <div className="mb-4 rounded-md border border-line p-3">
+          <p className="text-xs font-semibold text-ink">
+            저장됐습니다. 다만 확인할 것이 {warnings.length}건 있습니다
+          </p>
+          <ul className="mt-2 space-y-1.5 text-xs leading-relaxed text-muted">
+            {warnings.map((w) => (
+              <li key={w}>· {w}</li>
+            ))}
+          </ul>
+          <p className="mt-2 text-[11px] text-muted/80">
+            분량 상한은 실측값입니다 — 인쇄가 3쪽이 되는 지점을 헤드리스 브라우저로 재서
+            그보다 앞에 두었습니다. 정확한 쪽수는 실제로 인쇄해 봐야 압니다.
+          </p>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="grid gap-5">
         <fieldset className="grid gap-4">

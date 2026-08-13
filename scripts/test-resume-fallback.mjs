@@ -46,6 +46,7 @@ function loadFresh() {
     resumeData: require(path.resolve(OUT, "lib/resumeData.js")).resumeData,
     schema: require(path.resolve(OUT, "lib/resumeSchema.js")),
     text: require(path.resolve(OUT, "lib/resumeText.js")),
+    rules: require(path.resolve(OUT, "lib/resumeRules.js")),
   }
 }
 
@@ -611,6 +612,129 @@ async function run() {
       !/resumeData\s*\.\s*skills/.test(src),
       "resumeData.skills 를 쓰면 Notion 값이 아니라 코드 값이 나온다"
     )
+  }
+
+  // ── 23~25. 저장 전 규칙 검사 (#262 4단계) ────────────────────────────────
+  console.log("\n23. 지금 이력서는 규칙을 지킨다 (기준선)")
+  {
+    const { rules, resumeData } = loadFresh()
+    const r = rules.checkResumeRules(resumeData)
+    check("막을 것이 없다", r.errors.length === 0, r.errors.join(" / "))
+    check("알릴 것도 없다", r.warnings.length === 0, r.warnings.join(" / "))
+  }
+
+  console.log("\n24. 막는 것 — 어기면 #256 이 없앤 상태로 돌아가는 것")
+  {
+    const { rules, resumeData } = loadFresh()
+    const clone = () => JSON.parse(JSON.stringify(resumeData))
+
+    const bad = [
+      [
+        "항목에 굵은 강조가 둘",
+        (d) => (d.career[1].bullets[0].text = "**하나** 그리고 **둘**"),
+      ],
+      ["소개 문단에 굵은 강조", (d) => (d.header.tagline = "서버를 **만듭니다**.")],
+      ["소개 문단에 칩", (d) => (d.header.tagline = "서버를 `194 → 3ms` 만듭니다.")],
+      [
+        "사이드 항목에 굵은 강조가 둘",
+        (d) => (d.side[0] = "**농구** 서비스 — **React** 로 만들었다"),
+      ],
+    ]
+    for (const [name, mutate] of bad) {
+      const d = clone()
+      mutate(d)
+      const r = rules.checkResumeRules(d)
+      check(`막는다: ${name}`, r.errors.length > 0, "통과해 버렸다")
+    }
+
+    // 강조 하나는 규칙이다 — 막지 않아야 한다.
+    const one = clone()
+    one.career[1].bullets[0].text = "무엇을 해서 **어떤 결과**가 났다"
+    check("허용한다: 강조 하나", rules.checkResumeRules(one).errors.length === 0)
+  }
+
+  console.log("\n25. 알리는 것 — 사람이 판단할 분량과 칩")
+  {
+    const { rules, resumeData } = loadFresh()
+    const clone = () => JSON.parse(JSON.stringify(resumeData))
+
+    const chip = clone()
+    chip.career[1].bullets[0].text = "`SignalR` 로 이벤트를 처리했다"
+    const chipR = rules.checkResumeRules(chip)
+    check("알린다: 칩에 숫자가 없다", chipR.warnings.some((w) => w.includes("숫자")))
+    check("막지는 않는다: 칩", chipR.errors.length === 0, chipR.errors.join(" / "))
+
+    const long = clone()
+    long.career[1].bullets[0].text = `길다 ${"가".repeat(230)}`
+    check(
+      "알린다: 항목이 너무 길다",
+      rules.checkResumeRules(long).warnings.some((w) => w.includes("자입니다"))
+    )
+
+    /*
+      분량 경고의 기준은 실측이다 — 항목 +12(총 31개)에서 인쇄가 3쪽이 됐고 +10(29개)은
+      2쪽이었다. 그래서 25개를 넘으면 알린다. 여기서는 그 상한이 실제로 걸리는지 본다.
+    */
+    const many = clone()
+    // 실제 항목 평균이 95자다. 짧은 더미를 쓰면 글자 수 상한에 못 미쳐 그 경고를 못 잰다
+    // (처음에 48자짜리를 써서 실제로 그랬다).
+    const pad = (i) => ({ year: "2026", text: `채움 ${i} — ${"가".repeat(85)}` })
+    for (let i = 0; i < 10; i++) many.career[1].bullets.push(pad(i))
+    const manyR = rules.checkResumeRules(many)
+    check("알린다: 항목 수가 많다", manyR.warnings.some((w) => w.includes("경력 항목이")))
+    check("알린다: 본문이 길다", manyR.warnings.some((w) => w.includes("본문이")))
+    check("막지는 않는다: 분량", manyR.errors.length === 0, manyR.errors.join(" / "))
+  }
+
+  console.log("\n26. 저장 — 규칙을 어기면 Notion 을 건드리지 않는다")
+  {
+    const { notionResume, resumeData } = loadFresh()
+    const broken = JSON.parse(JSON.stringify(resumeData))
+    broken.career[1].bullets[0].text = "**하나** 그리고 **둘**" // 모양은 맞지만 규칙 위반
+
+    const calls = []
+    globalThis.fetch = async (url, init) => {
+      calls.push(`${init?.method || "GET"} ${String(url)}`)
+      return { ok: true, status: 200, json: async () => ({ results: [], id: "x" }) }
+    }
+    let threw = null
+    try {
+      await notionResume.saveResume(broken)
+    } catch (e) {
+      threw = e
+    }
+    check("던진다", threw !== null)
+    check(
+      "규칙 위반임을 알려 준다",
+      threw !== null && /규칙|강조/.test(String(threw.message)),
+      threw ? String(threw.message).slice(0, 120) : ""
+    )
+    check("Notion 을 부르지 않는다", calls.length === 0, calls.join(" · "))
+  }
+
+  console.log("\n27. 저장 — 경고는 막지 않고 돌려준다")
+  {
+    const { notionResume, resumeData } = loadFresh()
+    const warny = JSON.parse(JSON.stringify(resumeData))
+    warny.career[1].bullets[0].text = "`SignalR` 로 이벤트를 처리했다"
+    globalThis.fetch = async (url, init) => {
+      const u = String(url)
+      const method = init?.method || "GET"
+      if (u.includes("/databases/") && method === "POST")
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            results: [{ id: "row-1", properties: { Title: { title: [{ plain_text: "resume" }] } } }],
+          }),
+        }
+      if (u.includes("/blocks/row-1/children") && method === "GET")
+        return { ok: true, status: 200, json: async () => ({ results: [] }) }
+      return { ok: true, status: 200, json: async () => ({}) }
+    }
+    const res = await notionResume.saveResume(warny)
+    check("저장된다", res.pageId === "row-1")
+    check("경고를 함께 돌려준다", (res.warnings || []).length > 0, JSON.stringify(res.warnings))
   }
 
   console.log("\n17. 저장 — env 가 없으면 부르기 전에 막는다")

@@ -33,6 +33,7 @@ npx tsc \
   lib/resumeSchema.ts \
   lib/resumeData.ts \
   lib/resumeText.ts \
+  lib/resumeRules.ts \
   lib/notionWrite.ts \
   config/index.ts
 

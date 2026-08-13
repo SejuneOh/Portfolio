@@ -31,6 +31,7 @@
 
 import { RESUME_DATABASE_ID, TOKEN } from "../config"
 import { replaceChildren } from "./notionWrite"
+import { checkResumeRules } from "./resumeRules"
 import { resumeData, type ResumeData } from "./resumeData"
 import { validateResume } from "./resumeSchema"
 
@@ -286,7 +287,9 @@ async function findOrCreateRow(): Promise<string> {
  * getResume() 과 달리 **던진다.** 저장은 사용자가 결과를 기다리는 동작이라, 조용히
  * 실패하면 "저장했다"고 착각하게 된다.
  */
-export async function saveResume(data: ResumeData): Promise<{ pageId: string }> {
+export async function saveResume(
+  data: ResumeData
+): Promise<{ pageId: string; warnings: string[] }> {
   if (!TOKEN || !RESUME_DATABASE_ID)
     throw new Error("NOTION_TOKEN 또는 NOTION_RESUME_DB 가 설정되지 않았습니다.")
 
@@ -294,8 +297,18 @@ export async function saveResume(data: ResumeData): Promise<{ pageId: string }> 
   if (!checked.ok)
     throw new Error(`이력서 모양이 올바르지 않습니다 — ${checked.problems.join(" / ")}`)
 
+  /*
+    모양 다음에 **규칙**을 본다 (#262 4단계). 여기서 막는 것은 어기면 화면이 #256 이 없앤
+    상태로 돌아가는 것들이다. 경고는 막지 않고 돌려준다 — 부르는 쪽이 사람에게 보여 준다.
+
+    이 검사를 액션이 아니라 여기 두는 이유는, 액션을 거치지 않는 호출도 막기 위해서다.
+  */
+  const rules = checkResumeRules(checked.data)
+  if (rules.errors.length)
+    throw new Error(`규칙을 지키지 않았습니다 — ${rules.errors.join(" / ")}`)
+
   const pageId = await findOrCreateRow()
   // 새 블록을 먼저 붙이고 성공한 뒤 옛 블록을 지운다(lib/notionWrite.ts 의 replaceChildren).
   await replaceChildren(pageId, resumeToBlocks(checked.data))
-  return { pageId }
+  return { pageId, warnings: rules.warnings }
 }

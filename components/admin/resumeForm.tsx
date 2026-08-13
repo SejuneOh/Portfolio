@@ -87,6 +87,9 @@ export default function ResumeForm({ data, source }: { data: ResumeData; source:
       show(res.ok ? "success" : "error", res.message || "저장에 실패했습니다.")
       if (res.ok) router.refresh()
     } catch {
+      // 앞선 저장의 경고를 지운다. 남겨 두면 실패 토스트 위에 "저장됐습니다" 가 붙어
+      // 일어나지 않은 저장을 설명한다 (검사 지적).
+      setWarnings([])
       show(
         "error",
         "저장에 실패했습니다. 시간 초과 또는 네트워크 오류일 수 있어요. 잠시 후 다시 시도해주세요."
@@ -112,9 +115,14 @@ export default function ResumeForm({ data, source }: { data: ResumeData; source:
           <p className="text-xs font-semibold text-ink">
             저장됐습니다. 다만 확인할 것이 {warnings.length}건 있습니다
           </p>
+          {/*
+            키를 순번으로 잡는다. 경고 문구가 같아지는 경우가 있어서(이름이 빈 프로젝트가
+            둘이면 라벨이 같아진다) 문구를 키로 쓰면 한 줄이 사라진다 — 검사 지적이다.
+            라벨에 순번을 넣어 그 원인 자체도 없앴지만, 키는 순번이 맞다.
+          */}
           <ul className="mt-2 space-y-1.5 text-xs leading-relaxed text-muted">
-            {warnings.map((w) => (
-              <li key={w}>· {w}</li>
+            {warnings.map((w, i) => (
+              <li key={i}>· {w}</li>
             ))}
           </ul>
           <p className="mt-2 text-[11px] text-muted/80">

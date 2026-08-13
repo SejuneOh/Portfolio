@@ -664,12 +664,15 @@ async function run() {
     check("알린다: 칩에 숫자가 없다", chipR.warnings.some((w) => w.includes("숫자")))
     check("막지는 않는다: 칩", chipR.errors.length === 0, chipR.errors.join(" / "))
 
+    /*
+      문구를 **그 규칙만의 말**로 맞춘다. 처음에는 "자입니다" 로 봤는데 본문 길이 경고
+      ("본문이 N자입니다")도 같은 말을 담아서, 항목 길이 규칙이 죽어 있어도 통과할 수 있었다.
+      실제로는 그 돌연변이에서 본문이 상한 아래라 우연히 참이었을 뿐이다 (검사 지적).
+    */
     const long = clone()
     long.career[1].bullets[0].text = `길다 ${"가".repeat(230)}`
-    check(
-      "알린다: 항목이 너무 길다",
-      rules.checkResumeRules(long).warnings.some((w) => w.includes("자입니다"))
-    )
+    const longW = rules.checkResumeRules(long).warnings
+    check("알린다: 항목이 너무 길다", longW.some((w) => w.includes("줄을 많이 먹습니다")), longW.join(" / "))
 
     /*
       분량 경고의 기준은 실측이다 — 항목 +12(총 31개)에서 인쇄가 3쪽이 됐고 +10(29개)은
@@ -681,9 +684,32 @@ async function run() {
     const pad = (i) => ({ year: "2026", text: `채움 ${i} — ${"가".repeat(85)}` })
     for (let i = 0; i < 10; i++) many.career[1].bullets.push(pad(i))
     const manyR = rules.checkResumeRules(many)
-    check("알린다: 항목 수가 많다", manyR.warnings.some((w) => w.includes("경력 항목이")))
+    check("알린다: 항목 수가 많다", manyR.warnings.some((w) => w.includes("항목이")))
     check("알린다: 본문이 길다", manyR.warnings.some((w) => w.includes("본문이")))
     check("막지는 않는다: 분량", manyR.errors.length === 0, manyR.errors.join(" / "))
+
+    // 사이드 항목도 같은 지면에서 줄을 차지한다 — 경력만 세면 이쪽이 늘어도 조용하다.
+    const manySide = clone()
+    for (let i = 0; i < 14; i++) manySide.side.push(`채움 사이드 ${i} — 짧은 한 줄`)
+    check(
+      "알린다: 사이드 항목이 많아도 센다",
+      rules.checkResumeRules(manySide).warnings.some((w) => w.includes("항목이")),
+      rules.checkResumeRules(manySide).warnings.join(" / ")
+    )
+
+    // 회사·학력이 늘어난 경우 — 전에는 이 글자들을 세지 않아 조용했다.
+    const manyEdu = clone()
+    for (let i = 0; i < 8; i++)
+      manyEdu.education.push({
+        name: `교육 과정 ${i} — 이름을 길게 적은 경우`,
+        meta: "2020.01 – 2020.12",
+        desc: "배운 것을 길게 적는다. 실제 학력 항목의 설명 길이에 맞춘 문장이다.",
+      })
+    check(
+      "알린다: 학력이 늘어난 것도 분량에 든다",
+      rules.checkResumeRules(manyEdu).warnings.some((w) => w.includes("본문이")),
+      rules.checkResumeRules(manyEdu).warnings.join(" / ")
+    )
   }
 
   console.log("\n26. 저장 — 규칙을 어기면 Notion 을 건드리지 않는다")

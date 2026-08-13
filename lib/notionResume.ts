@@ -181,6 +181,23 @@ export async function getResume(fresh = false): Promise<{
   const checked = validateResume(parsed)
   if (!checked.ok) return fallback("JSON 모양이 이력서와 다르다", checked.problems)
 
+  /*
+    규칙 위반은 **막지 않고 로그에만 남긴다** (#262 4단계).
+
+    Notion 은 폼을 거치지 않는 두 번째 편집 표면이다(같은 이유로 스키마가 href 를 본다).
+    그쪽에서 항목에 강조를 다섯 개 달면 저장 검사를 통과하지 않고 화면에 그대로 나온다 —
+    #256 이 없앤 상태다. 검사에서 지적된 것이다.
+
+    그렇다고 폴백으로 떨어뜨리지는 않는다. 조판 규칙을 어긴 것 때문에 이력서 전체를 옛
+    내용으로 바꾸는 것은 손해가 더 크다. 대신 서버 로그에 남겨 **찾을 수 있게** 한다.
+    관리 화면에서 저장을 시도하면 그때는 막히고 무엇이 문제인지 보인다.
+  */
+  const rules = checkResumeRules(checked.data)
+  if (rules.errors.length) {
+    console.warn("[resume] Notion 내용이 조판 규칙을 어겼다 — 화면은 그대로 그린다")
+    for (const e of rules.errors.slice(0, 8)) console.warn(`[resume]   · ${e}`)
+  }
+
   return { data: checked.data, source: { from: "notion", pageId: page.id } }
 }
 

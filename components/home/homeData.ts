@@ -6,9 +6,18 @@
   `whatIDo` 는 export 만 되어 있고 읽는 곳이 없다.
 */
 
+/*
+  이력서(`components/resumeDoc.tsx`)의 소개 문단과 **같은 어법**을 쓴다 (#259).
+  전에는 이력서가 담백한 어법으로 바뀐 뒤에도 이쪽이 옛 어법("주도적으로 설계·소유하고
+  있으며" · "좋아합니다")을 들고 있어서, 두 화면이 같은 사람을 다르게 소개했다.
+
+  같은 문자열을 공유하지는 않는다 — 이력서 소개는 세 문장이고 이곳은 더 말할 자리다.
+  대신 마지막 문장은 이력서와 같은 문장을 쓴다. 규칙: **짧은 쪽이 긴 쪽의 요약**이다.
+  둘을 한 곳에서 읽게 하는 것은 #260 에서 다룬다.
+*/
 export const intro: string[] = [
-  "Java/Spring으로 개발을 시작해 금융권 이미지 솔루션 SI에서 C#/.NET으로 3년 이상 개발했습니다. 이후 병원 도메인 SaaS에 프론트엔드로 합류했다가 백엔드로 전환했습니다.",
-  "최근 2년 이상 멀티플랫폼 채팅/메시징 백엔드를 주도적으로 설계·소유하고 있으며, React 프론트엔드까지 직접 개발합니다. 성능·안정성 문제를 원리부터 이해해 정량적으로 풀어가는 것을 좋아합니다.",
+  "Java/Spring으로 개발을 시작해, 금융권 이미지 솔루션 SI에서 C#/.NET으로 3년 넘게 일했습니다. 이후 병원 도메인 SaaS에 프론트엔드로 합류했다가 백엔드로 옮겼습니다.",
+  "지금은 그 SaaS의 메시징 백엔드를 맡고 있습니다. 맡은 기능은 설계부터 운영까지 직접 봅니다. 성능과 안정성 문제는 짐작하지 않고 재서 확인한 뒤 고칩니다.",
 ]
 
 export interface WhatIDoItem {
@@ -36,10 +45,22 @@ export interface SkillGroup {
   items: string
 }
 
+/*
+  이력서 `핵심 역량` 6행을 그대로 옮긴 것이다 (#259). 항목까지 일치시켰다.
+
+  전에는 5행이었고 이력서의 부분집합이었다 — `인증 · 연동` 그룹 전체와 Refit ·
+  Semantic Kernel · Bicep · App Insights · React-Hook-Form · Vue 가 빠져 있었다.
+  반대로 `Docker` 는 이곳에만 있었는데, 이력서를 정본으로 보기로 해서 뺐다(소유자 결정).
+
+  `·` 앞이 주로 쓰는 것, 뒤가 함께 쓰는 것이다 — 이력서는 앞을 굵게 그리고 이곳은 평문으로
+  그린다. 문자열 형태를 이력서와 같게 둔 것은 #260 에서 한 배열로 합칠 때 그대로 옮기기
+  위한 것이다. **한쪽만 고치면 다시 갈라진다 — 고칠 때 두 곳을 함께 본다.**
+*/
 export const skills: SkillGroup[] = [
-  { group: "Backend", items: "C#, ASP.NET Core, .NET 10, EF Core, SignalR, MassTransit, RabbitMQ, Hangfire, Polly" },
-  { group: "Database", items: "Azure SQL / MSSQL, Cosmos DB, Redis, Azure Cognitive Search" },
-  { group: "Architecture", items: "DDD, Clean Architecture, CQRS(MediatR), 이벤트 기반, 멀티테넌시" },
-  { group: "Cloud", items: "Azure Container Apps, .NET Aspire, GitHub Actions, Docker" },
-  { group: "Frontend", items: "React, TypeScript, Next.js, SWR" },
+  { group: "Backend", items: "C#, ASP.NET Core, .NET 10, EF Core · MassTransit + RabbitMQ, SignalR, Hangfire, Refit, Polly, Semantic Kernel(Azure OpenAI)" },
+  { group: "Architecture", items: "DDD, CQRS(MediatR), 이벤트 기반 · Clean Architecture, 멀티테넌시" },
+  { group: "Data", items: "Azure SQL / MS SQL Server, Cosmos DB, Redis · Azure Cognitive Search, EF Core 멀티 스키마 마이그레이션" },
+  { group: "인증 · 연동", items: "IdentityServer(OIDC/OAuth2/CIBA) · WhatsApp·Meta Graph, LINE, WeChat, Vonage(SMS OTP)" },
+  { group: "Cloud · DevOps", items: "Azure Container Apps, .NET Aspire · Bicep(IaC), GitHub Actions CI/CD, App Insights" },
+  { group: "Frontend", items: "React, TypeScript, Next.js · SWR, React-Hook-Form, Vue" },
 ]

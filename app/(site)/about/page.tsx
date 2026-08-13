@@ -12,15 +12,20 @@ export const metadata = {
   동시에 볼 정보가 아니라 다 읽은 뒤에 나오는 것이 맞다.
 
   경력 사실은 components/resumeDoc.tsx 에서 그대로 옮겨 적었다. 창작하지 않았다.
-  같은 사실이 두 파일에 있게 되는데, 데이터로 빼려면 resumeDoc 을 고쳐야 하고
-  그것은 이 이슈가 막고 있다("변경 파일 하나뿐" · "이력서 문서는 건드리지 않습니다").
-  경력을 공유 데이터로 빼는 것은 후속 작업이다.
+  같은 사실이 두 파일에 있으므로 **한쪽만 고치면 다른 쪽이 조용히 낡는다.**
+  실제로 그렇게 됐다 — #256 이 이력서의 어순을 바꾼 뒤 이곳이 옛 어순으로 남아 있었고,
+  #259 에서 맞췄다. 공유 데이터로 빼는 일은 #260.
 */
 const timeline: { org: string; period?: string; body: string }[] = [
   {
     org: "클라우드호스피탈",
+    /*
+      기간은 왼쪽 고정폭 칼럼이 이미 그린다. 그래서 본문에서 입사 연도를 되풀이하지 않는다
+      — 이력서는 칼럼이 없어 `(2023 React 프론트엔드로 입사 → …)` 로 연도를 안에 적는다.
+      두 문장이 다른 것은 이 차이 때문이고, 어순과 표현은 이력서에 맞췄다.
+    */
     period: "2023.02 – 재직중",
-    body: "React 프론트엔드로 입사 → 2024년 백엔드 전환 · 현재 백엔드 중심 풀스택 (병원 도메인 SaaS)",
+    body: "병원 도메인 SaaS · 백엔드 중심 풀스택 (React 프론트엔드로 입사 → 2024 백엔드 전환)",
   },
   {
     org: "인지소프트",
@@ -116,8 +121,15 @@ export default function About() {
         </div>
       </section>
 
-      {/* 하단 3열 — 모바일에서는 1열 스택 */}
-      <section className="mt-12 grid gap-4 lg:grid-cols-3">
+      {/*
+        하단 3열 — 모바일에서는 1열 스택.
+
+        items-start 를 준다 (#259). grid 기본값 stretch 는 세 카드를 가장 높은 카드에
+        맞추는데, Skills 가 이력서 6행을 그대로 받으면서 길어져 라임 Resume 카드 가운데가
+        크게 비고 Contact 아래로 죽은 공간이 생겼다. 높이를 맞추는 것은 #154 가 정한
+        결정이 아니라 CSS 기본값이었으므로, 각 카드를 내용 높이대로 둔다.
+      */}
+      <section className="mt-12 grid items-start gap-4 lg:grid-cols-3">
         {/* 라임 Resume 카드 */}
         <div
           className="flex flex-col rounded-[3px] bg-lime p-6"

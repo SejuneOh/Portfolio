@@ -68,3 +68,11 @@ jobs:
       # shiki 를 import 하므로 npm ci 뒤에 둔다.
       - name: Test code block contrast
         run: node scripts/test-shiki-contrast.mjs
+
+      # 이력서는 Notion 한 칸에 JSON 통째로 들어간다 — 한 번 잘못 쓰면 전부 잃는 구조라
+      # 폴백이 유일한 안전망이다. 그런데 폴백은 평소에 돌지 않는 길이라, 확인하지 않으면
+      # 정작 필요한 순간에 동작하지 않는다 (#262 2단계).
+      #
+      # tsc 를 쓰므로 npm ci 뒤에 둔다.
+      - name: Test resume Notion fallback
+        run: bash scripts/test-resume-fallback.sh

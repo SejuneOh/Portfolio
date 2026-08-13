@@ -5,7 +5,12 @@ import Link from "next/link"
 import { Instrument_Sans } from "next/font/google"
 
 import { tokenizeInline } from "../lib/inlineTokens"
-import { RESUME_SECTIONS, resumeData, type ResumeBullet } from "../lib/resumeData"
+import {
+  RESUME_SECTIONS,
+  resumeData,
+  type ResumeBullet,
+  type ResumeData,
+} from "../lib/resumeData"
 
 // 이력서 고유 서체 — next/font로 로드(렌더블로킹 <link> 제거, no-page-custom-font 해소).
 const instrument = Instrument_Sans({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-instrument", display: "swap" })
@@ -91,8 +96,15 @@ function BulletList({ bullets }: { bullets: ResumeBullet[] }) {
   )
 }
 
-export default function ResumeDoc() {
-  const { header, metrics, skills, career, side, education, footer } = resumeData
+/*
+  내용은 props 로 받는다 (#262 2단계). 페이지가 서버에서 Notion 을 읽어 내려 준다 —
+  이 컴포넌트는 `"use client"` 라 여기서 토큰을 쓸 수 없다.
+
+  `data` 를 생략하면 코드 폴백을 쓴다. 이력서를 데이터 없이 그려 볼 일(스토리·테스트)이
+  생겼을 때를 위한 것이고, 실제 페이지는 항상 넘긴다.
+*/
+export default function ResumeDoc({ data = resumeData }: { data?: ResumeData }) {
+  const { header, metrics, skills, career, side, education, footer } = data
 
   /*
     각 항목이 몇 번째 회사에 속하는지 미리 센다. 회사가 바뀔 때만 위 여백을 주는데,

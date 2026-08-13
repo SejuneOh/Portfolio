@@ -1,9 +1,16 @@
 /*
   정적 소개 콘텐츠. 원래 홈에서 쓰던 것이라 이 경로에 있다.
 
-  현재 사용처는 `/about` 하나이고 `intro`(소개 2단락)와 `skills`(Skills 카드)를 읽는다.
+  현재 사용처는 `/about` 하나이고 `intro`(소개 2단락)만 읽는다.
   홈이 최신 글 중심으로 바뀌면서 이 데이터를 렌더하던 사이드 레일이 없어졌다.
   `whatIDo` 는 export 만 되어 있고 읽는 곳이 없다.
+
+  `skills` 는 여기 없다 — **lib/resumeData.ts 로 옮겼다** (#262 1단계).
+  이력서와 따로 적혀 있어서 실제로 갈라졌고(#259 에서 손으로 맞췄다), 손으로 맞춘 것은 또
+  갈라진다. 지금은 `/about` 도 이력서와 같은 배열을 읽는다.
+
+  `intro` 는 옮기지 않았다 — 이력서 소개는 세 문장이고 이곳은 더 말할 자리라 같은 문자열을
+  공유할 수 없다. 그 관계를 어떻게 둘지는 #262 4단계에서 정한다.
 */
 
 /*
@@ -40,27 +47,8 @@ export const whatIDo: WhatIDoItem[] = [
   },
 ]
 
-export interface SkillGroup {
-  group: string
-  items: string
-}
-
 /*
-  이력서 `핵심 역량` 6행을 그대로 옮긴 것이다 (#259). 항목까지 일치시켰다.
-
-  전에는 5행이었고 이력서의 부분집합이었다 — `인증 · 연동` 그룹 전체와 Refit ·
-  Semantic Kernel · Bicep · App Insights · React-Hook-Form · Vue 가 빠져 있었다.
-  반대로 `Docker` 는 이곳에만 있었는데, 이력서를 정본으로 보기로 해서 뺐다(소유자 결정).
-
-  `·` 앞이 주로 쓰는 것, 뒤가 함께 쓰는 것이다 — 이력서는 앞을 굵게 그리고 이곳은 평문으로
-  그린다. 문자열 형태를 이력서와 같게 둔 것은 #260 에서 한 배열로 합칠 때 그대로 옮기기
-  위한 것이다. **한쪽만 고치면 다시 갈라진다 — 고칠 때 두 곳을 함께 본다.**
+  skills 와 SkillGroup 은 lib/resumeData.ts 로 옮겼다 (#262). 위 머리 주석 참조.
+  타입도 함께 지웠다 — 쓰는 곳이 없어진 export 는 남겨 두면 다음 사람이 어느 쪽이 정본인지
+  헷갈린다. `/about` 은 resumeData.skills 를 그 화면에 맞게 매핑해 쓴다.
 */
-export const skills: SkillGroup[] = [
-  { group: "Backend", items: "C#, ASP.NET Core, .NET 10, EF Core · MassTransit + RabbitMQ, SignalR, Hangfire, Refit, Polly, Semantic Kernel(Azure OpenAI)" },
-  { group: "Architecture", items: "DDD, CQRS(MediatR), 이벤트 기반 · Clean Architecture, 멀티테넌시" },
-  { group: "Data", items: "Azure SQL / MS SQL Server, Cosmos DB, Redis · Azure Cognitive Search, EF Core 멀티 스키마 마이그레이션" },
-  { group: "인증 · 연동", items: "IdentityServer(OIDC/OAuth2/CIBA) · WhatsApp·Meta Graph, LINE, WeChat, Vonage(SMS OTP)" },
-  { group: "Cloud · DevOps", items: "Azure Container Apps, .NET Aspire · Bicep(IaC), GitHub Actions CI/CD, App Insights" },
-  { group: "Frontend", items: "React, TypeScript, Next.js · SWR, React-Hook-Form, Vue" },
-]

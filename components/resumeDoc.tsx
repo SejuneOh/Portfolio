@@ -1,7 +1,11 @@
 "use client"
 
+import React from "react"
 import Link from "next/link"
 import { Instrument_Sans } from "next/font/google"
+
+import { tokenizeInline } from "../lib/inlineTokens"
+import { RESUME_SECTIONS, resumeData, type ResumeBullet } from "../lib/resumeData"
 
 // 이력서 고유 서체 — next/font로 로드(렌더블로킹 <link> 제거, no-page-custom-font 해소).
 const instrument = Instrument_Sans({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-instrument", display: "swap" })
@@ -23,8 +27,86 @@ const instrument = Instrument_Sans({ subsets: ["latin"], weight: ["400", "500", 
  *   전에는 한 줄에 최대 5개가 겹쳐 있어서 무엇이 성과인지 눈으로 골라낼 수 없었다
  * - .kbd 는 재서 확인한 전후 값 전용(`194 → 3ms`). 기술 이름에 쓰면 측정값과 구분되지 않는다
  * - .yr 는 항목의 연도. 같은 프로젝트를 여러 해에 걸쳐 소유한 경우 순서를 드러낸다
+ *
+ * 내용은 이 파일에 없다 — lib/resumeData.ts 다 (#262 1단계). 이 파일은 **그리는 규칙만**
+ * 소유한다: 섹션 구성과 순서, 연도 칩 정렬, 강조 표기의 매핑, 회사 사이 여백, 인쇄 조판.
+ * 2단계에서 데이터 출처가 Notion 으로 바뀌어도 이 파일은 그대로다.
  */
+
+/*
+  본문 표기를 이력서용 요소로 바꾼다. 쪼개는 것은 lib/inlineTokens.ts 가 하고(블로그 본문과
+  같은 스캐너), 여기서는 매핑만 한다 — 블로그는 Tailwind 클래스, 이력서는 이 파일의 styled-jsx.
+
+      **결과**      → <b>       항목당 하나 (#256)
+      `194 → 3ms`   → .kbd 칩   측정값 전용 (#256)
+*/
+function renderResumeInline(text: string): React.ReactNode {
+  return tokenizeInline(text).map((t, i) => {
+    if (t.kind === "bold") return <b key={i}>{t.text}</b>
+    if (t.kind === "code")
+      return (
+        <span className="kbd" key={i}>
+          {t.text}
+        </span>
+      )
+    if (t.kind === "link")
+      return (
+        <a href={t.href} key={i}>
+          {t.text}
+        </a>
+      )
+    return t.text
+  })
+}
+
+/*
+  연도 칸. 한 목록 안에 연도가 있는 항목과 없는 항목이 섞이면, 없는 쪽에도 **빈 칸**을 준다 —
+  없으면 본문 시작 위치가 두 갈래로 갈려 왼쪽 선이 들쭉날쭉해진다 (#256).
+  목록 전체에 연도가 하나도 없으면 칸 자체를 만들지 않는다.
+*/
+function BulletList({ bullets }: { bullets: ResumeBullet[] }) {
+  const anyYear = bullets.some((b) => b.year)
+  return (
+    <ul>
+      {bullets.map((b, i) => (
+        <li key={i}>
+          {anyYear &&
+            (b.year ? (
+              /*
+                연도 뒤의 공백 한 칸은 장식이 아니다 — 원본 JSX 에 있던 것이고, 빼면
+                복사한 텍스트가 "2024실시간…" 으로 붙는다. 빈 칸(아래)에는 원본에도
+                공백이 없었으므로 넣지 않는다. 데이터로 옮기면서 실제로 한 번 잃었다가
+                렌더 대조에서 잡았다 (#262).
+              */
+              <>
+                <span className="yr">{b.year}</span>{" "}
+              </>
+            ) : (
+              <span className="yr" aria-hidden="true" />
+            ))}
+          {renderResumeInline(b.text)}
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 export default function ResumeDoc() {
+  const { header, metrics, skills, career, side, education, footer } = resumeData
+
+  /*
+    각 항목이 몇 번째 회사에 속하는지 미리 센다. 회사가 바뀔 때만 위 여백을 주는데,
+    첫 회사에는 주지 않는다 — 그 위가 섹션 머리다.
+
+    처음에는 map 안에서 카운터를 하나 두고 늘렸다가 lint 에 걸렸다
+    (react-hooks/immutability — "렌더가 끝난 뒤 변수를 다시 대입할 수 없다").
+    콜백이 언제 돌지 보장되지 않으므로 정당한 지적이다. 규칙을 끄지 않고 순수 계산으로 바꿨다.
+    항목이 여덟 개라 비용은 문제가 되지 않는다.
+  */
+  const jobsUpTo = career.map(
+    (_, i) => career.slice(0, i + 1).filter((x) => x.kind === "job").length
+  )
+
   return (
     <>
 
@@ -33,189 +115,134 @@ export default function ResumeDoc() {
           <Link href="/" className="backlink">← Portfolio</Link>
 
           <header>
-            <div className="eyebrow">Backend Engineer · Fullstack</div>
+            <div className="eyebrow">{header.eyebrow}</div>
             <h1>
-              오세준<span className="en">Sejune Oh — 백엔드 개발자 · 풀스택</span>
+              {header.name}
+              <span className="en">{header.nameSub}</span>
             </h1>
             {/*
               담백하게 둔다 — 굵은 강조도 수치도 쓰지 않는다 (#256).
               역할·경력 연수는 위 아이브로우·이름 아래 줄·아래 연락처 줄이 이미 말하고 있어서,
               여기서 되풀이하면 세 번 같은 말을 하게 된다.
             */}
-            <p className="tagline">
-              C#/.NET으로 서버를 만듭니다. 지금은 병원 도메인 SaaS의 메시징 백엔드를 맡고 있습니다.
-              맡은 기능은 설계부터 운영까지 직접 봅니다.
-            </p>
+            <p className="tagline">{header.tagline}</p>
             <div className="contacts">
-              <a href="mailto:etry0715@gmail.com">etry0715@gmail.com</a>
-              <a href="https://github.com/SejuneOh" target="_blank" rel="noopener noreferrer">
-                github.com/SejuneOh
-              </a>
-              <span>경력 7년 6개월</span>
+              {header.contacts.map((c) =>
+                c.href ? (
+                  <a
+                    key={c.text}
+                    href={c.href}
+                    {...(/^https?:\/\//.test(c.href)
+                      ? { target: "_blank", rel: "noopener noreferrer" }
+                      : {})}
+                  >
+                    {c.text}
+                  </a>
+                ) : (
+                  <span key={c.text}>{c.text}</span>
+                )
+              )}
             </div>
           </header>
 
           <div className="metrics" aria-label="핵심 성과 지표">
-            <div className="metric">
-              <div className="big">
-                <span className="from">91s</span>
-                <span className="arw">→</span>0.04s
+            {metrics.map((m) => (
+              <div className="metric" key={m.value + m.label[0]}>
+                <div className="big">
+                  {m.from && <span className="from">{m.from}</span>}
+                  {m.arrow && <span className="arw">→</span>}
+                  {m.value}
+                  {m.after && (
+                    <span
+                      className="from"
+                      {...(m.afterSmall ? { style: { fontSize: ".5em" } } : {})}
+                    >
+                      {m.after}
+                    </span>
+                  )}
+                </div>
+                <div className="lbl">
+                  {m.label.map((line, i) => (
+                    <React.Fragment key={i}>
+                      {i > 0 && <br />}
+                      {line}
+                    </React.Fragment>
+                  ))}
+                </div>
               </div>
-              <div className="lbl">
-                병원 목록 API 응답<br />쿼리 최적화 (#11165)
-              </div>
-            </div>
-            <div className="metric">
-              <div className="big">
-                −97<span className="from" style={{ fontSize: ".5em" }}>%</span>
-              </div>
-              <div className="lbl">
-                메시지 조회 지연<br />147ms → 4ms
-              </div>
-            </div>
-            <div className="metric">
-              <div className="big">
-                782<span className="from">/782</span>
-              </div>
-              <div className="lbl">
-                데이터 마이그레이션<br />무결성 검증 통과
-              </div>
-            </div>
+            ))}
           </div>
 
-          {/* 핵심 역량 */}
+          {/* 핵심 역량 — 굵은 쪽이 주로 쓰는 것, `·` 뒤가 함께 쓰는 것이다 */}
           <section>
             <div className="sec-head">
-              <div className="sec-num">01</div>
-              <h2 className="sec-title">핵심 역량</h2>
+              <div className="sec-num">{RESUME_SECTIONS.skills.num}</div>
+              <h2 className="sec-title">{RESUME_SECTIONS.skills.title}</h2>
             </div>
             <div className="sec-body">
-              {/*
-                굵은 쪽이 주로 쓰는 것, 뒤가 함께 쓰는 것이다.
-                'AI 연동' 행은 따로 두지 않는다 — Semantic Kernel 은 .NET 라이브러리라
-                Backend 에서 쓰는 것이고, 행을 쪼개면 한 줄에 항목 두 개짜리 행이 생긴다 (#256).
-              */}
-              <div className="skill-row"><div className="k">Backend</div><div className="v"><b>C#, ASP.NET Core, .NET 10, EF Core</b> · MassTransit + RabbitMQ, SignalR, Hangfire, Refit, Polly, Semantic Kernel(Azure OpenAI)</div></div>
-              <div className="skill-row"><div className="k">Architecture</div><div className="v"><b>DDD, CQRS(MediatR), 이벤트 기반</b> · Clean Architecture, 멀티테넌시</div></div>
-              <div className="skill-row"><div className="k">Data</div><div className="v"><b>Azure SQL / MS SQL Server, Cosmos DB, Redis</b> · Azure Cognitive Search, EF Core 멀티 스키마 마이그레이션</div></div>
-              <div className="skill-row"><div className="k">인증 · 연동</div><div className="v"><b>IdentityServer(OIDC/OAuth2/CIBA)</b> · WhatsApp·Meta Graph, LINE, WeChat, Vonage(SMS OTP)</div></div>
-              <div className="skill-row"><div className="k">Cloud · DevOps</div><div className="v"><b>Azure Container Apps, .NET Aspire</b> · Bicep(IaC), GitHub Actions CI/CD, App Insights</div></div>
-              <div className="skill-row"><div className="k">Frontend</div><div className="v"><b>React, TypeScript, Next.js</b> · SWR, React-Hook-Form, Vue</div></div>
+              {skills.map((s) => (
+                <div className="skill-row" key={s.group}>
+                  <div className="k">{s.group}</div>
+                  <div className="v">
+                    <b>{s.primary}</b>
+                    {s.also ? ` · ${s.also}` : ""}
+                  </div>
+                </div>
+              ))}
             </div>
           </section>
 
-          {/* 경력 */}
+          {/* 경력 — 회사(.job)와 프로젝트(.proj)가 한 줄로 섞여 순서대로 나온다 */}
           <section>
             <div className="sec-head">
-              <div className="sec-num">02</div>
-              <h2 className="sec-title">경력</h2>
+              <div className="sec-num">{RESUME_SECTIONS.career.num}</div>
+              <h2 className="sec-title">{RESUME_SECTIONS.career.title}</h2>
             </div>
             <div className="sec-body">
-              <div className="job">
-                <div className="job-top">
-                  <div className="job-org">클라우드호스피탈</div>
-                  <div className="job-when">2023.02 – 재직중 · 정규직</div>
-                </div>
-                {/*
-                  job-role 과 job-note 가 같은 말(입사 → 백엔드 전환)을 두 번 하고 있었다.
-                  한 줄로 합치고 job-note 는 없앴다 (#256).
-                */}
-                <div className="job-role">
-                  병원 도메인 SaaS · 백엔드 중심 풀스택 (2023 React 프론트엔드로 입사 → 2024 백엔드 전환)
-                </div>
-              </div>
+              {career.map((e, i) => {
+                if (e.kind === "job") {
+                  return (
+                    <div
+                      className="job"
+                      key={e.org}
+                      {...(jobsUpTo[i] > 1 ? { style: { marginTop: 34 } } : {})}
+                    >
+                      <div className="job-top">
+                        <div className="job-org">{e.org}</div>
+                        {e.when && <div className="job-when">{e.when}</div>}
+                      </div>
+                      {/*
+                        job-role 과 job-note 가 같은 말(입사 → 백엔드 전환)을 두 번 하고 있었다.
+                        한 줄로 합치고 job-note 는 없앴다 (#256).
+                      */}
+                      {e.role && <div className="job-role">{e.role}</div>}
+                    </div>
+                  )
+                }
 
-              {/*
-                메시징 이야기가 세 블록(오너십 / WhatsApp 통합 / 속도 최적화)으로 흩어져 있었다.
-                기간이 겹쳐 순서를 따라 읽을 수 없었고, 하나의 소유권이 작은 일 셋으로 보였다.
-                연도 순서가 드러나는 한 블록으로 합쳤다 (#256).
-              */}
-              <div className="proj">
-                <div className="proj-name">
-                  <span className="star">◆</span> 멀티플랫폼 메시징 플랫폼 설계·소유{" "}
-                  <span className="pwhen">· 2024.09~현재</span>
-                </div>
-                <div className="proj-desc">
-                  상담 채팅 백엔드를 이벤트 엔진 구축부터 독립 서비스 분리까지 소유. 프로덕션에서 8개 병원 테넌트가 쓴다.
-                </div>
-                <ul>
-                  <li><span className="yr">2024</span> 실시간 채팅 이벤트 엔진(CloudHospital.MessageBroker)을 단독 구축하고 WhatsApp Chat API를 통합 — SignalR로 상담원 입·퇴장·메시지·핸드오프 이벤트를 처리하고, 세션 CRUD·웹훅·<b>상담원 이관</b>까지 동작</li>
-                  <li><span className="yr">2025</span> 메인 API의 채팅 서브시스템을 <b>단독 소유</b>(연 153 PR) — 플랫폼에 종속되지 않는 ChatSession 도메인 모델(활성·만료 분리), 중복 세션 방지, 교차병원 세션 관리, Cosmos DB 쿼리를 클라이언트측에서 서버측으로 이전</li>
-                  <li><span className="yr">2025</span> 메시지 모달리티 3종(미디어·템플릿·설문 플로우)과 24시간 세션 윈도우를 구현하고 Meta Graph API로 재플랫폼 — <b>Redis 세션 캐시 계층</b> 도입(생성 실패 시 재초기화), 미응답·미배정 상담원 알림(SignalR·이메일)을 테넌트 단위 라우팅으로 재구축</li>
-                  <li><span className="yr">2026</span> 채팅 백엔드를 독립 서비스 <b>Omni</b>로 재플랫폼 — .NET 10, DDD/CQRS(MediatR), MassTransit + RabbitMQ 이벤트 기반, EF Core 10 멀티 스키마, WhatsApp·LINE·WeChat 통합(Refit·HMAC-SHA256 웹훅)</li>
-                  <li><span className="yr">2026</span> MediatR·MassTransit 필터로 3계층 계측을 깔아 병목을 분리 — 메시지 조회 <span className="kbd">194 → 3ms</span>, 매니저 조회 <span className="kbd">147 → 4ms</span>. 남은 자동번역 지연의 80%는 외부 RAG API임을 규명</li>
-                </ul>
-              </div>
-
-              <div className="proj">
-                <div className="proj-name">
-                  <span className="star">◆</span> 병원 도메인 API 성능·안정화{" "}
-                  <span className="pwhen">· 2024, 2026</span>
-                </div>
-                <ul>
-                  <li><span className="yr">2024</span> 의사·병원 도메인 API와 Azure Cognitive Search 문서모델을 동기화하고, Doctors V3 응답 페이로드에서 약 <b>1,800줄</b>을 제거</li>
-                  <li><span className="yr">2026</span> 병원 목록 API의 카테시안 폭발(단일 쿼리 1.38억 row)을 찾아 EF Core ProjectTo + AsSplitQuery 로 분리 — <span className="kbd">91초 → 0.04초</span>, 180초에 타임아웃 나던 v2는 0.26초</li>
-                  {/*
-                    이 둘은 연도를 모른다 — 원본에도 (2024)·(2026) 표시가 없었고 지어내지 않는다.
-                    빈 .yr 로 자리만 맞춘다. 없으면 같은 목록 안에서 본문 시작 위치가 두 갈래로
-                    갈려 왼쪽 선이 들쭉날쭉해진다.
-                  */}
-                  <li><span className="yr" aria-hidden="true" />Polly 재시도·타임아웃 정책을 3개 프로젝트에 도입해 외부 호출 장애 <b>333건</b>을 흡수, Azure AD 토큰 발급을 요청당 <span className="kbd">N회 → 1회</span>로 캐싱</li>
-                  <li><span className="yr" aria-hidden="true" />Hangfire 작업을 In-Memory에서 SQL Server로 영속화하고, 클라이언트 이탈 오탐을 고쳐 오류 리포트 <b>1,959건</b>을 없앰</li>
-                </ul>
-              </div>
-
-              <div className="proj">
-                <div className="proj-name">
-                  <span className="star">◆</span> 인증: CIBA · 게스트 액세스{" "}
-                  <span className="pwhen">· 2024~2025</span>
-                </div>
-                <ul>
-                  <li>SMS 기반 <b>CIBA</b>(Client-Initiated Backend Authentication) 로그인 구현 — Vonage OTP 연동, 레거시 STS API를 신규 Identity Admin API로 이전(IdentityServer)</li>
-                  <li>비로그인 게스트 채팅 API 설계 — OAuth client-credentials, 401·405를 타입으로 명시한 OpenAPI 오류 계약, 유저 수정·삭제 시 강제 로그아웃</li>
-                </ul>
-              </div>
-
-              <div className="proj">
-                <div className="proj-name">
-                  <span className="star">◆</span> AI 번역 신뢰성 · EhrApi 이벤트 파이프라인{" "}
-                  <span className="pwhen">· 2026</span>
-                </div>
-                <ul>
-                  <li>희귀 언어 의료 용어의 번역 실패 원인을 4단계로 규명 → Semantic Kernel 전사를 <b>GPT-4.x에서 GPT-5.4로 이전</b>, 토큰 상한으로 무한 반복을 차단</li>
-                  <li>신규 구축에 참여한 EhrApi(.NET 10 · FHIR)에 MassTransit 이벤트 발행 파이프라인(CQRS 핸들러 5개)과 HIPAA 감사 로그 커밋 순서 제어를 구현 — <b>테스트 999개 전량 통과</b></li>
-                </ul>
-              </div>
-
-              <div className="proj">
-                <div className="proj-name">
-                  React Admin 프론트엔드 <span className="pwhen">· 2023.02~2024 초</span>
-                </div>
-                <ul>
-                  <li>Admin 페이지를 Redux에서 <b>SWR 커스텀 훅</b>으로 이전하고, Formik을 React-Hook-Form으로 전환</li>
-                  <li>백엔드 전환 이후에도 SaaS 랜딩 기능·인도 지역 언어 i18n·Redis/ISR 캐싱 등 프론트엔드를 병행</li>
-                </ul>
-              </div>
-
-              <div className="job" style={{ marginTop: 34 }}>
-                <div className="job-top">
-                  <div className="job-org">인지소프트</div>
-                  <div className="job-when">2017.12 – 2021.07 · 정규직</div>
-                </div>
-                <div className="job-role">금융권 이미지 솔루션 SI · 개발/유지보수 (C#/.NET, Java)</div>
-              </div>
-              <div className="proj" style={{ marginTop: 14 }}>
-                <div className="proj-desc">
-                  은행·카드·증권 고객사에 문서 인식·전자문서·이미지 보안 솔루션을 납품하는 SI 업체.
-                </div>
-                <ul>
-                  <li><b>현대카드</b> 법원문서 인식 서버 연동 모듈 — VB6/Java로 JSON API 통신 모듈 개발, 인식 영역 처리로 단어 인식률 개선</li>
-                  <li><b>대구은행</b> 디지털 창구 전자문서 — C# 창구 클라이언트 유지보수, PDF 서식 개발</li>
-                  <li>이미지 암·복호화 솔루션의 C#/Java 마이그레이션 및 사용자 웹페이지 개발</li>
-                  <li>신한은행·수협·대신증권 등 다수 고객사의 C#(WinForm/.NET) 프로그램 유지보수</li>
-                </ul>
-              </div>
-
+                /*
+                  두 번째 회사 아래 첫 블록만 위 여백을 좁힌다. 첫 회사의 첫 블록은
+                  .proj:first-of-type 이 맡으므로 여기서 주지 않는다 (그러면 값이 겹친다).
+                */
+                const afterLaterJob = career[i - 1]?.kind === "job" && jobsUpTo[i] > 1
+                return (
+                  <div
+                    className="proj"
+                    key={e.name || `proj-${i}`}
+                    {...(afterLaterJob ? { style: { marginTop: 14 } } : {})}
+                  >
+                    {(e.name || e.when) && (
+                      <div className="proj-name">
+                        {e.star && <span className="star">◆</span>}
+                        {e.star ? ` ${e.name} ` : `${e.name} `}
+                        {e.when && <span className="pwhen">{e.when}</span>}
+                      </div>
+                    )}
+                    {e.desc && <div className="proj-desc">{e.desc}</div>}
+                    <BulletList bullets={e.bullets} />
+                  </div>
+                )
+              })}
             </div>
           </section>
 
@@ -225,14 +252,14 @@ export default function ResumeDoc() {
           */}
           <section>
             <div className="sec-head">
-              <div className="sec-num">03</div>
-              <h2 className="sec-title">사이드 프로젝트</h2>
+              <div className="sec-num">{RESUME_SECTIONS.side.num}</div>
+              <h2 className="sec-title">{RESUME_SECTIONS.side.title}</h2>
             </div>
             <div className="sec-body">
               <ul>
-                <li><b>농구 게스트 호스팅 서비스</b> — React/TS + Nest.js, MongoDB, Kakao Map 연동 SPA (REST API·인증·게시글 CRUD)</li>
-                <li><b>꾸다 렌탈 기업연계 결제/백오피스</b> — Node.js/Express/MongoDB, JWT 로그인, Multipart 이미지 업로드, Git-flow 도입</li>
-                <li><b>NYTimes 검색 웹</b> — Redux-Toolkit, LocalStorage 검색 기록, Styled-Components</li>
+                {side.map((s, i) => (
+                  <li key={i}>{renderResumeInline(s)}</li>
+                ))}
               </ul>
             </div>
           </section>
@@ -240,30 +267,23 @@ export default function ResumeDoc() {
           {/* 학력 / 교육 */}
           <section>
             <div className="sec-head">
-              <div className="sec-num">04</div>
-              <h2 className="sec-title">학력 · 교육</h2>
+              <div className="sec-num">{RESUME_SECTIONS.education.num}</div>
+              <h2 className="sec-title">{RESUME_SECTIONS.education.title}</h2>
             </div>
             <div className="sec-body">
-              <div className="edu-item">
-                <div className="edu-name">백석문화대학교 · 스마트폰 컨텐츠학과</div>
-                <div className="edu-meta">2012.03 – 2016.12</div>
-              </div>
-              <div className="edu-item">
-                <div className="edu-name">FastCampus 프론트엔드 개발자 양성 4기</div>
-                <div className="edu-meta">2022.04 – 2022.07</div>
-                <div className="edu-desc">HTML/CSS/JS, React, Next.js</div>
-              </div>
-              <div className="edu-item">
-                <div className="edu-name">삼성 멀티캠퍼스 Java Web 개발자 양성 부트캠프</div>
-                <div className="edu-meta">2016.03 – 2016.09</div>
-                <div className="edu-desc">Java, MSSQL, Spring</div>
-              </div>
+              {education.map((e) => (
+                <div className="edu-item" key={e.name}>
+                  <div className="edu-name">{e.name}</div>
+                  <div className="edu-meta">{e.meta}</div>
+                  {e.desc && <div className="edu-desc">{e.desc}</div>}
+                </div>
+              ))}
             </div>
           </section>
 
           <footer>
-            <span>오세준 · Sejune Oh</span>
-            <span>Updated 2026.08 · Backend / Fullstack</span>
+            <span>{footer[0]}</span>
+            <span>{footer[1]}</span>
           </footer>
         </div>
 

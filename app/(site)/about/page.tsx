@@ -1,5 +1,20 @@
 import Link from "next/link"
-import { intro, skills } from "../../../components/home/homeData"
+import { intro } from "../../../components/home/homeData"
+import { resumeData } from "../../../lib/resumeData"
+
+/*
+  스킬은 이력서와 **같은 배열**을 읽는다 (#262 1단계 · #260 이 목표한 것).
+
+  전에는 homeData.ts 에 따로 적혀 있었고, 그래서 실제로 갈라졌다 — 이력서에만 있는 항목이
+  여섯 개, 이곳에만 있는 항목(`Docker`)이 하나였다. #259 에서 손으로 맞췄지만 손으로 맞춘 것은
+  또 갈라진다. 이제 한쪽을 고치면 두 화면이 함께 바뀐다.
+
+  그리는 방식은 각자다 — 이력서는 `primary` 를 굵게, 이곳은 `·` 로 이어 평문으로 둔다.
+*/
+const skills = resumeData.skills.map((s) => ({
+  group: s.group,
+  items: s.also ? `${s.primary} · ${s.also}` : s.primary,
+}))
 
 export const metadata = {
   title: "About",

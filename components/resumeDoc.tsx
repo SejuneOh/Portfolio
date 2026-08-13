@@ -17,6 +17,12 @@ const instrument = Instrument_Sans({ subsets: ["latin"], weight: ["400", "500", 
  * - 디스플레이·고정폭 서체는 app/layout.tsx 의 전역 인스턴스를 상속받는다.
  *   본문 서체(Instrument Sans)만 이 문서 고유라 여기서 로드한다
  * - PDF 다운로드 = 브라우저 인쇄(A4 최적화 print CSS)
+ *
+ * 강조 규칙 (#256 에서 정함 — 항목을 추가할 때 지킬 것)
+ * - <b> 는 한 항목에 하나. 그 항목의 결과에만 쓴다. 기술 이름에는 쓰지 않는다.
+ *   전에는 한 줄에 최대 5개가 겹쳐 있어서 무엇이 성과인지 눈으로 골라낼 수 없었다
+ * - .kbd 는 재서 확인한 전후 값 전용(`194 → 3ms`). 기술 이름에 쓰면 측정값과 구분되지 않는다
+ * - .yr 는 항목의 연도. 같은 프로젝트를 여러 해에 걸쳐 소유한 경우 순서를 드러낸다
  */
 export default function ResumeDoc() {
   return (
@@ -31,10 +37,14 @@ export default function ResumeDoc() {
             <h1>
               오세준<span className="en">Sejune Oh — 백엔드 개발자 · 풀스택</span>
             </h1>
+            {/*
+              담백하게 둔다 — 굵은 강조도 수치도 쓰지 않는다 (#256).
+              역할·경력 연수는 위 아이브로우·이름 아래 줄·아래 연락처 줄이 이미 말하고 있어서,
+              여기서 되풀이하면 세 번 같은 말을 하게 된다.
+            */}
             <p className="tagline">
-              약 7년간 C#/.NET을 다뤄온 개발자입니다. 금융권 이미지 솔루션 SI를 거쳐, 병원 도메인 SaaS에서{" "}
-              <b>최근 2년 이상 멀티플랫폼 채팅/메시징 백엔드를 설계·소유</b>해 왔습니다. React 프론트엔드까지 직접 개발해,
-              기능을 <b>설계부터 배포·운영까지 끝까지 책임집니다.</b>
+              C#/.NET으로 서버를 만듭니다. 지금은 병원 도메인 SaaS의 메시징 백엔드를 맡고 있습니다.
+              맡은 기능은 설계부터 운영까지 직접 봅니다.
             </p>
             <div className="contacts">
               <a href="mailto:etry0715@gmail.com">etry0715@gmail.com</a>
@@ -80,13 +90,17 @@ export default function ResumeDoc() {
               <h2 className="sec-title">핵심 역량</h2>
             </div>
             <div className="sec-body">
-              <div className="skill-row"><div className="k">Backend</div><div className="v"><b>C#, ASP.NET Core, .NET 10, EF Core</b>, MassTransit + RabbitMQ, SignalR, Hangfire, Refit, Polly, AutoMapper</div></div>
-              <div className="skill-row"><div className="k">Architecture</div><div className="v"><b>DDD, Clean Architecture, CQRS</b>(MediatR), 이벤트 기반, 멀티테넌시</div></div>
-              <div className="skill-row"><div className="k">Database</div><div className="v"><b>Azure SQL / MS SQL Server</b>, Cosmos DB, Redis, Azure Cognitive Search, EF Core 마이그레이션(멀티 스키마)</div></div>
-              <div className="skill-row"><div className="k">인증 / 연동</div><div className="v"><b>IdentityServer(OIDC/OAuth2/CIBA)</b>, WhatsApp·Meta Graph API, LINE·WeChat API, Vonage(SMS OTP)</div></div>
-              <div className="skill-row"><div className="k">Cloud / DevOps</div><div className="v"><b>Azure Container Apps, .NET Aspire</b>, Bicep(IaC), GitHub Actions CI/CD, OIDC, App Insights</div></div>
-              <div className="skill-row"><div className="k">Frontend</div><div className="v"><b>React, TypeScript, Next.js</b>, SWR, React-Hook-Form, Vue</div></div>
-              <div className="skill-row"><div className="k">AI 연동</div><div className="v">Azure OpenAI / Semantic Kernel, 번역 파이프라인, RAG 연동</div></div>
+              {/*
+                굵은 쪽이 주로 쓰는 것, 뒤가 함께 쓰는 것이다.
+                'AI 연동' 행은 따로 두지 않는다 — Semantic Kernel 은 .NET 라이브러리라
+                Backend 에서 쓰는 것이고, 행을 쪼개면 한 줄에 항목 두 개짜리 행이 생긴다 (#256).
+              */}
+              <div className="skill-row"><div className="k">Backend</div><div className="v"><b>C#, ASP.NET Core, .NET 10, EF Core</b> · MassTransit + RabbitMQ, SignalR, Hangfire, Refit, Polly, Semantic Kernel(Azure OpenAI)</div></div>
+              <div className="skill-row"><div className="k">Architecture</div><div className="v"><b>DDD, CQRS(MediatR), 이벤트 기반</b> · Clean Architecture, 멀티테넌시</div></div>
+              <div className="skill-row"><div className="k">Data</div><div className="v"><b>Azure SQL / MS SQL Server, Cosmos DB, Redis</b> · Azure Cognitive Search, EF Core 멀티 스키마 마이그레이션</div></div>
+              <div className="skill-row"><div className="k">인증 · 연동</div><div className="v"><b>IdentityServer(OIDC/OAuth2/CIBA)</b> · WhatsApp·Meta Graph, LINE, WeChat, Vonage(SMS OTP)</div></div>
+              <div className="skill-row"><div className="k">Cloud · DevOps</div><div className="v"><b>Azure Container Apps, .NET Aspire</b> · Bicep(IaC), GitHub Actions CI/CD, App Insights</div></div>
+              <div className="skill-row"><div className="k">Frontend</div><div className="v"><b>React, TypeScript, Next.js</b> · SWR, React-Hook-Form, Vue</div></div>
             </div>
           </section>
 
@@ -102,84 +116,74 @@ export default function ResumeDoc() {
                   <div className="job-org">클라우드호스피탈</div>
                   <div className="job-when">2023.02 – 재직중 · 정규직</div>
                 </div>
+                {/*
+                  job-role 과 job-note 가 같은 말(입사 → 백엔드 전환)을 두 번 하고 있었다.
+                  한 줄로 합치고 job-note 는 없앴다 (#256).
+                */}
                 <div className="job-role">
-                  React 프론트엔드로 입사(2023) → 2024년 백엔드 전환 · 현재 백엔드 중심 풀스택 (병원 도메인 SaaS)
-                </div>
-                <div className="job-note">
-                  2023년 React Admin 프론트엔드 담당 → 2024년 백엔드 전환, 이후 이 플랫폼의 채팅/메시징 백엔드를 2년 이상
-                  주도적으로 설계·소유하며 프론트엔드를 병행.
+                  병원 도메인 SaaS · 백엔드 중심 풀스택 (2023 React 프론트엔드로 입사 → 2024 백엔드 전환)
                 </div>
               </div>
 
+              {/*
+                메시징 이야기가 세 블록(오너십 / WhatsApp 통합 / 속도 최적화)으로 흩어져 있었다.
+                기간이 겹쳐 순서를 따라 읽을 수 없었고, 하나의 소유권이 작은 일 셋으로 보였다.
+                연도 순서가 드러나는 한 블록으로 합쳤다 (#256).
+              */}
               <div className="proj">
                 <div className="proj-name">
-                  <span className="star">◆</span> 실시간 채팅/메시징 백엔드 설계·오너십{" "}
+                  <span className="star">◆</span> 멀티플랫폼 메시징 플랫폼 설계·소유{" "}
                   <span className="pwhen">· 2024.09~현재</span>
                 </div>
-                <div className="proj-desc">SaaS의 멀티플랫폼 고객 상담 채팅 백엔드를 착수부터 독립 플랫폼화까지 주도.</div>
-                <ul>
-                  <li><b>2024</b>: 실시간 채팅 이벤트 엔진(CloudHospital.MessageBroker) 단독 구축 — <span className="kbd">SignalR</span> 상담원 입장/퇴장·메시지·핸드오프 이벤트 처리 → <b>WhatsApp Chat API 통합</b>(그룹 Join/Leave·전송, 세션 CRUD, 웹훅, 상담원 이관)</li>
-                  <li><b>2025</b>: 메인 API 채팅 서브시스템 <b>단독 소유</b>(연 153 PR 대부분) — ChatSession 도메인 모델(활성/만료 분리·플랫폼 비종속), GetChatSessions <span className="kbd">CQRS</span> 쿼리/정렬 반복 최적화, 중복 세션 방지, 교차병원 세션 관리, <b>Cosmos DB 클라이언트측→서버측 쿼리 마이그레이션</b></li>
-                  <li><b>2026</b>: 위 채팅 백엔드를 독립 서비스 <b>Omni</b>로 재플랫폼 — <b>.NET 10 · DDD/CQRS(MediatR)</b>, <span className="kbd">MassTransit + RabbitMQ</span> 이벤트 기반, EF Core 10 멀티 스키마, WhatsApp·LINE·WeChat 통합(<span className="kbd">Refit</span>·HMAC-SHA256 웹훅)</li>
-                  <li><b>프로덕션 운영 · 8개 병원 테넌트</b> 서비스 적용</li>
-                </ul>
-              </div>
-
-              <div className="proj">
-                <div className="proj-name">
-                  <span className="star">◆</span> WhatsApp/Meta 메시징 통합 &amp; 메시징 인프라{" "}
-                  <span className="pwhen">· 2025</span>
+                <div className="proj-desc">
+                  상담 채팅 백엔드를 이벤트 엔진 구축부터 독립 서비스 분리까지 소유. 프로덕션에서 8개 병원 테넌트가 쓴다.
                 </div>
                 <ul>
-                  <li>미디어(이미지/음성/영상)·<b>템플릿</b>·플로우(설문) <b>3종 메시지 모달리티</b> 구현, <b>24시간 세션 윈도우</b> 관리, 하반기 <b>Meta Graph API 재플랫폼</b></li>
-                  <li><b>Redis 세션 상태/캐시 계층 도입</b>, 세션 생성 실패 시 Redis 재초기화(복원력), 환경별 캐시 리셋</li>
-                  <li><b>SignalR + 이메일 알림 시스템 재구축</b> — 미응답/미배정 상담원 알림, 핸드오프 BCC, 내부/외부 수신자 분리, 테넌트ID 기반 라우팅</li>
+                  <li><span className="yr">2024</span> 실시간 채팅 이벤트 엔진(CloudHospital.MessageBroker)을 단독 구축하고 WhatsApp Chat API를 통합 — SignalR로 상담원 입·퇴장·메시지·핸드오프 이벤트를 처리하고, 세션 CRUD·웹훅·<b>상담원 이관</b>까지 동작</li>
+                  <li><span className="yr">2025</span> 메인 API의 채팅 서브시스템을 <b>단독 소유</b>(연 153 PR) — 플랫폼에 종속되지 않는 ChatSession 도메인 모델(활성·만료 분리), 중복 세션 방지, 교차병원 세션 관리, Cosmos DB 쿼리를 클라이언트측에서 서버측으로 이전</li>
+                  <li><span className="yr">2025</span> 메시지 모달리티 3종(미디어·템플릿·설문 플로우)과 24시간 세션 윈도우를 구현하고 Meta Graph API로 재플랫폼 — <b>Redis 세션 캐시 계층</b> 도입(생성 실패 시 재초기화), 미응답·미배정 상담원 알림(SignalR·이메일)을 테넌트 단위 라우팅으로 재구축</li>
+                  <li><span className="yr">2026</span> 채팅 백엔드를 독립 서비스 <b>Omni</b>로 재플랫폼 — .NET 10, DDD/CQRS(MediatR), MassTransit + RabbitMQ 이벤트 기반, EF Core 10 멀티 스키마, WhatsApp·LINE·WeChat 통합(Refit·HMAC-SHA256 웹훅)</li>
+                  <li><span className="yr">2026</span> MediatR·MassTransit 필터로 3계층 계측을 깔아 병목을 분리 — 메시지 조회 <span className="kbd">194 → 3ms</span>, 매니저 조회 <span className="kbd">147 → 4ms</span>. 남은 자동번역 지연의 80%는 외부 RAG API임을 규명</li>
                 </ul>
               </div>
 
               <div className="proj">
                 <div className="proj-name">
-                  <span className="star">◆</span> 메시지 전송 속도 최적화{" "}
-                  <span className="pwhen">· 2026.05</span>
-                </div>
-                <ul>
-                  <li>MediatR 파이프라인 + MassTransit 커스텀 필터 + Stopwatch로 <b>3계층 계측</b> 구축, Redis 캐싱·경량 EF Include·이벤트 페이로드 인라인화 적용</li>
-                  <li>메시지 fetch <span className="kbd">194→3ms</span>, 매니저 조회 <span className="kbd">147→4ms (−97%)</span>, 자동번역 병목의 <b>80%가 외부 RAG API</b>임을 규명</li>
-                </ul>
-              </div>
-
-              <div className="proj">
-                <div className="proj-name">
-                  <span className="star">◆</span> 인증 시스템: CIBA · 게스트 액세스{" "}
-                  <span className="pwhen">· 2024~2025</span>
-                </div>
-                <ul>
-                  <li><b>SMS 기반 CIBA</b>(Client-Initiated Backend Authentication) 로그인 구현 — Vonage OTP 연동, 레거시 STS API를 신규 Identity Admin API로 마이그레이션 (IdentityServer)</li>
-                  <li><b>게스트/비로그인 채팅 API</b> 설계 — OAuth client-credentials, 타입드 401/405 OpenAPI 오류 계약, 유저 수정/삭제 시 강제 로그아웃</li>
-                </ul>
-              </div>
-
-              <div className="proj">
-                <div className="proj-name">
-                  <span className="star">◆</span> 병원 도메인 API · 대용량 성능 최적화 &amp; 안정화{" "}
+                  <span className="star">◆</span> 병원 도메인 API 성능·안정화{" "}
                   <span className="pwhen">· 2024, 2026</span>
                 </div>
                 <ul>
-                  <li><b>의사/병원 도메인 API + Azure Cognitive Search</b> 문서모델 동기화, Doctors V3 응답 페이로드 최적화(약 1,800줄 제거) <span className="faint">(2024)</span></li>
-                  <li><b>병원 목록 API 쿼리 최적화</b>: EF Core <span className="kbd">ProjectTo + AsSplitQuery</span>로 카테시안 폭발(단일 쿼리 <b>1.38억 row</b>) 해소 → <b>91초 → 0.04초</b>, v2 180초 타임아웃 → 0.26초 <span className="faint">(2026)</span></li>
-                  <li><b>HTTP 복원력 계층</b>: Polly 재시도·타임아웃 정책 3개 프로젝트 도입, <b>333건</b> 장애 대응, Azure AD 토큰 캐싱 <span className="kbd">N회 → 1회</span></li>
-                  <li><b>Hangfire 영속화</b>(In-Memory→SQL Server), 클라이언트 이탈 오탐 수정으로 오류 리포트 <b>1,959건 제거</b></li>
+                  <li><span className="yr">2024</span> 의사·병원 도메인 API와 Azure Cognitive Search 문서모델을 동기화하고, Doctors V3 응답 페이로드에서 약 <b>1,800줄</b>을 제거</li>
+                  <li><span className="yr">2026</span> 병원 목록 API의 카테시안 폭발(단일 쿼리 1.38억 row)을 찾아 EF Core ProjectTo + AsSplitQuery 로 분리 — <span className="kbd">91초 → 0.04초</span>, 180초에 타임아웃 나던 v2는 0.26초</li>
+                  {/*
+                    이 둘은 연도를 모른다 — 원본에도 (2024)·(2026) 표시가 없었고 지어내지 않는다.
+                    빈 .yr 로 자리만 맞춘다. 없으면 같은 목록 안에서 본문 시작 위치가 두 갈래로
+                    갈려 왼쪽 선이 들쭉날쭉해진다.
+                  */}
+                  <li><span className="yr" aria-hidden="true" />Polly 재시도·타임아웃 정책을 3개 프로젝트에 도입해 외부 호출 장애 <b>333건</b>을 흡수, Azure AD 토큰 발급을 요청당 <span className="kbd">N회 → 1회</span>로 캐싱</li>
+                  <li><span className="yr" aria-hidden="true" />Hangfire 작업을 In-Memory에서 SQL Server로 영속화하고, 클라이언트 이탈 오탐을 고쳐 오류 리포트 <b>1,959건</b>을 없앰</li>
                 </ul>
               </div>
 
               <div className="proj">
                 <div className="proj-name">
-                  <span className="star">◆</span> AI 번역 신뢰성 개선 · EhrApi 이벤트 기반 백엔드{" "}
+                  <span className="star">◆</span> 인증: CIBA · 게스트 액세스{" "}
+                  <span className="pwhen">· 2024~2025</span>
+                </div>
+                <ul>
+                  <li>SMS 기반 <b>CIBA</b>(Client-Initiated Backend Authentication) 로그인 구현 — Vonage OTP 연동, 레거시 STS API를 신규 Identity Admin API로 이전(IdentityServer)</li>
+                  <li>비로그인 게스트 채팅 API 설계 — OAuth client-credentials, 401·405를 타입으로 명시한 OpenAPI 오류 계약, 유저 수정·삭제 시 강제 로그아웃</li>
+                </ul>
+              </div>
+
+              <div className="proj">
+                <div className="proj-name">
+                  <span className="star">◆</span> AI 번역 신뢰성 · EhrApi 이벤트 파이프라인{" "}
                   <span className="pwhen">· 2026</span>
                 </div>
                 <ul>
-                  <li><b>AI 번역</b>: 희귀 언어 의료 용어 번역 실패의 4단계 근본 원인 규명 → <b>GPT-4.x→GPT-5.4 전사 마이그레이션</b>(Semantic Kernel), 토큰 상한으로 무한 반복 방지</li>
-                  <li><b>EhrApi</b>(신규 구축 참여): .NET 10·FHIR EHR에 MassTransit 통합 이벤트 발행 파이프라인(5개 CQRS 핸들러), HIPAA 감사 로그 커밋 순서 제어 — <b>테스트 999개 전량 통과</b></li>
+                  <li>희귀 언어 의료 용어의 번역 실패 원인을 4단계로 규명 → Semantic Kernel 전사를 <b>GPT-4.x에서 GPT-5.4로 이전</b>, 토큰 상한으로 무한 반복을 차단</li>
+                  <li>신규 구축에 참여한 EhrApi(.NET 10 · FHIR)에 MassTransit 이벤트 발행 파이프라인(CQRS 핸들러 5개)과 HIPAA 감사 로그 커밋 순서 제어를 구현 — <b>테스트 999개 전량 통과</b></li>
                 </ul>
               </div>
 
@@ -188,8 +192,8 @@ export default function ResumeDoc() {
                   React Admin 프론트엔드 <span className="pwhen">· 2023.02~2024 초</span>
                 </div>
                 <ul>
-                  <li>Admin 페이지 <b>SWR 커스텀 훅 마이그레이션</b>(Redux→SWR 경량화), 다수 페이지 마이그레이션, Formik→React-Hook-Form 전환</li>
-                  <li>이후 SaaS 랜딩 기능·인도 지역 언어 i18n·Redis/ISR 캐싱 등 프론트엔드 병행</li>
+                  <li>Admin 페이지를 Redux에서 <b>SWR 커스텀 훅</b>으로 이전하고, Formik을 React-Hook-Form으로 전환</li>
+                  <li>백엔드 전환 이후에도 SaaS 랜딩 기능·인도 지역 언어 i18n·Redis/ISR 캐싱 등 프론트엔드를 병행</li>
                 </ul>
               </div>
 
@@ -202,36 +206,41 @@ export default function ResumeDoc() {
               </div>
               <div className="proj" style={{ marginTop: 14 }}>
                 <div className="proj-desc">
-                  금융권 고객사(은행·카드·증권)에 문서 인식·전자문서·이미지 보안 솔루션을 납품하는 SI 업체에서
-                  솔루션 개발·유지보수를 담당.
+                  은행·카드·증권 고객사에 문서 인식·전자문서·이미지 보안 솔루션을 납품하는 SI 업체.
                 </div>
                 <ul>
-                  <li><b>현대카드 법원문서 인식 서버 연동 모듈</b>: VB6/Java로 인식 서버와 JSON API 통신 모듈 개발, 특정 인식 영역 처리로 단어 인식률 개선</li>
-                  <li><b>대구은행 디지털 창구 전자문서 서식 프로젝트</b>: C# 창구 클라이언트 유지보수 및 PDF 서식 개발</li>
-                  <li><b>이미지 암·복호화 마이그레이션</b>: C#/Java 솔루션 마이그레이션 및 사용자 웹페이지 개발</li>
-                  <li><b>금융권 솔루션 유지보수</b>: 신한은행·수협·대신증권 등 다수 고객사 C#(WinForm/.NET) 프로그램 유지보수 및 이슈 관리</li>
+                  <li><b>현대카드</b> 법원문서 인식 서버 연동 모듈 — VB6/Java로 JSON API 통신 모듈 개발, 인식 영역 처리로 단어 인식률 개선</li>
+                  <li><b>대구은행</b> 디지털 창구 전자문서 — C# 창구 클라이언트 유지보수, PDF 서식 개발</li>
+                  <li>이미지 암·복호화 솔루션의 C#/Java 마이그레이션 및 사용자 웹페이지 개발</li>
+                  <li>신한은행·수협·대신증권 등 다수 고객사의 C#(WinForm/.NET) 프로그램 유지보수</li>
                 </ul>
               </div>
 
-              <div className="job" style={{ marginTop: 30 }}>
-                <div className="job-top">
-                  <div className="job-org" style={{ fontSize: 17 }}>사이드 / 부트캠프 프로젝트</div>
-                </div>
-              </div>
-              <div className="proj" style={{ marginTop: 12 }}>
-                <ul>
-                  <li><b>농구 게스트 호스팅 서비스</b> — React/TS + Nest.js, MongoDB, Kakao Map 연동 SPA (REST API·인증·게시글 CRUD)</li>
-                  <li><b>꾸다 렌탈 기업연계 결제/백오피스</b> — Node.js/Express/MongoDB, JWT 로그인, Multipart 이미지 업로드, Git-flow 도입</li>
-                  <li><b>NYTimes 검색 웹</b> — Redux-Toolkit, LocalStorage 검색기록, Styled-Components</li>
-                </ul>
-              </div>
+            </div>
+          </section>
+
+          {/*
+            사이드 프로젝트는 경력 안에서 회사 블록(.job + .job-org)을 재사용해 그려지고 있었다.
+            근무 기간이 없는 회사처럼 보이고 실무 경력과 섞였다. 자체 섹션으로 분리했다 (#256).
+          */}
+          <section>
+            <div className="sec-head">
+              <div className="sec-num">03</div>
+              <h2 className="sec-title">사이드 프로젝트</h2>
+            </div>
+            <div className="sec-body">
+              <ul>
+                <li><b>농구 게스트 호스팅 서비스</b> — React/TS + Nest.js, MongoDB, Kakao Map 연동 SPA (REST API·인증·게시글 CRUD)</li>
+                <li><b>꾸다 렌탈 기업연계 결제/백오피스</b> — Node.js/Express/MongoDB, JWT 로그인, Multipart 이미지 업로드, Git-flow 도입</li>
+                <li><b>NYTimes 검색 웹</b> — Redux-Toolkit, LocalStorage 검색 기록, Styled-Components</li>
+              </ul>
             </div>
           </section>
 
           {/* 학력 / 교육 */}
           <section>
             <div className="sec-head">
-              <div className="sec-num">03</div>
+              <div className="sec-num">04</div>
               <h2 className="sec-title">학력 · 교육</h2>
             </div>
             <div className="sec-body">
@@ -254,7 +263,7 @@ export default function ResumeDoc() {
 
           <footer>
             <span>오세준 · Sejune Oh</span>
-            <span>Updated 2026.07 · Backend / Fullstack</span>
+            <span>Updated 2026.08 · Backend / Fullstack</span>
           </footer>
         </div>
 
@@ -350,7 +359,7 @@ export default function ResumeDoc() {
           max-width: 38em;
           margin: 22px 0 24px;
         }
-        .resume-page .tagline b { color: var(--ink); font-weight: 600; }
+        /* 소개 문단은 굵은 강조를 쓰지 않으므로 .tagline b 규칙도 없앴다 (#256). */
         .resume-page .contacts {
           display: flex;
           flex-wrap: wrap;
@@ -445,7 +454,7 @@ export default function ResumeDoc() {
         .resume-page .job-org { font-family: var(--font-display), ui-sans-serif, -apple-system, sans-serif; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
         .resume-page .job-when { font-family: var(--font-jbmono), monospace; font-size: 11.5px; color: var(--ink-faint); white-space: nowrap; }
         .resume-page .job-role { font-size: 13.5px; color: var(--accent-deep); margin-top: 3px; font-weight: 500; }
-        .resume-page .job-note { font-size: 13px; color: var(--ink-soft); margin-top: 8px; font-style: italic; line-height: 1.5; }
+        /* .job-note 는 job-role 과 같은 말을 되풀이하던 줄이라 없앴다 (#256). */
 
         .resume-page .proj { margin-top: 22px; }
         .resume-page .proj:first-of-type { margin-top: 20px; }
@@ -461,7 +470,10 @@ export default function ResumeDoc() {
         }
         .resume-page .proj-name .star { color: var(--accent); font-size: 12px; }
         .resume-page .pwhen { color: var(--ink-faint); font-weight: 400; font-size: 12px; }
-        .resume-page .faint { color: var(--ink-faint); }
+        /*
+          .faint 는 항목 끝의 (2024)·(2026) 꼬리표에만 쓰였다. 그 꼬리표를 항목 앞의 .yr 로
+          옮기면서 쓰는 곳이 없어져 규칙을 지웠다 (#256).
+        */
         .resume-page .proj-desc { font-size: 13px; color: var(--ink-faint); margin-bottom: 9px; line-height: 1.5; }
         .resume-page ul { list-style: none; }
         .resume-page li {
@@ -483,6 +495,23 @@ export default function ResumeDoc() {
           border-radius: 1px;
         }
         .resume-page li b { color: var(--ink); font-weight: 600; }
+        /*
+          항목의 연도. 강조색을 쓰지 않는다 — 화면 강조색은 라임이고 li::before 의 사각형이
+          이미 라임이라, 연도까지 라임으로 두면 한 줄에 라임이 둘씩 생긴다 (#152 의 "강조색은
+          아껴 쓴다"와도 어긋난다). 대신 job-when·pwhen·edu-meta 와 같은 메타 정보 색을 쓰고,
+          min-width 로 연도를 세로로 맞춰 훑을 수 있게 한다. 눈에 걸리는 것은 색이 아니라 정렬이다.
+          인쇄 시 이 색은 #6f6b62 로 흰 종이 대비 5.31:1 이다 (#225 에서 AA 위로 올린 값).
+        */
+        .resume-page li .yr {
+          font-family: var(--font-jbmono), monospace;
+          font-size: 0.84em;
+          font-weight: 500;
+          color: var(--ink-faint);
+          letter-spacing: 0.02em;
+          display: inline-block;
+          min-width: 2.9em;
+          margin-right: 0.35em;
+        }
         .resume-page .kbd {
           font-family: var(--font-jbmono), monospace;
           font-size: 0.86em;
@@ -545,10 +574,12 @@ export default function ResumeDoc() {
         .resume-page section,
         .resume-page footer { animation: resumeRise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
         .resume-page .metrics { animation-delay: 0.08s; }
+        /* 섹션이 3개에서 4개로 늘었다 — 4번째를 빠뜨리면 지연 없이 먼저 올라온다 (#256). */
         .resume-page section:nth-of-type(1) { animation-delay: 0.14s; }
         .resume-page section:nth-of-type(2) { animation-delay: 0.2s; }
         .resume-page section:nth-of-type(3) { animation-delay: 0.26s; }
-        .resume-page footer { animation-delay: 0.32s; }
+        .resume-page section:nth-of-type(4) { animation-delay: 0.32s; }
+        .resume-page footer { animation-delay: 0.38s; }
         @media (prefers-reduced-motion: reduce) {
           .resume-page * { animation: none !important; }
         }

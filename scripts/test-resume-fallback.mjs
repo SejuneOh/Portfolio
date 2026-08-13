@@ -58,11 +58,24 @@ function codeBlocks(text, size = 2000) {
   return out
 }
 
+/*
+  쓰기 경로는 제목 속성 **이름**을 알아야 해서 DB 스키마를 한 번 물어본다
+  (GET /databases/{id} — 행 조회는 POST .../query 다). 스텁이 그 둘을 구분해야 한다.
+  속성 이름을 "이름" 으로 돌려준다 — 코드가 이름이 아니라 타입으로 찾는지 확인하려는 것이다.
+*/
+const isSchemaCall = (u, method) => u.includes("/databases/") && !u.includes("/query")
+const schemaRes = () => ({
+  ok: true,
+  status: 200,
+  json: async () => ({ properties: { 이름: { type: "title" }, 메모: { type: "rich_text" } } }),
+})
+
 function stubFetch({ dbStatus = 200, rows, blocks, throwOn }) {
   globalThis.fetch = async (url) => {
     const u = String(url)
     if (throwOn && u.includes(throwOn)) throw new Error("네트워크 끊김")
-    if (u.includes("/databases/")) {
+    if (isSchemaCall(u)) return schemaRes()
+    if (u.includes("/query")) {
       if (dbStatus !== 200) return { ok: false, status: dbStatus }
       return { ok: true, status: 200, json: async () => ({ results: rows }) }
     }
@@ -74,7 +87,9 @@ function stubFetch({ dbStatus = 200, rows, blocks, throwOn }) {
 
 const row = (title, id = "page-1") => ({
   id,
-  properties: { Title: { title: [{ plain_text: title }] } },
+  // 실제 Notion 응답처럼 type 을 담고, 이름은 일부러 "Title" 이 아니다 —
+  // 코드가 이름이 아니라 타입으로 제목 속성을 찾는지 스텁이 증명한다.
+  properties: { 이름: { type: "title", title: [{ plain_text: title }] } },
 })
 
 // 폴백은 일부러 경고를 남긴다. 검사 출력이 묻히지 않게 잠시 삼킨다.
@@ -435,13 +450,14 @@ async function run() {
       const u = String(url)
       const method = init?.method || "GET"
       calls.push(`${method} ${u.replace("https://api.notion.com/v1", "")}`)
-      if (u.includes("/databases/") && method === "POST")
+      if (isSchemaCall(u)) return schemaRes()
+      if (u.includes("/query") && method === "POST")
         // 제목이 resume 인 행이 이미 있다고 본다.
         return {
           ok: true,
           status: 200,
           json: async () => ({
-            results: [{ id: "row-1", properties: { Title: { title: [{ plain_text: "resume" }] } } }],
+            results: [row("resume", "row-1")],
           }),
         }
       if (u.includes("/blocks/row-1/children") && method === "GET")
@@ -477,7 +493,8 @@ async function run() {
       const u = String(url)
       const method = init?.method || "GET"
       calls.push(`${method} ${u.replace("https://api.notion.com/v1", "")}`)
-      if (u.includes("/databases/") && method === "POST")
+      if (isSchemaCall(u)) return schemaRes()
+      if (u.includes("/query") && method === "POST")
         return { ok: true, status: 200, json: async () => ({ results: [] }) }
       if (u.endsWith("/pages") && method === "POST")
         return { ok: true, status: 200, json: async () => ({ id: "made" }) }
@@ -534,7 +551,8 @@ async function run() {
       const u = String(url)
       const method = init?.method || "GET"
       calls.push(`${method} ${u.replace("https://api.notion.com/v1", "")}`)
-      if (u.includes("/databases/") && method === "POST") {
+      if (isSchemaCall(u)) return schemaRes()
+      if (u.includes("/query") && method === "POST") {
         // 제목으로 걸러 조회하므로 메모 행은 결과에 오지 않는다.
         const body = JSON.parse(init.body)
         check("제목으로 걸러 조회한다", Boolean(body.filter), JSON.stringify(body).slice(0, 120))
@@ -554,12 +572,13 @@ async function run() {
     globalThis.fetch = async (url, init) => {
       const u = String(url)
       const method = init?.method || "GET"
-      if (u.includes("/databases/") && method === "POST")
+      if (isSchemaCall(u)) return schemaRes()
+      if (u.includes("/query") && method === "POST")
         return {
           ok: true,
           status: 200,
           json: async () => ({
-            results: [{ id: "row-1", properties: { Title: { title: [{ plain_text: "resume" }] } } }],
+            results: [row("resume", "row-1")],
           }),
         }
       if (u.includes("/blocks/row-1/children") && method === "GET")
@@ -746,12 +765,13 @@ async function run() {
     globalThis.fetch = async (url, init) => {
       const u = String(url)
       const method = init?.method || "GET"
-      if (u.includes("/databases/") && method === "POST")
+      if (isSchemaCall(u)) return schemaRes()
+      if (u.includes("/query") && method === "POST")
         return {
           ok: true,
           status: 200,
           json: async () => ({
-            results: [{ id: "row-1", properties: { Title: { title: [{ plain_text: "resume" }] } } }],
+            results: [row("resume", "row-1")],
           }),
         }
       if (u.includes("/blocks/row-1/children") && method === "GET")
@@ -761,6 +781,130 @@ async function run() {
     const res = await notionResume.saveResume(warny)
     check("저장된다", res.pageId === "row-1")
     check("경고를 함께 돌려준다", (res.warnings || []).length > 0, JSON.stringify(res.warnings))
+  }
+
+  // ── 28~30. 제목 속성 이름에 의존하지 않는다 ──────────────────────────────
+  //
+  // 실제로 걸린 것이다. 안내를 따라 `Title` 이라는 **텍스트 열**을 새로 만들었더니
+  // 저장이 400 으로 실패했다 — "Title is expected to be rich_text."
+  // 이름이 맞아도 타입이 다르면 실패하고, 타입이 맞아도 이름이 다르면 실패했다.
+  console.log('\n28. 제목 열 이름이 "Title" 이 아니어도 읽는다')
+  {
+    const { notionResume, resumeData } = loadFresh()
+    const json = JSON.stringify(resumeData, null, 2)
+    globalThis.fetch = async (url) => {
+      const u = String(url)
+      if (u.includes("/query"))
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            results: [
+              {
+                id: "row-1",
+                properties: {
+                  // 제목 열은 한국어 UI 기본 이름, 그 옆에 텍스트 열 Title 이 미끼로 있다.
+                  이름: { type: "title", title: [{ plain_text: "resume" }] },
+                  Title: { type: "rich_text", rich_text: [{ plain_text: "엉뚱한 값" }] },
+                },
+              },
+            ],
+          }),
+        }
+      if (u.includes("/blocks/"))
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            results: [{ type: "code", code: { rich_text: [{ plain_text: json }] } }],
+          }),
+        }
+      return { ok: true, status: 200, json: async () => ({}) }
+    }
+    const r = await notionResume.getResume()
+    check("Notion 에서 읽는다", r.source.from === "notion", JSON.stringify(r.source))
+    // json 은 들여쓴 문자열이므로 압축본끼리 비교한다(처음에 이 둘을 그냥 비교해 실패했다).
+    check(
+      "미끼 Title(rich_text) 을 제목으로 보지 않는다",
+      JSON.stringify(r.data) === JSON.stringify(resumeData)
+    )
+  }
+
+  console.log("\n29. 저장 — 스키마에서 찾은 이름으로 행을 만든다")
+  {
+    const { notionResume, resumeData } = loadFresh()
+    let createBody = null
+    let queryBody = null
+    globalThis.fetch = async (url, init) => {
+      const u = String(url)
+      const method = init?.method || "GET"
+      if (u.includes("/databases/") && !u.includes("/query"))
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            properties: {
+              Title: { type: "rich_text" }, // 미끼
+              제목: { type: "title" }, // 진짜
+            },
+          }),
+        }
+      if (u.includes("/query")) {
+        queryBody = JSON.parse(init.body)
+        return { ok: true, status: 200, json: async () => ({ results: [] }) }
+      }
+      if (u.endsWith("/pages") && method === "POST") {
+        createBody = JSON.parse(init.body)
+        return { ok: true, status: 200, json: async () => ({ id: "made" }) }
+      }
+      return { ok: true, status: 200, json: async () => ({ results: [], has_more: false }) }
+    }
+    const res = await notionResume.saveResume(resumeData)
+    check("행을 만든다", res.pageId === "made")
+    check(
+      "진짜 제목 속성 이름을 쓴다",
+      Boolean(createBody?.properties?.["제목"]?.title),
+      JSON.stringify(createBody?.properties)
+    )
+    check(
+      "미끼 Title 에는 쓰지 않는다",
+      createBody?.properties?.Title === undefined,
+      JSON.stringify(createBody?.properties)
+    )
+    check(
+      "필터도 진짜 이름으로 건다",
+      queryBody?.filter?.property === "제목",
+      JSON.stringify(queryBody?.filter)
+    )
+    check(
+      "필터가 대소문자를 가리지 않는다 (contains)",
+      queryBody?.filter?.title?.contains === "resume",
+      JSON.stringify(queryBody?.filter)
+    )
+  }
+
+  console.log("\n30. 저장 — 제목 속성이 없으면 무엇이 문제인지 말한다")
+  {
+    const { notionResume, resumeData } = loadFresh()
+    globalThis.fetch = async (url) => {
+      const u = String(url)
+      if (u.includes("/databases/") && !u.includes("/query"))
+        // 데이터베이스가 아니라 일반 페이지 ID 를 넣은 경우 이렇게 보인다.
+        return { ok: true, status: 200, json: async () => ({ properties: {} }) }
+      return { ok: true, status: 200, json: async () => ({ results: [] }) }
+    }
+    let threw = null
+    try {
+      await notionResume.saveResume(resumeData)
+    } catch (e) {
+      threw = e
+    }
+    check("던진다", threw !== null)
+    check(
+      "일반 페이지 ID 를 의심하라고 알려 준다",
+      threw !== null && /제목\(title\) 속성이 없습니다/.test(String(threw.message)),
+      threw ? String(threw.message).slice(0, 160) : ""
+    )
   }
 
   console.log("\n17. 저장 — env 가 없으면 부르기 전에 막는다")

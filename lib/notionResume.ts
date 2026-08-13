@@ -31,6 +31,7 @@
 
 import { RESUME_DATABASE_ID, TOKEN } from "../config"
 import { replaceChildren } from "./notionWrite"
+import { checkResumeRules } from "./resumeRules"
 import { resumeData, type ResumeData } from "./resumeData"
 import { validateResume } from "./resumeSchema"
 
@@ -180,6 +181,23 @@ export async function getResume(fresh = false): Promise<{
   const checked = validateResume(parsed)
   if (!checked.ok) return fallback("JSON 모양이 이력서와 다르다", checked.problems)
 
+  /*
+    규칙 위반은 **막지 않고 로그에만 남긴다** (#262 4단계).
+
+    Notion 은 폼을 거치지 않는 두 번째 편집 표면이다(같은 이유로 스키마가 href 를 본다).
+    그쪽에서 항목에 강조를 다섯 개 달면 저장 검사를 통과하지 않고 화면에 그대로 나온다 —
+    #256 이 없앤 상태다. 검사에서 지적된 것이다.
+
+    그렇다고 폴백으로 떨어뜨리지는 않는다. 조판 규칙을 어긴 것 때문에 이력서 전체를 옛
+    내용으로 바꾸는 것은 손해가 더 크다. 대신 서버 로그에 남겨 **찾을 수 있게** 한다.
+    관리 화면에서 저장을 시도하면 그때는 막히고 무엇이 문제인지 보인다.
+  */
+  const rules = checkResumeRules(checked.data)
+  if (rules.errors.length) {
+    console.warn("[resume] Notion 내용이 조판 규칙을 어겼다 — 화면은 그대로 그린다")
+    for (const e of rules.errors.slice(0, 8)) console.warn(`[resume]   · ${e}`)
+  }
+
   return { data: checked.data, source: { from: "notion", pageId: page.id } }
 }
 
@@ -286,7 +304,9 @@ async function findOrCreateRow(): Promise<string> {
  * getResume() 과 달리 **던진다.** 저장은 사용자가 결과를 기다리는 동작이라, 조용히
  * 실패하면 "저장했다"고 착각하게 된다.
  */
-export async function saveResume(data: ResumeData): Promise<{ pageId: string }> {
+export async function saveResume(
+  data: ResumeData
+): Promise<{ pageId: string; warnings: string[] }> {
   if (!TOKEN || !RESUME_DATABASE_ID)
     throw new Error("NOTION_TOKEN 또는 NOTION_RESUME_DB 가 설정되지 않았습니다.")
 
@@ -294,8 +314,18 @@ export async function saveResume(data: ResumeData): Promise<{ pageId: string }> 
   if (!checked.ok)
     throw new Error(`이력서 모양이 올바르지 않습니다 — ${checked.problems.join(" / ")}`)
 
+  /*
+    모양 다음에 **규칙**을 본다 (#262 4단계). 여기서 막는 것은 어기면 화면이 #256 이 없앤
+    상태로 돌아가는 것들이다. 경고는 막지 않고 돌려준다 — 부르는 쪽이 사람에게 보여 준다.
+
+    이 검사를 액션이 아니라 여기 두는 이유는, 액션을 거치지 않는 호출도 막기 위해서다.
+  */
+  const rules = checkResumeRules(checked.data)
+  if (rules.errors.length)
+    throw new Error(`규칙을 지키지 않았습니다 — ${rules.errors.join(" / ")}`)
+
   const pageId = await findOrCreateRow()
   // 새 블록을 먼저 붙이고 성공한 뒤 옛 블록을 지운다(lib/notionWrite.ts 의 replaceChildren).
   await replaceChildren(pageId, resumeToBlocks(checked.data))
-  return { pageId }
+  return { pageId, warnings: rules.warnings }
 }

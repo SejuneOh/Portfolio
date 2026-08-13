@@ -5,6 +5,12 @@ import { auth } from "@/auth"
 export interface ActionState {
   ok: boolean
   message: string
+  /*
+    막지는 않지만 알릴 것 (#262 4단계). 지금은 이력서 저장만 쓴다 —
+    분량이 인쇄 3쪽에 가까워졌다든지, 칩에 숫자가 없다든지.
+    확실하지 않은 것으로 저장을 막으면 도구가 방해가 되므로 갈랐다.
+  */
+  warnings?: string[]
 }
 
 export function parseTags(raw: string): string[] {

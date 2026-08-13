@@ -65,15 +65,24 @@ export async function saveResumeAction(formData: FormData): Promise<ActionState>
     footer: [s("footerLeft"), s("footerRight")],
   }
 
+  let warnings: string[] = []
   try {
-    await saveResume(data)
+    // 규칙을 어기면 saveResume 이 던진다. 경고는 막지 않고 돌려준다 (#262 4단계).
+    warnings = (await saveResume(data)).warnings
   } catch (e) {
     return { ok: false, message: (e as Error).message }
   }
 
-  // 이력서와 /about 이 같은 데이터를 읽는다 (#262 1단계). 둘 다 새로 굽는다.
+  // 이력서와 /about 이 같은 출처를 읽는다. 둘 다 새로 굽는다 —
+  // /about 이 getResume() 을 부르지 않으면 이 호출은 아무 일도 하지 않는다(#266 에서 겪음).
   revalidatePath("/about/resume")
   revalidatePath("/about")
   revalidatePath("/admin/resume")
-  return { ok: true, message: "이력서가 저장되었습니다." }
+  return {
+    ok: true,
+    message: warnings.length
+      ? `이력서가 저장되었습니다. 확인할 것이 ${warnings.length}건 있습니다.`
+      : "이력서가 저장되었습니다.",
+    warnings,
+  }
 }

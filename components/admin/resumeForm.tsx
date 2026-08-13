@@ -68,6 +68,12 @@ export default function ResumeForm({ data, source }: { data: ResumeData; source:
   const router = useRouter()
   const { show, node } = useToast()
   const [saving, setSaving] = useState(false)
+  /*
+    막지는 않지만 알릴 것 (#262 4단계). 토스트는 사라지므로 분량 경고처럼 **읽고 판단할**
+    내용은 화면에 남긴다. 저장은 이미 끝났으니 지우는 버튼은 두지 않는다 — 다음 저장 때
+    다시 계산된다.
+  */
+  const [warnings, setWarnings] = useState<string[]>([])
   const text = encodeResume(data)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -77,9 +83,13 @@ export default function ResumeForm({ data, source }: { data: ResumeData; source:
     setSaving(true)
     try {
       const res = await saveResumeAction(formData)
+      setWarnings(res.warnings ?? [])
       show(res.ok ? "success" : "error", res.message || "저장에 실패했습니다.")
       if (res.ok) router.refresh()
     } catch {
+      // 앞선 저장의 경고를 지운다. 남겨 두면 실패 토스트 위에 "저장됐습니다" 가 붙어
+      // 일어나지 않은 저장을 설명한다 (검사 지적).
+      setWarnings([])
       show(
         "error",
         "저장에 실패했습니다. 시간 초과 또는 네트워크 오류일 수 있어요. 잠시 후 다시 시도해주세요."
@@ -99,6 +109,28 @@ export default function ResumeForm({ data, source }: { data: ResumeData; source:
           ? "Notion 에서 읽은 내용입니다. 저장하면 Notion 이 갱신되고 화면이 즉시 반영됩니다."
           : `아직 Notion 에서 읽지 못했습니다 (${source}). 아래는 코드 폴백 내용이며, 저장하면 이 내용이 Notion 에 처음 기록됩니다.`}
       </p>
+
+      {warnings.length > 0 && (
+        <div className="mb-4 rounded-md border border-line p-3">
+          <p className="text-xs font-semibold text-ink">
+            저장됐습니다. 다만 확인할 것이 {warnings.length}건 있습니다
+          </p>
+          {/*
+            키를 순번으로 잡는다. 경고 문구가 같아지는 경우가 있어서(이름이 빈 프로젝트가
+            둘이면 라벨이 같아진다) 문구를 키로 쓰면 한 줄이 사라진다 — 검사 지적이다.
+            라벨에 순번을 넣어 그 원인 자체도 없앴지만, 키는 순번이 맞다.
+          */}
+          <ul className="mt-2 space-y-1.5 text-xs leading-relaxed text-muted">
+            {warnings.map((w, i) => (
+              <li key={i}>· {w}</li>
+            ))}
+          </ul>
+          <p className="mt-2 text-[11px] text-muted/80">
+            분량 상한은 실측값입니다 — 인쇄가 3쪽이 되는 지점을 헤드리스 브라우저로 재서
+            그보다 앞에 두었습니다. 정확한 쪽수는 실제로 인쇄해 봐야 압니다.
+          </p>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="grid gap-5">
         <fieldset className="grid gap-4">

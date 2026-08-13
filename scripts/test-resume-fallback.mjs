@@ -44,6 +44,7 @@ function loadFresh() {
     notionResume: require(path.resolve(OUT, "lib/notionResume.js")),
     resumeData: require(path.resolve(OUT, "lib/resumeData.js")).resumeData,
     schema: require(path.resolve(OUT, "lib/resumeSchema.js")),
+    text: require(path.resolve(OUT, "lib/resumeText.js")),
   }
 }
 
@@ -240,6 +241,243 @@ async function run() {
     const emptyName = clone()
     emptyName.career[emptyName.career.length - 1].name = ""
     check("허용한다: 이름이 빈 프로젝트", schema.validateResume(emptyName).ok)
+  }
+
+  // ── 11. 폼 왕복 (#262 3단계) ──────────────────────────────────────────────
+  //
+  // 관리 화면은 이력서를 글상자로 펼쳐 보여 주고, 저장할 때 다시 데이터로 읽는다.
+  // 그 왕복이 내용을 조용히 바꾸면 저장 한 번에 이력서가 달라진다 — 가장 무서운 결함이다.
+  console.log("\n11. 글상자 왕복 — 펼쳤다가 다시 읽으면 원본과 같아야 한다")
+  {
+    const { text, resumeData, schema } = loadFresh()
+    const form = text.encodeResume(resumeData)
+    const back = text.decodeResume(form)
+
+    check("읽는 데 성공한다", back.ok, back.ok ? "" : (back.problems || []).join(" / "))
+    if (back.ok) {
+      /*
+        값이 같은지와 키 순서가 같은지를 **따로** 본다.
+
+        둘을 한 번에 보면 순서만 다를 때도 JSON 덩어리가 통째로 찍혀서 무엇이 다른지
+        읽을 수 없다(실제로 처음에 그랬다). 값이 다른 것은 결함이고, 순서가 다른 것은
+        저장되는 JSON 이 요동친다는 뜻이라 성격이 다르다.
+      */
+      const sortKeys = (v) =>
+        Array.isArray(v)
+          ? v.map(sortKeys)
+          : v && typeof v === "object"
+            ? Object.fromEntries(Object.keys(v).sort().map((k) => [k, sortKeys(v[k])]))
+            : v
+
+      const same = (name, a, b) => {
+        const valueSame = JSON.stringify(sortKeys(a)) === JSON.stringify(sortKeys(b))
+        check(`왕복해도 값이 같다: ${name}`, valueSame, valueSame ? "" : firstDiff(a, b))
+        if (valueSame)
+          check(`왕복해도 키 순서가 같다: ${name}`, JSON.stringify(a) === JSON.stringify(b),
+            "값은 같지만 순서가 다르다 — 저장되는 JSON 이 저장마다 요동친다")
+      }
+
+      // 값이 다를 때 어디가 다른지 짧게 찍는다. 전체를 찍으면 읽을 수 없다.
+      function firstDiff(a, b) {
+        const sa = JSON.stringify(a)
+        const sb = JSON.stringify(b)
+        let i = 0
+        while (i < sa.length && sa[i] === sb[i]) i++
+        return `\n     전: …${sa.slice(Math.max(0, i - 30), i + 70)}\n     후: …${sb.slice(Math.max(0, i - 30), i + 70)}`
+      }
+      same("연락처", resumeData.header.contacts, back.parts.contacts)
+      same("핵심 역량", resumeData.skills, back.parts.skills)
+      same("경력", resumeData.career, back.parts.career)
+      same("사이드", resumeData.side, back.parts.side)
+      same("학력", resumeData.education, back.parts.education)
+
+      // 왕복한 값으로 이력서를 다시 조립해도 스키마를 통과해야 한다.
+      const rebuilt = {
+        header: { ...resumeData.header, contacts: back.parts.contacts },
+        metrics: resumeData.metrics,
+        skills: back.parts.skills,
+        career: back.parts.career,
+        side: back.parts.side,
+        education: back.parts.education,
+        footer: resumeData.footer,
+      }
+      check("다시 조립한 이력서가 스키마를 통과한다", schema.validateResume(rebuilt).ok)
+      check(
+        "다시 조립한 이력서가 원본과 한 글자도 다르지 않다",
+        JSON.stringify(rebuilt) === JSON.stringify(resumeData)
+      )
+    }
+  }
+
+  console.log("\n12. 글상자 문법 오류를 줄 번호와 함께 잡는다")
+  {
+    const { text, resumeData } = loadFresh()
+    const base = text.encodeResume(resumeData)
+
+    const bad = [
+      ["항목(-)이 프로젝트 밖에 있다", { career: "- 2024 | 떠 있는 항목" }],
+      ["회사(##)가 없다", { career: "# 프로젝트\n- 2024 | 항목" }],
+      ["프로젝트에 항목이 없다", { career: "## 회사\n# 프로젝트" }],
+      ["시작 기호가 없다", { career: "## 회사\n그냥 문장" }],
+      ["스킬에 주로 쓰는 것이 없다", { skills: "Backend" }],
+      ["학력에 기간이 없다", { education: "학교 이름" }],
+      ["연락처가 비었다", { contacts: "" }],
+      ["사이드가 비었다", { side: "" }],
+    ]
+    for (const [name, patch] of bad) {
+      const r = text.decodeResume({ ...base, ...patch })
+      check(`막는다: ${name}`, r.ok === false, "통과해 버렸다")
+    }
+
+    // 연도 없는 항목은 두 형태 모두 허용한다.
+    for (const form of ["## 회사\n# P\n- | 본문", "## 회사\n# P\n- 본문"]) {
+      const r = text.decodeResume({ ...base, career: form })
+      check(
+        `허용한다: 연도 없는 항목 (${JSON.stringify(form.split("\n")[2])})`,
+        r.ok === true && r.parts.career[1].bullets[0].year === undefined,
+        r.ok ? JSON.stringify(r.parts.career[1].bullets[0]) : (r.problems || []).join(" / ")
+      )
+    }
+  }
+
+  console.log("\n13. 저장용 코드 블록 쪼개기")
+  {
+    const { notionResume, resumeData } = loadFresh()
+    const blocks = notionResume.resumeToBlocks(resumeData)
+    check("여러 블록으로 쪼개진다", blocks.length > 1, `${blocks.length}개`)
+    check(
+      "모든 블록이 2000자 이하다",
+      blocks.every((b) => b.code.rich_text[0].text.content.length <= 2000)
+    )
+    check(
+      "모든 블록이 code · json 이다",
+      blocks.every((b) => b.type === "code" && b.code.language === "json")
+    )
+    // 이어 붙이면 다시 원본이 되어야 한다. 줄 경계로 자르므로 개행이 사라지지 않아야 한다.
+    const joined = blocks.map((b) => b.code.rich_text[0].text.content).join("\n")
+    let parsed = null
+    try {
+      parsed = JSON.parse(joined)
+    } catch {
+      /* 아래 check 에서 잡는다 */
+    }
+    check("이어 붙이면 다시 읽힌다", parsed !== null)
+    check("이어 붙인 내용이 원본과 같다", JSON.stringify(parsed) === JSON.stringify(resumeData))
+  }
+
+  // ── 14. 저장 (#262 3단계) ─────────────────────────────────────────────────
+  //
+  // 저장 전 검사가 가장 중요한 관문이다 — 이력서는 한 칸에 통째로 들어가므로 잘못된 값이
+  // 들어가면 전체를 잃는다. 처음에는 이 시나리오가 없어서 "저장 전 검사를 없앤다" 돌연변이가
+  // 하네스를 통과했다. 그래서 넣었다.
+  console.log("\n14. 저장 — 검사를 통과하지 못한 값은 Notion 을 건드리지 않는다")
+  {
+    const { notionResume, resumeData } = loadFresh()
+    const broken = JSON.parse(JSON.stringify(resumeData))
+    broken.metrics = broken.metrics.slice(0, 2) // 3개가 아니다
+
+    const calls = []
+    globalThis.fetch = async (url, init) => {
+      calls.push(`${init?.method || "GET"} ${String(url)}`)
+      return { ok: true, status: 200, json: async () => ({ results: [], id: "new" }) }
+    }
+
+    let threw = null
+    try {
+      await notionResume.saveResume(broken)
+    } catch (e) {
+      threw = e
+    }
+    check("잘못된 값이면 던진다", threw !== null)
+    check(
+      "던지는 말에 무엇이 틀렸는지 담긴다",
+      threw !== null && /metrics/.test(String(threw.message)),
+      threw ? String(threw.message).slice(0, 120) : ""
+    )
+    check("Notion 을 한 번도 부르지 않는다", calls.length === 0, calls.join(" · "))
+  }
+
+  console.log("\n15. 저장 — 올바른 값은 붙인 뒤 옛 블록을 지운다")
+  {
+    const { notionResume, resumeData } = loadFresh()
+    const calls = []
+    globalThis.fetch = async (url, init) => {
+      const u = String(url)
+      const method = init?.method || "GET"
+      calls.push(`${method} ${u.replace("https://api.notion.com/v1", "")}`)
+      if (u.includes("/databases/") && method === "POST")
+        // 제목이 resume 인 행이 이미 있다고 본다.
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            results: [{ id: "row-1", properties: { Title: { title: [{ plain_text: "resume" }] } } }],
+          }),
+        }
+      if (u.includes("/blocks/row-1/children") && method === "GET")
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ results: [{ id: "old-1" }, { id: "old-2" }], has_more: false }),
+        }
+      return { ok: true, status: 200, json: async () => ({}) }
+    }
+
+    const res = await notionResume.saveResume(resumeData)
+    check("저장한 행 id 를 돌려준다", res.pageId === "row-1", JSON.stringify(res))
+
+    const appendAt = calls.findIndex((c) => c.startsWith("PATCH /blocks/row-1/children"))
+    const firstDeleteAt = calls.findIndex((c) => c.startsWith("DELETE /blocks/"))
+    check("새 블록을 붙인다", appendAt >= 0, calls.join(" · "))
+    check("옛 블록을 지운다", firstDeleteAt >= 0, calls.join(" · "))
+    // 순서가 뒤집히면 중간 실패 시 내용이 사라진다 (lib/notionWrite.ts replaceChildren).
+    check(
+      "붙이기가 지우기보다 먼저다",
+      appendAt >= 0 && firstDeleteAt >= 0 && appendAt < firstDeleteAt,
+      calls.join(" · ")
+    )
+    check("행을 새로 만들지 않는다", !calls.some((c) => c === "POST /pages"), calls.join(" · "))
+  }
+
+  console.log("\n16. 저장 — 행이 없으면 만든다")
+  {
+    const { notionResume, resumeData } = loadFresh()
+    const calls = []
+    globalThis.fetch = async (url, init) => {
+      const u = String(url)
+      const method = init?.method || "GET"
+      calls.push(`${method} ${u.replace("https://api.notion.com/v1", "")}`)
+      if (u.includes("/databases/") && method === "POST")
+        return { ok: true, status: 200, json: async () => ({ results: [] }) }
+      if (u.endsWith("/pages") && method === "POST")
+        return { ok: true, status: 200, json: async () => ({ id: "made" }) }
+      return { ok: true, status: 200, json: async () => ({ results: [], has_more: false }) }
+    }
+    const res = await notionResume.saveResume(resumeData)
+    check("행을 만든다", calls.some((c) => c === "POST /pages"), calls.join(" · "))
+    check("만든 행에 쓴다", res.pageId === "made", JSON.stringify(res))
+  }
+
+  console.log("\n17. 저장 — env 가 없으면 부르기 전에 막는다")
+  {
+    delete process.env.NOTION_RESUME_DB
+    const { notionResume, resumeData } = loadFresh()
+    let threw = null
+    globalThis.fetch = async () => {
+      throw new Error("불렀으면 안 된다")
+    }
+    try {
+      await notionResume.saveResume(resumeData)
+    } catch (e) {
+      threw = e
+    }
+    check("던진다", threw !== null)
+    check(
+      "env 이름을 알려 준다",
+      threw !== null && /NOTION_RESUME_DB|NOTION_TOKEN/.test(String(threw.message)),
+      threw ? String(threw.message) : ""
+    )
+    process.env.NOTION_RESUME_DB = "test-db"
   }
 
   console.log(`\n통과 ${pass} · 실패 ${fail}`)

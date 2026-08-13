@@ -199,12 +199,20 @@ async function deleteBlocks(ids: string[]) {
   }
 }
 
-// 본문 교체: 유실 방지를 위해 **새 블록을 먼저 append → 성공 후 옛 블록 삭제** 순서.
+// 하위 블록 교체: 유실 방지를 위해 **새 블록을 먼저 append → 성공 후 옛 블록 삭제** 순서.
 // 중간 실패 시 최악은 '본문 중복'(복구 가능)이며, 유실은 발생하지 않는다.
-async function replaceBody(pageId: string, bodyText: string) {
+//
+// 이력서 저장(lib/notionResume.ts)도 이것을 쓴다 (#262 3단계). 블록을 만드는 방식만 다르다 —
+// 블로그는 산문(textToBlocks), 이력서는 JSON 코드 블록. **순서의 안전성은 한 곳에 둔다** —
+// 복사해 두면 한쪽에서 순서가 뒤집혀도 눈에 띄지 않고, 그 결과는 내용 유실이다.
+export async function replaceChildren(pageId: string, children: Record<string, unknown>[]) {
   const oldIds = await listChildIds(pageId) // 1) 옛 블록 파악(페이지네이션)
-  await appendChildren(pageId, textToBlocks(bodyText)) // 2) 새 본문 먼저 추가(≤100 청크)
+  await appendChildren(pageId, children) // 2) 새 블록 먼저 추가(≤100 청크)
   await deleteBlocks(oldIds) // 3) 성공한 뒤에만 옛 블록 삭제
+}
+
+async function replaceBody(pageId: string, bodyText: string) {
+  await replaceChildren(pageId, textToBlocks(bodyText))
 }
 
 export interface BlogInput {

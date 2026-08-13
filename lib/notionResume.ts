@@ -30,6 +30,7 @@
 */
 
 import { RESUME_DATABASE_ID, TOKEN } from "../config"
+import { replaceChildren } from "./notionWrite"
 import { resumeData, type ResumeData } from "./resumeData"
 import { validateResume } from "./resumeSchema"
 
@@ -180,4 +181,103 @@ export async function getResume(fresh = false): Promise<{
   if (!checked.ok) return fallback("JSON 모양이 이력서와 다르다", checked.problems)
 
   return { data: checked.data, source: { from: "notion", pageId: page.id } }
+}
+
+// ── 쓰기 (#262 3단계) ────────────────────────────────────────────────────────
+
+/*
+  JSON 을 code 블록으로 쪼갠다.
+
+  두 가지를 지킨다.
+  - **항목당 2000자** — Notion rich_text 제한(lib/notionWrite.ts:36 에 같은 사실이 적혀 있다)
+  - **줄 경계에서만 자른다** — 들여쓴 JSON 을 글자 수로 자르면 블록 경계가 줄 중간에 떨어져
+    Notion 에서 열어 볼 때 깨진 것처럼 보인다. 어차피 사람이 그 화면에서 고치지는 않지만,
+    **눈으로 확인하는 길**은 이 저장 방식에서 남은 유일한 확인 수단이라 읽히게 둔다.
+
+  들여쓰기를 넣는 이유도 같다 — 한 줄로 붙여 두면 Notion 에서 아무것도 읽을 수 없다.
+*/
+export function resumeToBlocks(data: ResumeData): Record<string, unknown>[] {
+  const json = JSON.stringify(data, null, 2)
+  const LIMIT = 2000
+
+  const chunks: string[] = []
+  let buf = ""
+  for (const line of json.split("\n")) {
+    // 한 줄이 혼자 2000자를 넘는 경우(아주 긴 항목 본문)는 글자 수로 자른다.
+    if (line.length >= LIMIT) {
+      if (buf) (chunks.push(buf), (buf = ""))
+      for (let i = 0; i < line.length; i += LIMIT) chunks.push(line.slice(i, i + LIMIT))
+      continue
+    }
+    if (buf.length + line.length + 1 > LIMIT) {
+      chunks.push(buf)
+      buf = line
+    } else {
+      buf = buf ? `${buf}\n${line}` : line
+    }
+  }
+  if (buf) chunks.push(buf)
+
+  return chunks.map((c) => ({
+    object: "block",
+    type: "code",
+    code: {
+      language: "json",
+      rich_text: [{ type: "text", text: { content: c } }],
+    },
+  }))
+}
+
+async function findOrCreateRow(): Promise<string> {
+  const res = await fetch(`${NOTION_API}/databases/${RESUME_DATABASE_ID}/query`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({ page_size: 20 }),
+    cache: "no-store",
+  })
+  if (!res.ok) throw new Error(`DB 조회 실패 (${res.status})`)
+  const json = (await res.json()) as { results?: NotionPage[] }
+  const rows = json.results || []
+  const found = rows.find((r) => readTitle(r).trim().toLowerCase() === RESUME_ROW_TITLE)
+  if (found) return found.id
+  if (rows.length) return rows[0].id
+
+  // DB 는 만들었지만 행이 없는 경우. 첫 저장에서 만들어 준다 —
+  // 사람이 Notion 에서 행을 만들어야 저장이 된다면 그걸 아는 방법이 없다.
+  const created = await fetch(`${NOTION_API}/pages`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({
+      parent: { database_id: RESUME_DATABASE_ID },
+      properties: {
+        [RESUME_PROPS.title]: { title: [{ text: { content: RESUME_ROW_TITLE } }] },
+      },
+    }),
+  })
+  if (!created.ok) {
+    const detail = await created.text().catch(() => "")
+    throw new Error(`행 생성 실패 (${created.status}): ${detail.slice(0, 200)}`)
+  }
+  return ((await created.json()) as { id: string }).id
+}
+
+/**
+ * 이력서를 저장한다. **저장 전에 스키마를 검사한다** — 읽기에서만 막으면 잘못된 값이
+ * 이미 저장된 뒤에 발견되고, 이 구조에서는 그것이 이력서 전체를 잃는 것과 같다.
+ *
+ * getResume() 과 달리 **던진다.** 저장은 사용자가 결과를 기다리는 동작이라, 조용히
+ * 실패하면 "저장했다"고 착각하게 된다.
+ */
+export async function saveResume(data: ResumeData): Promise<{ pageId: string }> {
+  if (!TOKEN || !RESUME_DATABASE_ID)
+    throw new Error("NOTION_TOKEN 또는 NOTION_RESUME_DB 가 설정되지 않았습니다.")
+
+  const checked = validateResume(data)
+  if (!checked.ok)
+    throw new Error(`이력서 모양이 올바르지 않습니다 — ${checked.problems.join(" / ")}`)
+
+  const pageId = await findOrCreateRow()
+  // 새 블록을 먼저 붙이고 성공한 뒤 옛 블록을 지운다(lib/notionWrite.ts 의 replaceChildren).
+  await replaceChildren(pageId, resumeToBlocks(checked.data))
+  return { pageId }
 }

@@ -42,9 +42,21 @@ const REVALIDATE = 3600
 /** 이력서 행을 찾는 제목. DB 에 행이 여러 개면 이것을 먼저 찾고, 없으면 첫 행을 쓴다. */
 export const RESUME_ROW_TITLE = "resume"
 
-export const RESUME_PROPS = {
-  title: "Title",
-} as const
+/*
+  제목 속성의 **이름은 고정하지 않는다.**
+
+  전에는 `"Title"` 로 못박아 썼다. Notion 에서 새 DB 를 만들면 제목 열 기본 이름이 `Name`
+  (한국어 UI 는 `이름`)이라, 안내를 따라 `Title` 이라는 **텍스트 열을 새로 만들면** 저장이
+  이렇게 실패한다.
+
+      400 validation_error — "Title is expected to be rich_text."
+
+  이름이 맞아도 타입이 다르면 실패하고, 타입이 맞아도 이름이 다르면 실패한다. 사람이 두 개를
+  동시에 맞춰야 하는 설계였고 실제로 걸렸다.
+
+  Notion DB 에는 **타입이 `title` 인 속성이 정확히 하나** 있다. 그것을 찾아 쓴다 —
+  열 이름이 `Name` 이든 `이름` 이든 `제목` 이든 동작한다.
+*/
 
 function headers() {
   return {
@@ -79,11 +91,43 @@ function warn(reason: string, detail?: string[]) {
   if (detail?.length) for (const d of detail.slice(0, 12)) console.warn(`[resume]   · ${d}`)
 }
 
+/*
+  행 제목을 읽는다. **속성 이름을 모른 채** 읽는다 — 값의 타입이 `title` 인 것을 찾는다.
+  읽기는 이것으로 충분해서 DB 스키마를 따로 물어볼 필요가 없다.
+*/
 function readTitle(page: NotionPage): string {
-  const prop = page.properties?.[RESUME_PROPS.title] as
-    | { title?: NotionRichText[] }
-    | undefined
-  return (prop?.title || []).map((t) => t.plain_text || "").join("")
+  for (const value of Object.values(page.properties || {})) {
+    const prop = value as { type?: string; title?: NotionRichText[] }
+    if (prop?.type === "title" || Array.isArray(prop?.title))
+      return (prop.title || []).map((t) => t.plain_text || "").join("")
+  }
+  return ""
+}
+
+/*
+  쓰기는 속성 **이름**이 필요하다(필터와 행 생성 payload 가 이름을 쓴다). 그래서 DB 스키마를
+  한 번 물어 타입이 `title` 인 속성의 이름을 찾는다. 저장 한 번에 요청 하나가 더 늘지만,
+  사람이 열 이름을 맞추지 않아도 되는 값이 그보다 크다.
+*/
+async function titlePropertyName(): Promise<string> {
+  const res = await fetch(`${NOTION_API}/databases/${RESUME_DATABASE_ID}`, {
+    headers: headers(),
+    cache: "no-store",
+  })
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "")
+    throw new Error(`DB 스키마 조회 실패 (${res.status}): ${detail.slice(0, 200)}`)
+  }
+  const json = (await res.json()) as {
+    properties?: Record<string, { type?: string }>
+  }
+  const found = Object.entries(json.properties || {}).find(([, p]) => p?.type === "title")
+  if (!found)
+    throw new Error(
+      "이 데이터베이스에 제목(title) 속성이 없습니다. Notion 데이터베이스라면 반드시 하나 있어야 합니다 — " +
+        "일반 페이지 ID 를 NOTION_RESUME_DB 에 넣지 않았는지 확인하세요."
+    )
+  return found[0]
 }
 
 /** 본문 블록에서 JSON 문자열을 모은다. code 블록만 본다 — 사람이 적은 메모(문단)는 건너뛴다. */
@@ -261,14 +305,22 @@ export function resumeToBlocks(data: ResumeData): Record<string, unknown>[] {
   검사에서 지적된 것이고, 그래서 쓰기는 **제목이 정확히 맞는 행만** 쓴다.
 
   제목으로 걸러 조회하므로 행이 많아도(읽기의 page_size 20 창 밖에 있어도) 찾는다.
+  속성 이름은 스키마에서 찾아 쓴다 — 열 이름이 `Name` 이든 `이름` 이든 동작한다.
+
+  **대소문자를 읽기와 같게 본다.** 전에는 필터가 `equals: "resume"`(대소문자 구분)이고 읽기는
+  소문자로 맞춰 비교해서, 사람이 행을 `Resume` 로 만들면 필터가 못 찾아 `resume` 행을 하나 더
+  만들었다. 행이 둘이 되면 그다음부터 읽기가 어느 쪽을 볼지 순서에 달린다.
+  그래서 필터는 `contains` 로 넓게 걸고, 정확한 판정은 읽기와 같은 규칙으로 한다.
 */
 async function findOrCreateRow(): Promise<string> {
+  const titleProp = await titlePropertyName()
+
   const res = await fetch(`${NOTION_API}/databases/${RESUME_DATABASE_ID}/query`, {
     method: "POST",
     headers: headers(),
     body: JSON.stringify({
-      filter: { property: RESUME_PROPS.title, title: { equals: RESUME_ROW_TITLE } },
-      page_size: 5,
+      filter: { property: titleProp, title: { contains: RESUME_ROW_TITLE } },
+      page_size: 20,
     }),
     cache: "no-store",
   })
@@ -286,7 +338,7 @@ async function findOrCreateRow(): Promise<string> {
     body: JSON.stringify({
       parent: { database_id: RESUME_DATABASE_ID },
       properties: {
-        [RESUME_PROPS.title]: { title: [{ text: { content: RESUME_ROW_TITLE } }] },
+        [titleProp]: { title: [{ text: { content: RESUME_ROW_TITLE } }] },
       },
     }),
   })

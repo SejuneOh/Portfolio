@@ -32,6 +32,8 @@ npx tsc \
   lib/notionResume.ts \
   lib/resumeSchema.ts \
   lib/resumeData.ts \
+  lib/resumeText.ts \
+  lib/notionWrite.ts \
   config/index.ts
 
 node scripts/test-resume-fallback.mjs "$TMP"

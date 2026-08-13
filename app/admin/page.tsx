@@ -61,6 +61,20 @@ export default async function AdminPage() {
         <span className="text-accent">→</span>
       </Link>
 
+      {/* 이력서 편집 진입 (#262). 개수를 세지 않는다 — 이력서는 하나다. */}
+      <Link
+        href="/admin/resume"
+        className="card mt-4 flex items-center justify-between p-5 transition-colors hover:bg-surface-hover"
+      >
+        <div>
+          <h2 className="text-base font-semibold text-fg">이력서 관리</h2>
+          <p className="mt-1 text-sm text-muted">
+            머리말·지표·경력·스킬 수정 · /about 의 스킬 목록도 함께 갱신
+          </p>
+        </div>
+        <span className="text-accent">→</span>
+      </Link>
+
       {/* 접수된 문의 목록 */}
       <section className="mt-14">
         <h2 className="text-lg font-semibold text-fg">

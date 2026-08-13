@@ -48,12 +48,34 @@ const isBool = (v: unknown): v is boolean => typeof v === "boolean"
 /** 비어 있지 않은 문자열. 빈 문자열은 대개 "칸을 만들었지만 안 채운" 상태다. */
 const isText = (v: unknown): v is string => isStr(v) && v.trim().length > 0
 
+/*
+  연락처 주소로 허용할 형태.
+
+  이 값은 공개 화면에서 `<a href={...}>` 로 그대로 나간다(components/resumeDoc.tsx).
+  아무 문자열이나 허용하면 `javascript:` 를 넣어 실행되는 링크를 만들 수 있다 — 관리 화면은
+  본인만 쓰지만, **이력서 내용은 Notion 이라는 별도 표면에서도 고쳐진다.** 그쪽으로 들어온
+  값은 폼을 거치지 않으므로 스키마(읽기 경로)에서 막아야 한다. 검사에서 잡힌 지적이다.
+
+  상대 경로(`/about`)도 허용한다 — 사이트 안을 가리키는 연락처 줄을 쓸 수 있다.
+*/
+export function isSafeHref(v: string): boolean {
+  const s = v.trim()
+  if (s.startsWith("/")) return true
+  return /^(mailto:|https?:\/\/)/i.test(s)
+}
+
 function checkContact(v: unknown, at: string, out: string[]): ResumeContact | null {
   if (!isObj(v)) return (out.push(`${at}: 객체가 아니다`), null)
   if (!isText(v.text)) return (out.push(`${at}.text: 빈 문자열이거나 문자열이 아니다`), null)
-  if (v.href !== undefined && !isText(v.href)) {
-    out.push(`${at}.href: 있으면 문자열이어야 한다`)
-    return null
+  if (v.href !== undefined) {
+    if (!isText(v.href)) {
+      out.push(`${at}.href: 있으면 문자열이어야 한다`)
+      return null
+    }
+    if (!isSafeHref(v.href)) {
+      out.push(`${at}.href: mailto: · https: · http: 또는 \`/\` 로 시작해야 한다`)
+      return null
+    }
   }
   return { text: v.text, ...(v.href ? { href: v.href as string } : {}) }
 }

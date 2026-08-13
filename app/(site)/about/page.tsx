@@ -1,20 +1,28 @@
 import Link from "next/link"
 import { intro } from "../../../components/home/homeData"
-import { resumeData } from "../../../lib/resumeData"
+import { getResume } from "../../../lib/notionResume"
+import type { ResumeSkillRow } from "../../../lib/resumeData"
 
 /*
-  스킬은 이력서와 **같은 배열**을 읽는다 (#262 1단계 · #260 이 목표한 것).
+  스킬은 이력서와 **같은 출처**를 읽는다 (#260 이 목표한 것).
 
   전에는 homeData.ts 에 따로 적혀 있었고, 그래서 실제로 갈라졌다 — 이력서에만 있는 항목이
   여섯 개, 이곳에만 있는 항목(`Docker`)이 하나였다. #259 에서 손으로 맞췄지만 손으로 맞춘 것은
-  또 갈라진다. 이제 한쪽을 고치면 두 화면이 함께 바뀐다.
+  또 갈라진다.
+
+  #262 1단계에서 두 화면이 같은 배열(lib/resumeData.ts)을 읽게 했는데, 2단계에서
+  `/about/resume` 만 Notion 으로 옮겨 가면서 **다시 갈라졌다.** 관리 화면에서 저장하면
+  이력서는 바뀌고 이곳은 다음 배포까지 컴파일된 값을 보여 줬다 — 검사에서 잡힌 결함이다.
+  이제 이곳도 getResume() 을 부른다. 저장 후 revalidatePath("/about") 이 실제로 효과가 있다.
 
   그리는 방식은 각자다 — 이력서는 `primary` 를 굵게, 이곳은 `·` 로 이어 평문으로 둔다.
 */
-const skills = resumeData.skills.map((s) => ({
-  group: s.group,
-  items: s.also ? `${s.primary} · ${s.also}` : s.primary,
-}))
+function toSkillCard(rows: ResumeSkillRow[]) {
+  return rows.map((s) => ({
+    group: s.group,
+    items: s.also ? `${s.primary} · ${s.also}` : s.primary,
+  }))
+}
 
 export const metadata = {
   title: "About",
@@ -53,7 +61,11 @@ const timeline: { org: string; period?: string; body: string }[] = [
   },
 ]
 
-export default function About() {
+export default async function About() {
+  // 실패하면 코드 폴백으로 떨어진다(getResume 은 던지지 않는다). 화면은 항상 뜬다.
+  const { data } = await getResume()
+  const skills = toSkillCard(data.skills)
+
   return (
     <div>
       <header className="max-w-[60ch]">

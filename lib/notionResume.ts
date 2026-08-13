@@ -30,6 +30,7 @@
 */
 
 import { RESUME_DATABASE_ID, TOKEN } from "../config"
+import { replaceChildren } from "./notionWrite"
 import { resumeData, type ResumeData } from "./resumeData"
 import { validateResume } from "./resumeSchema"
 
@@ -180,4 +181,121 @@ export async function getResume(fresh = false): Promise<{
   if (!checked.ok) return fallback("JSON 모양이 이력서와 다르다", checked.problems)
 
   return { data: checked.data, source: { from: "notion", pageId: page.id } }
+}
+
+// ── 쓰기 (#262 3단계) ────────────────────────────────────────────────────────
+
+/*
+  JSON 을 code 블록으로 쪼갠다.
+
+  두 가지를 지킨다.
+  - **항목당 2000자** — Notion rich_text 제한(lib/notionWrite.ts:36 에 같은 사실이 적혀 있다)
+  - **줄 경계에서만 자른다** — 들여쓴 JSON 을 글자 수로 자르면 블록 경계가 줄 중간에 떨어져
+    Notion 에서 열어 볼 때 깨진 것처럼 보인다. 어차피 사람이 그 화면에서 고치지는 않지만,
+    **눈으로 확인하는 길**은 이 저장 방식에서 남은 유일한 확인 수단이라 읽히게 둔다.
+
+  들여쓰기를 넣는 이유도 같다 — 한 줄로 붙여 두면 Notion 에서 아무것도 읽을 수 없다.
+*/
+export function resumeToBlocks(data: ResumeData): Record<string, unknown>[] {
+  const json = JSON.stringify(data, null, 2)
+  const LIMIT = 2000
+
+  /*
+    **이어 붙이면 원문이 글자 하나까지 복원되게 자른다.**
+
+    읽는 쪽(joinCodeText)은 블록을 `""` 로 이어 붙인다. 그래서 조각이 원문을 그대로 나눈 것이
+    아니면 복원되지 않는다. 전에는 줄 단위로 모으면서 **조각 사이의 개행을 버렸다** — JSON 은
+    공백에 관대하니 파싱은 됐지만, 두 번째 블록부터 줄 중간처럼 시작해 Notion 에서 읽기 어려웠다.
+    검사도 `"\n"` 으로 이어 붙여 프로덕션과 다른 것을 재고 있었다(둘 다 검사에서 지적됨).
+
+    지금은 원문을 훑어 자르고, 가능하면 **개행 바로 뒤**에서 끊는다. 개행이 조각에 포함되므로
+    join("") 이 원문과 같다. 한 줄이 혼자 2000자를 넘으면(아주 긴 항목 본문) 어쩔 수 없이
+    글자 수로 자른다 — 그때도 join("") 은 여전히 원문이다.
+  */
+  const chunks: string[] = []
+  let at = 0
+  while (at < json.length) {
+    let end = Math.min(at + LIMIT, json.length)
+    if (end < json.length) {
+      const lastBreak = json.lastIndexOf("\n", end - 1)
+      if (lastBreak > at) end = lastBreak + 1 // 개행을 조각에 포함시킨다
+    }
+    chunks.push(json.slice(at, end))
+    at = end
+  }
+
+  return chunks.map((c) => ({
+    object: "block",
+    type: "code",
+    code: {
+      language: "json",
+      rich_text: [{ type: "text", text: { content: c } }],
+    },
+  }))
+}
+
+/*
+  쓸 행을 찾는다. **읽기와 규칙이 다르다 — 일부러 다르다.**
+
+  읽기는 제목이 맞는 행이 없으면 첫 행을 본다. 엉뚱한 행을 읽어도 결과는 폴백이라 손해가 없다.
+  쓰기는 그럴 수 없다 — `replaceChildren` 이 그 페이지의 본문을 **전부 지우고** 이력서 JSON 으로
+  덮는다. DB 에 메모 행이 하나 있었다는 이유로 그 메모가 사라지면 되돌릴 수 없다.
+  검사에서 지적된 것이고, 그래서 쓰기는 **제목이 정확히 맞는 행만** 쓴다.
+
+  제목으로 걸러 조회하므로 행이 많아도(읽기의 page_size 20 창 밖에 있어도) 찾는다.
+*/
+async function findOrCreateRow(): Promise<string> {
+  const res = await fetch(`${NOTION_API}/databases/${RESUME_DATABASE_ID}/query`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({
+      filter: { property: RESUME_PROPS.title, title: { equals: RESUME_ROW_TITLE } },
+      page_size: 5,
+    }),
+    cache: "no-store",
+  })
+  if (!res.ok) throw new Error(`DB 조회 실패 (${res.status})`)
+  const json = (await res.json()) as { results?: NotionPage[] }
+  const rows = json.results || []
+  const found = rows.find((r) => readTitle(r).trim().toLowerCase() === RESUME_ROW_TITLE)
+  if (found) return found.id
+
+  // 제목이 맞는 행이 없으면 **만든다.** 아무 행이나 덮어쓰지 않는다.
+  // 사람이 Notion 에서 행을 먼저 만들어야 저장이 된다면 그것을 알 방법이 없다.
+  const created = await fetch(`${NOTION_API}/pages`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({
+      parent: { database_id: RESUME_DATABASE_ID },
+      properties: {
+        [RESUME_PROPS.title]: { title: [{ text: { content: RESUME_ROW_TITLE } }] },
+      },
+    }),
+  })
+  if (!created.ok) {
+    const detail = await created.text().catch(() => "")
+    throw new Error(`행 생성 실패 (${created.status}): ${detail.slice(0, 200)}`)
+  }
+  return ((await created.json()) as { id: string }).id
+}
+
+/**
+ * 이력서를 저장한다. **저장 전에 스키마를 검사한다** — 읽기에서만 막으면 잘못된 값이
+ * 이미 저장된 뒤에 발견되고, 이 구조에서는 그것이 이력서 전체를 잃는 것과 같다.
+ *
+ * getResume() 과 달리 **던진다.** 저장은 사용자가 결과를 기다리는 동작이라, 조용히
+ * 실패하면 "저장했다"고 착각하게 된다.
+ */
+export async function saveResume(data: ResumeData): Promise<{ pageId: string }> {
+  if (!TOKEN || !RESUME_DATABASE_ID)
+    throw new Error("NOTION_TOKEN 또는 NOTION_RESUME_DB 가 설정되지 않았습니다.")
+
+  const checked = validateResume(data)
+  if (!checked.ok)
+    throw new Error(`이력서 모양이 올바르지 않습니다 — ${checked.problems.join(" / ")}`)
+
+  const pageId = await findOrCreateRow()
+  // 새 블록을 먼저 붙이고 성공한 뒤 옛 블록을 지운다(lib/notionWrite.ts 의 replaceChildren).
+  await replaceChildren(pageId, resumeToBlocks(checked.data))
+  return { pageId }
 }

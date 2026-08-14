@@ -4,6 +4,7 @@ import { IBM_Plex_Sans_KR, IBM_Plex_Mono, Gowun_Batang } from "next/font/google"
 import Providers from "./providers"
 import { SITE_URL, SITE_NAME, SITE_TITLE, SITE_DESCRIPTION } from "../lib/site"
 import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 /*
   제목·본문용 서체. --font-display 변수로 노출 → globals.css 헤딩과 tailwind 의 font-display.
@@ -107,7 +108,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body>
         <Providers>{children}</Providers>
+        {/*
+          계측 둘은 서로 다른 것을 센다 — Analytics 는 방문자·페이지뷰,
+          SpeedInsights 는 실제 방문자가 겪은 Web Vitals(LCP·INP·CLS).
+
+          둘 다 Vercel 대시보드에서 해당 기능을 켜야 스크립트 경로가 생긴다.
+          꺼져 있으면 이 컴포넌트는 렌더되지만 비콘이 나가지 않는다.
+        */}
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )
